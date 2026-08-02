@@ -1,14 +1,18 @@
-AUDIT BOVIN GDS 32-65 — V10.2 MODULE ANIMAUX
+AUDIT BOVIN GDS 32-65 — V10.3 MODULE ANALYSE
 
 1. Décompresser le ZIP.
-2. Importer tous les fichiers directement à la racine du dépôt GitHub.
-3. Attendre le déploiement GitHub Pages.
-4. Ouvrir le site avec ?v=10.2 à la fin de l’adresse.
+2. Importer tous les fichiers à la racine du dépôt GitHub de la V10.1/V10.2.
+3. Valider le commit.
+4. Attendre GitHub Pages puis ouvrir avec ?v=10.3.
 
-TESTS À EFFECTUER
-- Ouvrir une visite existante dans Animaux.
-- Ajouter un sujet avec numéro de boucle et emplacement.
-- Fermer puis rouvrir l’application : le sujet doit être conservé.
-- Ouvrir la fiche du sujet et compléter catégorie, stade, âge, rang et lot.
-- Modifier puis supprimer un sujet.
-- Exporter puis restaurer la sauvegarde JSON : les sujets doivent être conservés.
+TEST CONSEILLÉ
+- Ouvrir Analyse.
+- Sélectionner une visite comportant au moins 2 sujets.
+- Classer les sujets dans Animaux si nécessaire.
+- Cliquer « Charger un jeu d’essai ».
+- Vérifier couleurs, moyennes, synthèse et conclusions technicien.
+- Modifier une valeur et vérifier la mise à jour immédiate.
+- Fermer puis rouvrir : les valeurs et conclusions doivent être conservées.
+
+IMPORTANT
+Ce module est un prototype d’aide à l’interprétation basé sur les seuils du classeur V13. Il ne constitue pas un diagnostic.

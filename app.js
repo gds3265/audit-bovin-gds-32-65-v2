@@ -1,11 +1,13 @@
 import { loadDatabase, saveDatabase, loadDraft, saveDraft, clearDraft, replaceDatabase } from './storage.js';
 import { uid, formatDate, formatDateTime, escapeHtml, downloadJson, slugify } from './utils.js';
+import { THRESHOLDS, CATEGORY_RULE_MAP } from './analysis-rules.js';
 
 let db = loadDatabase();
 let currentView = 'dashboard';
 let editingVisitId = null;
 let activeAnimalVisitId = localStorage.getItem('audit-bovin-active-animal-visit') || '';
 let openSubjectId = null;
+let activeAnalysisVisitId = localStorage.getItem('audit-bovin-active-analysis-visit') || '';
 const app = document.getElementById('app');
 const fileInput = document.getElementById('json-file-input');
 
@@ -24,9 +26,11 @@ function migrateDatabase() {
     visit.subjects = Array.isArray(visit.subjects) ? visit.subjects : [];
     visit.subjects.forEach(subject => {
       subject.measurements = subject.measurements && typeof subject.measurements === 'object' ? subject.measurements : {};
+      subject.measurements.analysis = subject.measurements.analysis && typeof subject.measurements.analysis === 'object' ? subject.measurements.analysis : {};
     });
   });
   if (activeAnimalVisitId && !db.visits.some(v => v.id === activeAnimalVisitId)) activeAnimalVisitId = '';
+  if (activeAnalysisVisitId && !db.visits.some(v => v.id === activeAnalysisVisitId)) activeAnalysisVisitId = '';
   saveDatabase(db);
 }
 migrateDatabase();
@@ -64,7 +68,7 @@ function visitLabel(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -342,6 +346,196 @@ function renderAnimals() {
     visit.updatedAt = new Date().toISOString();
     addJournal(visit, `Sujet supprimé : ${subject.tag || 'sans numéro'}.`);
     saveDatabase(db); openSubjectId = null; showToast('Sujet supprimé.'); renderAnimals();
+  }));
+}
+
+
+// V10.3 — Module Analyse testable
+const analysisParameters = [
+  { key: 'nec', label: 'NEC', short: 'NEC', step: '0.25', group: 'Physique' },
+  { key: 'urineColor', label: 'Couleur urine', short: 'Coul.', step: '1', min: '1', max: '5', group: 'Urines' },
+  { key: 'urinePH', label: 'pH urine', short: 'pH U', step: '0.01', group: 'Urines' },
+  { key: 'urineRedox', label: 'Redox urine', short: 'Redox U', step: '1', group: 'Urines' },
+  { key: 'urineBrix', label: 'Brix urine (%)', short: 'Brix U', step: '0.1', group: 'Urines' },
+  { key: 'urineDensity', label: 'Densité urine', short: 'Densité', step: '1', group: 'Urines' },
+  { key: 'glucose', label: 'Glycémie', short: 'Gly', step: '0.1', group: 'Sang' },
+  { key: 'boh', label: 'BOH', short: 'BOH', step: '0.01', group: 'Sang' },
+  { key: 'bloodPH', label: 'pH sanguin', short: 'pH S', step: '0.01', group: 'Sang' },
+  { key: 'urea', label: 'Urémie', short: 'Urée', step: '0.01', group: 'Sang' },
+  { key: 'fecesPH', label: 'pH bouses', short: 'pH B', step: '0.01', group: 'Bouses' },
+  { key: 'fecesRedox', label: 'Redox bouses', short: 'Redox B', step: '1', group: 'Bouses' }
+];
+
+function numericValue(value) {
+  if (value === '' || value === null || value === undefined) return null;
+  const number = Number(String(value).replace(',', '.'));
+  return Number.isFinite(number) ? number : null;
+}
+
+function thresholdFor(subject, key) {
+  const mapped = CATEGORY_RULE_MAP[subject.category];
+  return mapped ? THRESHOLDS[mapped]?.[key] || null : null;
+}
+
+function classifyValue(value, rule) {
+  const number = numericValue(value);
+  if (number === null) return { status: 'empty', label: 'Non mesuré' };
+  if (!rule) return { status: 'pending', label: 'Référence indisponible' };
+  const { redLow, yellowLow, greenLow, greenHigh, yellowHigh, redHigh, labels = {} } = rule;
+  if (redLow !== null && number <= redLow) return { status: 'red-low', label: labels.redLow || 'Très bas' };
+  if (greenLow !== null && number < greenLow) return { status: 'yellow-low', label: labels.yellowLow || 'Bas' };
+  if (greenHigh !== null && number <= greenHigh && (greenLow === null || number >= greenLow)) return { status: 'green', label: labels.green || 'Référence' };
+  if (redHigh !== null && number >= redHigh) return { status: 'red-high', label: labels.redHigh || 'Très haut' };
+  if (greenHigh !== null && number > greenHigh) return { status: 'yellow-high', label: labels.yellowHigh || 'Haut' };
+  if (greenLow !== null && number >= greenLow) return { status: 'green', label: labels.green || 'Référence' };
+  return { status: 'pending', label: 'À interpréter' };
+}
+
+function referenceText(rule) {
+  if (!rule) return 'Pas de seuil validé pour cette catégorie';
+  return rule.labels?.green || 'Plage de référence disponible';
+}
+
+function statusSeverity(status) {
+  return { 'red-low': 3, 'red-high': 3, 'yellow-low': 2, 'yellow-high': 2, pending: 1, green: 0, empty: 0 }[status] ?? 0;
+}
+
+function analysisCell(subject, parameter) {
+  const data = subject.measurements.analysis || {};
+  const value = data[parameter.key] ?? '';
+  const rule = thresholdFor(subject, parameter.key);
+  const result = subject.category && subject.category !== 'Non classé' ? classifyValue(value, rule) : (value === '' ? {status:'empty',label:'Non mesuré'} : {status:'unclassified',label:'Classer le sujet'});
+  return `<td class="analysis-value-cell ${result.status}" title="${escapeHtml(result.label)} · ${escapeHtml(referenceText(rule))}">
+    <input class="analysis-input" data-subject-id="${subject.id}" data-param="${parameter.key}" type="number" inputmode="decimal" step="${parameter.step}" ${parameter.min ? `min="${parameter.min}"` : ''} ${parameter.max ? `max="${parameter.max}"` : ''} value="${escapeHtml(value)}" aria-label="${escapeHtml(parameter.label)} — ${escapeHtml(subject.tag || 'Sujet')}" />
+    <small>${escapeHtml(result.label)}</small>
+  </td>`;
+}
+
+function categoryAnalysis(visit) {
+  const classified = (visit.subjects || []).filter(subject => subject.category && subject.category !== 'Non classé');
+  const groups = new Map();
+  classified.forEach(subject => {
+    if (!groups.has(subject.category)) groups.set(subject.category, []);
+    groups.get(subject.category).push(subject);
+  });
+  return [...groups.entries()].map(([category, subjects]) => {
+    const parameterResults = analysisParameters.map(parameter => {
+      const measured = subjects.map(subject => {
+        const value = numericValue(subject.measurements.analysis?.[parameter.key]);
+        const rule = thresholdFor(subject, parameter.key);
+        return value === null ? null : { value, result: classifyValue(value, rule), rule };
+      }).filter(Boolean);
+      if (!measured.length) return null;
+      const average = measured.reduce((sum, item) => sum + item.value, 0) / measured.length;
+      const worst = measured.slice().sort((a,b) => statusSeverity(b.result.status) - statusSeverity(a.result.status))[0];
+      const counts = measured.reduce((acc,item) => { acc[item.result.status]=(acc[item.result.status]||0)+1; return acc; },{});
+      return { parameter, measured, average, worst, counts, rule: measured[0].rule };
+    }).filter(Boolean);
+    return { category, subjects, parameterResults };
+  });
+}
+
+function interpretationItems(group) {
+  const byKey = Object.fromEntries(group.parameterResults.map(item => [item.parameter.key, item]));
+  const items = [];
+  const abnormal = item => item && statusSeverity(item.worst.result.status) >= 2;
+  const high = item => item && ['yellow-high','red-high'].includes(item.worst.result.status);
+  const low = item => item && ['yellow-low','red-low'].includes(item.worst.result.status);
+  if (high(byKey.urineDensity) || high(byKey.urineColor)) items.push({ level:'warning', title:'Hydratation à vérifier', text:'La concentration ou la couleur des urines sort de la plage attendue. Vérifier l’accès à l’eau, les débits, la concurrence et le contexte de prélèvement.' });
+  if (abnormal(byKey.urinePH)) items.push({ level:'warning', title:'Équilibre urinaire à investiguer', text:'Le pH urinaire s’écarte de la référence de cette catégorie. Mettre ce résultat en regard de la ration, de la minéralisation et du stade physiologique.' });
+  if (high(byKey.boh) || low(byKey.glucose)) items.push({ level:'danger', title:'Équilibre énergétique à investiguer', text:'Le profil BOH/glycémie comporte un ou plusieurs écarts. Vérifier l’ingestion, la densité énergétique, les transitions et l’état corporel.' });
+  if (abnormal(byKey.urea)) items.push({ level:'warning', title:'Équilibre azoté à vérifier', text:'L’urémie s’écarte de la plage attendue. Croiser avec la ration, les apports azotés, l’énergie disponible et l’hydratation.' });
+  if (abnormal(byKey.fecesPH) || abnormal(byKey.fecesRedox)) items.push({ level:'warning', title:'Digestion / fermentations à vérifier', text:'Les mesures sur les bouses suggèrent de contrôler la vitesse de transit, la fibrosité, les transitions et la valorisation de la ration.' });
+  if (abnormal(byKey.nec)) items.push({ level:'warning', title:'État corporel à surveiller', text:'La NEC comporte un écart par rapport à la catégorie. Examiner la dynamique d’état corporel et pas uniquement la valeur ponctuelle.' });
+  if (!items.length && group.parameterResults.length) items.push({ level:'good', title:'Profil mesuré globalement dans les repères', text:'Les valeurs renseignées sont majoritairement dans les plages de référence utilisées. Cette lecture reste à confronter aux observations et aux autres volets de l’audit.' });
+  return items;
+}
+
+function renderAnalysisSummary(visit) {
+  const groups = categoryAnalysis(visit);
+  const unclassified = (visit.subjects || []).filter(subject => !subject.category || subject.category === 'Non classé');
+  if (!groups.length) return `<div class="empty">Aucun sujet classé avec des valeurs mesurées. Classez les sujets dans l’onglet Animaux, puis renseignez quelques valeurs ci-dessus.</div>`;
+  return `<div class="analysis-summary-groups">${groups.map(group => {
+    const interpretations = interpretationItems(group);
+    return `<article class="card analysis-category-card">
+      <div class="section-title"><div><h3>${escapeHtml(group.category)}</h3><span class="muted">${group.subjects.length} sujet(s)</span></div><span class="analysis-category-score">${group.parameterResults.length} paramètre(s) mesuré(s)</span></div>
+      <div class="analysis-kpis">${group.parameterResults.map(item => `<div class="analysis-kpi ${item.worst.result.status}"><span>${escapeHtml(item.parameter.label)}</span><strong>${item.average.toLocaleString('fr-FR',{maximumFractionDigits:2})}</strong><small>${item.measured.length} mesure(s) · réf. ${escapeHtml(referenceText(item.rule))}</small></div>`).join('')}</div>
+      <div class="analysis-interpretations">${interpretations.map(item => `<div class="analysis-message ${item.level}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text)}</span></div>`).join('')}</div>
+      <div class="field"><label>Conclusion du technicien — ${escapeHtml(group.category)}</label><textarea data-analysis-conclusion="${escapeHtml(group.category)}" placeholder="Valider, nuancer ou compléter la synthèse automatique…">${escapeHtml(visit.analysisConclusions?.[group.category] || '')}</textarea></div>
+    </article>`;
+  }).join('')}</div>${unclassified.length ? `<div class="notice warning" style="margin-top:14px"><strong>${unclassified.length} sujet(s) non classé(s)</strong> : leurs valeurs sont conservées mais ne reçoivent pas de couleur ni d’interprétation catégorielle.</div>` : ''}`;
+}
+
+function renderAnalysis() {
+  const visits = db.visits.slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  if (!activeAnalysisVisitId && visits.length) activeAnalysisVisitId = visits[0].id;
+  const visit = db.visits.find(v => v.id === activeAnalysisVisitId);
+  visit?.subjects?.forEach(subject => { subject.measurements = subject.measurements && typeof subject.measurements === 'object' ? subject.measurements : {}; subject.measurements.analysis = subject.measurements.analysis && typeof subject.measurements.analysis === 'object' ? subject.measurements.analysis : {}; });
+  app.innerHTML = `
+    <div class="section-title"><div><h2>Analyse des mesures</h2><div class="muted">Prototype testable basé sur les seuils du classeur V13. Aide à l’interprétation, sans valeur diagnostique.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+    <section class="card analysis-toolbar">
+      <div class="field no-margin"><label for="analysis-visit-select">Visite analysée</label><select id="analysis-visit-select"><option value="">Sélectionner une visite…</option>${visits.map(v => `<option value="${v.id}" ${v.id === activeAnalysisVisitId ? 'selected' : ''}>${escapeHtml(visitLabel(v))}</option>`).join('')}</select></div>
+      ${visit ? `<div class="actions"><button class="btn" id="analysis-demo">Charger un jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer les valeurs d’analyse</button></div>` : ''}
+    </section>
+    ${!visit ? `<div class="empty" style="margin-top:16px">Créez ou sélectionnez une visite.</div>` : !visit.subjects?.length ? `<section class="card" style="margin-top:16px"><div class="empty">Cette visite ne contient aucun sujet. Ajoutez des animaux avant de tester l’analyse.</div></section>` : `
+      <section class="card" style="margin-top:16px">
+        <div class="section-title"><div><h3>Données de test / mesures clés</h3><span class="muted">Chaque cellule est enregistrée immédiatement. Gris = sujet non classé ou référence absente.</span></div><span class="analysis-legend"><i class="green"></i> Référence <i class="yellow"></i> Vigilance <i class="red"></i> Écart important <i class="grey"></i> En attente</span></div>
+        <div class="table-wrap analysis-table-wrap"><table class="analysis-table"><thead><tr><th class="sticky-col">Sujet</th><th class="sticky-col-2">Catégorie</th>${analysisParameters.map(p => `<th title="${escapeHtml(p.label)}">${escapeHtml(p.short)}</th>`).join('')}</tr></thead><tbody>${visit.subjects.map(subject => `<tr><td class="sticky-col"><strong>${escapeHtml(subject.tag || 'Sujet')}</strong><br><small>${escapeHtml(subject.location || '')}</small></td><td class="sticky-col-2"><span class="badge ${subject.category && subject.category !== 'Non classé' ? 'complete':'unclassified'}">${escapeHtml(subject.category || 'Non classé')}</span></td>${analysisParameters.map(p => analysisCell(subject,p)).join('')}</tr>`).join('')}</tbody></table></div>
+      </section>
+      <section style="margin-top:16px"><div class="section-title"><h2>Synthèse par catégorie</h2><span class="muted">Moyennes, écarts et premières pistes à confirmer</span></div><div id="analysis-summary">${renderAnalysisSummary(visit)}</div></section>`}`;
+
+  document.getElementById('analysis-visit-select')?.addEventListener('change', event => {
+    activeAnalysisVisitId = event.target.value;
+    localStorage.setItem('audit-bovin-active-analysis-visit', activeAnalysisVisitId);
+    renderAnalysis();
+  });
+  app.querySelectorAll('.analysis-input').forEach(input => {
+    const persist = () => {
+      const subject = visit.subjects.find(item => item.id === input.dataset.subjectId);
+      if (!subject) return;
+      subject.measurements.analysis = subject.measurements.analysis || {};
+      subject.measurements.analysis[input.dataset.param] = input.value;
+      subject.updatedAt = new Date().toISOString(); visit.updatedAt = new Date().toISOString();
+      saveDatabase(db);
+      const parameter = analysisParameters.find(item => item.key === input.dataset.param);
+      const cell = input.closest('.analysis-value-cell');
+      const result = subject.category && subject.category !== 'Non classé' ? classifyValue(input.value, thresholdFor(subject, input.dataset.param)) : (input.value === '' ? {status:'empty',label:'Non mesuré'} : {status:'unclassified',label:'Classer le sujet'});
+      cell.className = `analysis-value-cell ${result.status}`;
+      cell.querySelector('small').textContent = result.label;
+      document.getElementById('analysis-summary').innerHTML = renderAnalysisSummary(visit);
+      bindAnalysisConclusions(visit);
+    };
+    input.addEventListener('input', persist);
+    input.addEventListener('change', persist);
+  });
+  document.getElementById('analysis-demo')?.addEventListener('click', () => {
+    if (!confirm('Charger des valeurs d’essai dans cette visite ? Les valeurs d’analyse actuelles seront remplacées.')) return;
+    const demoCategories = ['Fraîche vêlée','Pic de lactation','Préparation vêlage','Fin lactation'];
+    visit.subjects.forEach((subject,index) => {
+      if (!subject.category || subject.category === 'Non classé') subject.category = demoCategories[index % demoCategories.length];
+      const alert = index % 3 === 1;
+      subject.measurements.analysis = {
+        nec: alert ? '2' : (subject.category === 'Pic de lactation' ? '2.25' : '3.25'), urineColor: alert ? '4' : '2',
+        urinePH: subject.category === 'Fin lactation' ? (alert ? '7.8':'7.2') : (alert ? '8.6':'8.0'), urineRedox: alert ? '12':'-10',
+        urineBrix: alert ? '8':'4', urineDensity: alert ? '1036':'1020', glucose: alert ? '39':'52', boh: alert ? '1.5':'0.5',
+        bloodPH: alert ? '7.5':'7.4', urea: alert ? '0.34':'0.25', fecesPH: alert ? '6.2':'6.65', fecesRedox: alert ? '-145':'-205'
+      };
+    });
+    addJournal(visit, 'Jeu de données d’essai chargé dans le module Analyse.'); saveDatabase(db); showToast('Jeu d’essai chargé.'); renderAnalysis();
+  });
+  document.getElementById('analysis-clear')?.addEventListener('click', () => {
+    if (!confirm('Effacer toutes les valeurs du module Analyse pour cette visite ?')) return;
+    visit.subjects.forEach(subject => { subject.measurements.analysis = {}; });
+    visit.analysisConclusions = {}; addJournal(visit, 'Valeurs du module Analyse effacées.'); saveDatabase(db); renderAnalysis();
+  });
+  bindAnalysisConclusions(visit);
+}
+
+function bindAnalysisConclusions(visit) {
+  app.querySelectorAll('[data-analysis-conclusion]').forEach(field => field.addEventListener('input', () => {
+    visit.analysisConclusions = visit.analysisConclusions || {};
+    visit.analysisConclusions[field.dataset.analysisConclusion] = field.value;
+    visit.updatedAt = new Date().toISOString(); saveDatabase(db);
   }));
 }
 
