@@ -898,20 +898,106 @@ function renderGeneralSection(visit) {
 }
 function suggestedActions(visit) { const out=[]; categoryAnalysis(visit).forEach(g=>interpretationItems(g).filter(i=>i.level!=='good').forEach(i=>out.push({category:g.category,...i}))); return out; }
 function renderSynthesisSection(visit) { const suggestions=suggestedActions(visit); return `<div id="analysis-summary">${renderAnalysisSummary(visit)}</div><section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Plan d’action</h3><span class="muted">Propositions issues des écarts. Le technicien valide et reformule.</span></div><button class="btn" id="add-custom-action">Ajouter une action libre</button></div><div class="action-suggestions">${suggestions.length?suggestions.map((a,i)=>`<div class="action-line"><span class="badge ${a.level==='danger'?'in-progress':'archived'}">${a.level==='danger'?'Priorité haute':'À surveiller'}</span><div><strong>${escapeHtml(a.category)} — ${escapeHtml(a.theme)}</strong><br><span>${escapeHtml(a.action)}</span></div><button class="btn small" data-accept-action="${i}">Ajouter</button></div>`).join(''):'<div class="empty">Aucune action automatique proposée à ce stade.</div>'}</div><div class="action-list">${visit.analysisActions.length?visit.analysisActions.map(a=>`<div class="action-edit"><select data-action-field="status" data-action-id="${a.id}"><option ${a.status==='À faire'?'selected':''}>À faire</option><option ${a.status==='En cours'?'selected':''}>En cours</option><option ${a.status==='Réalisé'?'selected':''}>Réalisé</option></select><input data-action-field="text" data-action-id="${a.id}" value="${escapeHtml(a.text||'')}"/><input data-action-field="responsible" data-action-id="${a.id}" placeholder="Responsable" value="${escapeHtml(a.responsible||'')}"/><button class="btn small danger" data-remove-action="${a.id}">×</button></div>`).join(''):''}</div></section>`; }
+
+function splitUsefulLines(value){
+  return String(value||'').split(/\n|•|;/).map(x=>x.trim()).filter(Boolean);
+}
+function uniqueText(items){
+  const seen=new Set();
+  return items.filter(item=>{const key=String(item||'').trim().toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+}
+function autoVisitConclusion(visit){
+  const groups=categoryAnalysis(visit);
+  const all=[];
+  groups.forEach(group=>buildKnowledgePistes(visit,group).forEach(p=>{
+    const state=reasoningState(visit,`${group.category}:${p.id}`);
+    if(state.status!=='dismissed')all.push({...p,category:group.category,reviewStatus:state.status});
+  }));
+  const rank={high:3,medium:2,low:1};
+  all.sort((a,b)=>(rank[b.confidence.className]||0)-(rank[a.confidence.className]||0)||b.evidence.length-a.evidence.length);
+
+  const strengths=[];
+  Object.values(visit.auditGlobal?.chapterSummaries||{}).forEach(ch=>strengths.push(...splitUsefulLines(ch?.strengths)));
+  groups.forEach(group=>{
+    if(group.parameterResults.length){
+      const measured=group.parameterResults.reduce((n,r)=>n+r.measured.length,0);
+      const outside=group.parameterResults.reduce((n,r)=>n+r.outOfRange,0);
+      if(measured>=3&&outside===0)strengths.push(`${group.category} : les paramètres mesurés sont globalement dans les repères renseignés.`);
+      else if(measured>=5&&outside/measured<=0.15)strengths.push(`${group.category} : la majorité des valeurs mesurées se situe dans les repères.`);
+    }
+  });
+  const build=buildingRecords(visit);
+  if(build.drinkers.length&&build.drinkers.every(d=>numericValue(d.flow)===null||numericValue(d.flow)>=10))strengths.push('Les débits d’abreuvement renseignés ne font pas ressortir de limitation majeure.');
+  if(build.litters.length&&!build.litters.some(l=>(numericValue(l.humidity)||0)>=60||(numericValue(l.temperature)||0)>=35))strengths.push('Les relevés de litière renseignés ne mettent pas en évidence d’anomalie majeure.');
+  if(!strengths.length&&groups.length)strengths.push('La visite dispose de données exploitables permettant de structurer plusieurs axes de suivi.');
+
+  const reviews={high:[],medium:[],low:[]};
+  all.forEach(p=>{
+    const level=p.confidence.className==='high'?'high':p.confidence.className==='medium'?'medium':'low';
+    reviews[level].push(`${p.category} — ${p.title}`);
+  });
+  Object.keys(reviews).forEach(k=>reviews[k]=uniqueText(reviews[k]));
+  const priorities=all.slice(0,3).map(p=>({
+    text:(p.checks&&p.checks[0])||`Approfondir la piste « ${p.title} » sur le lot ${p.category}.`,
+    source:`${p.category} — ${p.title}`,
+    decision:'À étudier',comment:''
+  }));
+  while(priorities.length<3)priorities.push({text:'',source:'',decision:'À étudier',comment:''});
+  const next=uniqueText(all.flatMap(p=>(p.checks||[]).slice(0,2))).slice(0,5);
+  const main=all[0];
+  const general=main
+    ? `Cette visite fait ressortir plusieurs points favorables ainsi que des éléments à approfondir. La piste actuellement la plus étayée concerne « ${main.title.toLowerCase()} » pour le lot ${main.category}. Cette proposition repose sur ${main.evidence.length} élément(s) concordant(s) provenant de ${main.sourceCount} source(s). Elle doit rester confrontée au contexte de l’élevage et validée par le technicien.`
+    : `Les éléments recueillis ne font pas ressortir de piste suffisamment étayée pour construire une conclusion automatique. La synthèse peut être complétée manuellement par le technicien.`;
+  return {strengths:uniqueText(strengths).slice(0,8),reviews,priorities,next,general};
+}
+function ensureVisitConclusion(visit,force=false){
+  if(!force&&visit.visitConclusion&&visit.visitConclusion.version===1)return visit.visitConclusion;
+  const auto=autoVisitConclusion(visit);
+  visit.visitConclusion={version:1,
+    strengths:auto.strengths.join('\n'),
+    high:auto.reviews.high.join('\n'),medium:auto.reviews.medium.join('\n'),low:auto.reviews.low.join('\n'),
+    priorities:auto.priorities,next:auto.next.join('\n'),general:auto.general,
+    technicianNote:'',updatedAt:new Date().toISOString()};
+  saveDatabase(db);return visit.visitConclusion;
+}
+function renderConclusionSection(visit){
+  const c=ensureVisitConclusion(visit);
+  const block=(title,icon,key,cls)=>`<article class="conclusion-card ${cls}"><h3>${icon} ${title}</h3><textarea data-conclusion-field="${key}" rows="6">${escapeHtml(c[key]||'')}</textarea></article>`;
+  return `<div class="notice"><strong>Synthèse courte :</strong> générée à partir des données et des pistes non écartées. Tous les textes restent modifiables par le technicien.</div>
+  <div class="section-title conclusion-title"><div><h2>Conclusion de visite</h2><span class="muted">Points forts, points à revoir et actions retenues avec l’éleveur.</span></div><div class="actions"><button class="btn secondary" id="regenerate-conclusion">Régénérer depuis les données</button><button class="btn" id="print-conclusion">Imprimer la conclusion</button></div></div>
+  <section class="conclusion-grid">${block('Points forts','✅','strengths','positive')}${block('À revoir en priorité','🔴','high','danger')}${block('À programmer','🟠','medium','warning')}${block('À surveiller','🟡','low','watch')}</section>
+  <section class="card"><h3>🎯 Trois actions principales</h3><div class="conclusion-actions">${c.priorities.map((a,i)=>`<div class="conclusion-action"><span class="action-number">${i+1}</span><div class="field"><label>Action proposée</label><textarea rows="2" data-conclusion-priority="${i}" data-priority-field="text">${escapeHtml(a.text||'')}</textarea>${a.source?`<small>Issue de : ${escapeHtml(a.source)}</small>`:''}</div><div class="field"><label>Décision</label><select data-conclusion-priority="${i}" data-priority-field="decision"><option ${a.decision==='Acceptée'?'selected':''}>Acceptée</option><option ${a.decision==='À étudier'?'selected':''}>À étudier</option><option ${a.decision==='Refusée'?'selected':''}>Refusée</option></select></div><div class="field"><label>Commentaire / décision prise</label><textarea rows="2" data-conclusion-priority="${i}" data-priority-field="comment">${escapeHtml(a.comment||'')}</textarea></div></div>`).join('')}</div></section>
+  <section class="grid cols-2"><article class="card"><h3>📅 À vérifier lors de la prochaine visite</h3><textarea rows="8" data-conclusion-field="next">${escapeHtml(c.next||'')}</textarea></article><article class="card"><h3>⭐ Conclusion générale</h3><textarea rows="8" data-conclusion-field="general">${escapeHtml(c.general||'')}</textarea></article></section>
+  <section class="card"><h3>✍️ Note complémentaire du technicien</h3><textarea rows="5" data-conclusion-field="technicianNote">${escapeHtml(c.technicianNote||'')}</textarea></section>`;
+}
+function bindConclusionEvents(visit){
+  const c=ensureVisitConclusion(visit);
+  app.querySelectorAll('[data-conclusion-field]').forEach(el=>el.oninput=()=>{c[el.dataset.conclusionField]=el.value;c.updatedAt=new Date().toISOString();saveDatabase(db);});
+  app.querySelectorAll('[data-conclusion-priority]').forEach(el=>{const save=()=>{const i=Number(el.dataset.conclusionPriority);c.priorities[i]=c.priorities[i]||{};c.priorities[i][el.dataset.priorityField]=el.value;c.updatedAt=new Date().toISOString();saveDatabase(db);};el.addEventListener('input',save);el.addEventListener('change',save);});
+  const regen=document.getElementById('regenerate-conclusion');if(regen)regen.onclick=()=>{if(confirm('Régénérer la synthèse à partir des données actuelles ? Les modifications manuelles seront remplacées.')){ensureVisitConclusion(visit,true);renderAnalysis();showToast('Synthèse régénérée.');}};
+  const print=document.getElementById('print-conclusion');if(print)print.onclick=()=>printVisitConclusion(visit);
+}
+function printVisitConclusion(visit){
+  const c=ensureVisitConclusion(visit),lines=v=>escapeHtml(v||'').replace(/\n/g,'<br>');
+  const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return;}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Conclusion de visite</title><style>${printBaseStyles()} body{font-family:Arial,sans-serif}.section{border:1px solid #ccd8d0;border-radius:10px;padding:12px;margin:12px 0}.actions{display:grid;gap:10px}.action{border-left:5px solid #1f6f43;padding:8px 12px;background:#f5f8f6}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — Conclusion de visite</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${escapeHtml(visit.technician||'')}</div></div><div class="section"><h2>✅ Points forts</h2>${lines(c.strengths)}</div><div class="section"><h2>⚠️ Points à revoir</h2><h3>Priorité</h3>${lines(c.high)}<h3>À programmer</h3>${lines(c.medium)}<h3>À surveiller</h3>${lines(c.low)}</div><div class="section"><h2>🎯 Actions principales</h2><div class="actions">${c.priorities.filter(a=>a.text).map((a,i)=>`<div class="action"><b>${i+1}. ${escapeHtml(a.text)}</b><br>Décision : ${escapeHtml(a.decision||'')}<br>${lines(a.comment)}</div>`).join('')}</div></div><div class="section"><h2>📅 Prochaine visite</h2>${lines(c.next)}</div><div class="section"><h2>Conclusion générale</h2>${lines(c.general)}</div>${c.technicianNote?`<div class="section"><h2>Note du technicien</h2>${lines(c.technicianNote)}</div>`:''}</body></html>`);w.document.close();
+}
+
 function renderAnalysis() {
   const visits=db.visits.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   if(!activeVisitId&&visits.length)setActiveVisit(visits[0].id);
   const visit=activeVisit();
   if(visit)ensureAnalysisVisit(visit);
-  const tabs=[['numeric','Matrices par famille'],['observations','Observations'],['general','Tamis · Silos · Sol · Plantes'],['reasoning','Raisonnement'],['summary','Statistiques & actions']];
+  const tabs=[['numeric','Matrices par famille'],['observations','Observations'],['general','Tamis · Silos · Sol · Plantes'],['reasoning','Raisonnement'],['summary','Statistiques & actions'],['conclusion','Conclusion de visite']];
   app.innerHTML=`<div class="section-title"><div><h2>Analyse complète</h2><div class="muted">Mesures, observations, relevés généraux et synthèse croisée. Aide à l’interprétation, sans valeur diagnostique.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
   ${activeVisitBanner(visit)}
-  ${!visit?'<div class="empty" style="margin-top:16px">Choisissez une visite dans l’onglet Visites.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<section class="card analysis-utilities"><div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div></section><nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):renderSynthesisSection(visit)}</section>`}`;
+  ${!visit?'<div class="empty" style="margin-top:16px">Choisissez une visite dans l’onglet Visites.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<section class="card analysis-utilities"><div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div></section><nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):activeAnalysisSection==='summary'?renderSynthesisSection(visit):renderConclusionSection(visit)}</section>`}`;
   app.querySelectorAll('[data-analysis-section]').forEach(b=>b.onclick=()=>{activeAnalysisSection=b.dataset.analysisSection;localStorage.setItem('audit-bovin-active-analysis-section',activeAnalysisSection);renderAnalysis();});
   app.querySelectorAll('[data-analysis-family]').forEach(b=>b.onclick=()=>{activeAnalysisFamily=b.dataset.analysisFamily;localStorage.setItem('audit-bovin-active-analysis-family',activeAnalysisFamily);renderAnalysis();});
   app.querySelectorAll('[data-general-kind]').forEach(b=>b.onclick=()=>{activeGeneralKind=b.dataset.generalKind;localStorage.setItem('audit-bovin-active-general-kind',activeGeneralKind);renderAnalysis();});
   app.querySelectorAll('[data-open-library-theme]').forEach(b=>b.onclick=()=>openLibraryTheme(b.dataset.openLibraryTheme));
   bindAnalysisEvents(visit);
+  if(activeAnalysisSection==='conclusion')bindConclusionEvents(visit);
   if (focusedAnalysisSubjectId && activeAnalysisSection === 'numeric') {
     setTimeout(() => {
       const row = app.querySelector(`[data-analysis-subject-row="${focusedAnalysisSubjectId}"]`);
