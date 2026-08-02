@@ -1,9 +1,6 @@
-AUDIT BOVIN GDS 32-65 — V10.15 PLAN ASSISTÉ
+Audit Bovin GDS 32-65 — v10.16 plan mobile
 
-1. Décompresser le ZIP.
-2. Importer tous les fichiers à la racine du dépôt GitHub.
-3. Valider avec Commit changes.
-4. Attendre le déploiement GitHub Pages.
-5. Ouvrir l’adresse avec ?v=10.15.
+Importer tous les fichiers directement à la racine du dépôt GitHub Pages.
+Ouvrir ensuite le site avec ?v=10.16.
 
-Nouveautés : outils du plan en blocs verticaux de 2 colonnes et création automatique du contour à partir de la longueur et de la largeur du bâtiment.
+Évolutions : familles d’outils repliées par défaut, retour automatique au plan sur téléphone, canevas rectangulaire entièrement visible sans défilement horizontal.

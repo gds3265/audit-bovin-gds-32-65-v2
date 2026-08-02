@@ -223,3 +223,32 @@ th { background: #f0f5f2; font-size: .88rem; }
 .info-box{margin-top:12px;padding:10px 12px;border:1px solid #b9d8c7;border-radius:10px;background:#edf8f1;color:#244a35}
 @media(max-width:1150px){.plan-designer-grid{grid-template-columns:210px minmax(0,1fr)}.plan-designer-grid>.plan-inspector{grid-column:1/-1}.plan-toolbox{max-height:62vh}}
 @media(max-width:760px){.plan-designer-grid{grid-template-columns:1fr}.plan-toolbox{position:static;max-height:none}.plan-toolbox{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.plan-toolbox-group{height:100%}.plan-toolbox-settings{grid-column:1/-1}.plan-canvas-column canvas{min-width:720px}.plan-canvas-column .plan-canvas-wrap{min-height:430px}}
+
+/* v10.16 — ergonomie du plan sur téléphone et tablette */
+.plan-toolbox-group{padding:0;overflow:hidden}
+.plan-toolbox-group>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;cursor:pointer;padding:10px 11px;font-size:.84rem;font-weight:850;color:#365347;text-transform:uppercase;letter-spacing:.03em;background:#fff;user-select:none}
+.plan-toolbox-group>summary::-webkit-details-marker{display:none}
+.plan-toolbox-group[open]>summary{border-bottom:1px solid #e2ebe6;background:#f7fbf8}
+.plan-group-chevron{font-size:1rem;transition:transform .18s ease}
+.plan-toolbox-group[open] .plan-group-chevron{transform:rotate(180deg)}
+.plan-toolbox-group>.plan-toolbox-grid,.plan-toolbox-settings-body{padding:7px}
+.plan-canvas-wrap{overflow:hidden;min-height:0!important;aspect-ratio:1000/650;display:flex;align-items:center;justify-content:center}
+.plan-canvas-wrap canvas,.plan-canvas-column canvas{display:block;width:100%!important;max-width:100%;min-width:0!important;height:auto!important;min-height:0!important;aspect-ratio:1000/650;object-fit:contain}
+.plan-canvas-column .plan-canvas-wrap{min-height:0!important}
+
+@media(max-width:760px){
+  .plan-card{padding:10px}
+  .plan-title{align-items:flex-start}
+  .plan-title .muted{font-size:.88rem;line-height:1.35}
+  .plan-designer-grid{display:flex;flex-direction:column;gap:8px}
+  .plan-canvas-column{order:1;width:100%}
+  .plan-toolbox{order:2;position:static;width:100%;max-height:none;overflow:visible;display:grid;grid-template-columns:1fr;gap:6px;padding:6px}
+  .plan-inspector{order:3;width:100%}
+  .plan-toolbox-group{height:auto!important}
+  .plan-toolbox-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plan-toolbox .plan-tool{min-height:46px;font-size:.88rem;padding:8px}
+  .plan-toolbox-settings{grid-column:auto}
+  .plan-canvas-wrap{width:100%;aspect-ratio:16/10;border-radius:10px}
+  .plan-canvas-wrap canvas,.plan-canvas-column canvas{width:100%!important;min-width:0!important;aspect-ratio:1000/650}
+  .plan-history-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
