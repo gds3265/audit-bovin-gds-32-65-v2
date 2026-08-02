@@ -21,6 +21,20 @@ const feedingCategories = ['Veaux', 'Génisses', 'Engraissement', 'Vaches en pro
 const feedTypes = ['Ensilage', 'Enrubanné', 'Foin', 'Regain', 'Paille', 'Concentré', 'Correcteur', 'Minéral', 'Sel', 'Bicarbonate', 'Levures', 'Mélasse / sucre', 'Autre'];
 const feedUnits = ['kg brut/j', 'kg MS/j', 'g/j', 'L/j', 'À volonté', 'Autre'];
 const distributionModes = ['Mélangeuse', 'Désileuse', 'Râtelier', 'Cornadis', 'DAC', 'Robot', 'Libre-service', 'Manuel', 'Pâturage', 'Autre'];
+const buildingTypes = ['Stabulation libre', 'Stabulation entravée', 'Aire paillée', 'Logettes', 'Nurserie', 'Bâtiment veaux', 'Bâtiment engraissement', 'Mixte', 'Autre'];
+const buildingOrientations = ['Nord', 'Nord-Est', 'Est', 'Sud-Est', 'Sud', 'Sud-Ouest', 'Ouest', 'Nord-Ouest', 'Non renseignée'];
+const ventilationTypes = ['Naturelle', 'Mécanique', 'Mixte', 'Non renseignée'];
+const drinkerTypes = ['Bac collectif', 'Bol individuel', 'Abreuvoir à niveau constant', 'Abreuvoir à palette', 'Abreuvoir chauffant', 'Autre'];
+const waterOrigins = ['Réseau', 'Source', 'Forage', 'Puits', 'Eau de pluie', 'Mixte', 'Autre'];
+const litterTypes = ['Paille', 'Sciure', 'Copeaux', 'Sable', 'Matelas', 'Compost', 'Mixte', 'Autre'];
+const buildingQuestionGroups = [
+  ['Eau et abreuvement', ['Accès à l’eau suffisant pour tous les animaux', 'Nombre de points d’eau adapté', 'Débit satisfaisant', 'Hauteur adaptée', 'Abreuvoirs propres', 'Absence de concurrence excessive']],
+  ['Couchage et litière', ['Surface de couchage suffisante', 'Litière sèche et confortable', 'Paillage régulier', 'Curage adapté', 'Absence de zones glissantes', 'Absence de blessures liées au couchage']],
+  ['Ventilation et ambiance', ['Entrées d’air suffisantes', 'Sorties d’air efficaces', 'Absence de condensation', 'Absence d’odeur forte d’ammoniac', 'Luminosité suffisante', 'Absence de courants d’air directs sur les animaux']],
+  ['Circulation et sécurité', ['Circulation fluide des animaux', 'Sols en bon état', 'Barrières et cornadis sécurisés', 'Absence de points dangereux', 'Zone d’isolement disponible', 'Accès facile pour les soins']],
+  ['Veaux et mise bas', ['Cases de vêlage propres', 'Zone veaux adaptée', 'Séparation des malades possible', 'Nettoyage et désinfection organisés', 'Matériel de soins disponible']],
+  ['Hygiène et biosécurité', ['Gestion des nuisibles', 'Stockage des aliments protégé', 'Nettoyage du matériel', 'Gestion des cadavres', 'Accès visiteurs maîtrisé']]
+];
 const measurementFamilies = [
   ['urine', 'Urines', '🟡'], ['blood', 'Sang', '🔴'], ['feces', 'Bouses', '🟤'],
   ['physical', 'Observations physiques', '🟢'], ['milk', 'Lait', '🔵'], ['colostrum', 'Colostrum', '🟣']
@@ -61,6 +75,14 @@ function migrateDatabase() {
     visit.feeding.rations = Array.isArray(visit.feeding.rations) ? visit.feeding.rations : [];
     visit.feeding.settings = visit.feeding.settings && typeof visit.feeding.settings === 'object' ? visit.feeding.settings : {};
     visit.feeding.history = Array.isArray(visit.feeding.history) ? visit.feeding.history : [];
+    visit.buildingAudits = visit.buildingAudits && typeof visit.buildingAudits === 'object' ? visit.buildingAudits : {};
+  });
+  db.farms.forEach(farm => {
+    farm.buildings = Array.isArray(farm.buildings) ? farm.buildings : [];
+    farm.buildings.forEach(building => {
+      building.plan = building.plan && typeof building.plan === 'object' ? building.plan : { shapes: [] };
+      building.plan.shapes = Array.isArray(building.plan.shapes) ? building.plan.shapes : [];
+    });
   });
   if (activeVisitId && !db.visits.some(v => v.id === activeVisitId)) setActiveVisit('');
   saveDatabase(db);
@@ -111,7 +133,7 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -778,6 +800,159 @@ function renderFeeding() {
     const source = visit.feeding.rations.find(r => r.id === button.dataset.duplicateFeed); if (!source) return;
     visit.feeding.rations.push({ ...source, id: uid('feed'), nature: source.nature || '', updatedAt: new Date().toISOString() }); saveDatabase(db); renderFeeding();
   });
+}
+
+
+let activeBuildingTab = localStorage.getItem('audit-bovin-building-tab') || 'structure';
+let activeBuildingId = localStorage.getItem('audit-bovin-active-building') || '';
+let planRuntime = null;
+
+function ensureBuildingAudit(visit, buildingId) {
+  visit.buildingAudits = visit.buildingAudits || {};
+  const audit = visit.buildingAudits[buildingId] || {};
+  audit.drinkers = Array.isArray(audit.drinkers) ? audit.drinkers : [];
+  audit.electric = Array.isArray(audit.electric) ? audit.electric : [];
+  audit.litters = Array.isArray(audit.litters) ? audit.litters : [];
+  audit.ambience = audit.ambience && typeof audit.ambience === 'object' ? audit.ambience : {};
+  audit.questionnaire = audit.questionnaire && typeof audit.questionnaire === 'object' ? audit.questionnaire : {};
+  visit.buildingAudits[buildingId] = audit;
+  return audit;
+}
+
+function currentBuildingContext() {
+  const visit = activeVisit();
+  if (!visit) return { visit:null, farm:null, building:null, audit:null };
+  const farm = db.farms.find(f => f.id === visit.farmId);
+  farm.buildings = Array.isArray(farm.buildings) ? farm.buildings : [];
+  if (!activeBuildingId || !farm.buildings.some(b => b.id === activeBuildingId)) {
+    activeBuildingId = farm.buildings[0]?.id || '';
+    if (activeBuildingId) localStorage.setItem('audit-bovin-active-building', activeBuildingId);
+  }
+  const building = farm.buildings.find(b => b.id === activeBuildingId) || null;
+  return { visit, farm, building, audit: building ? ensureBuildingAudit(visit, building.id) : null };
+}
+
+function buildingTabsHtml() {
+  const tabs=[['structure','Structure'],['plan','Plan'],['water','Eau / abreuvoirs'],['electric','Électricité'],['litter','Litière'],['ambience','Ambiance'],['questionnaire','Questionnaire']];
+  return `<div class="building-tabs">${tabs.map(([id,label])=>`<button class="building-tab ${activeBuildingTab===id?'active':''}" data-building-tab="${id}">${label}</button>`).join('')}</div>`;
+}
+
+function saveBuildingPermanent(building, field, value) {
+  building[field]=value; building.updatedAt=new Date().toISOString(); saveDatabase(db);
+}
+function saveBuildingAudit(visit) { visit.updatedAt=new Date().toISOString(); saveDatabase(db); }
+
+function renderBuilding() {
+  const ctx=currentBuildingContext();
+  const {visit,farm,building,audit}=ctx;
+  app.innerHTML=`<div class="section-title"><div><h2>Bâtiment</h2><div class="muted">Données permanentes, mesures de visite et plan interactif.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+  ${activeVisitBanner(visit)}
+  ${!visit?'<section class="empty">Choisissez une visite dans l’onglet Visites.</section>':`
+    <section class="card building-selector"><div class="field no-margin"><label>Bâtiment étudié</label><select id="building-select"><option value="">Sélectionner…</option>${farm.buildings.map(b=>`<option value="${b.id}" ${b.id===activeBuildingId?'selected':''}>${escapeHtml(b.name||'Bâtiment')}</option>`).join('')}</select></div><div class="actions"><button class="btn primary" id="add-building">Ajouter un bâtiment</button>${building?'<button class="btn danger" id="delete-building">Supprimer</button>':''}</div></section>
+    ${!building?'<section class="empty">Ajoutez un bâtiment pour commencer.</section>':`${buildingTabsHtml()}<section id="building-panel"></section>`}
+  `}`;
+  document.getElementById('building-select')?.addEventListener('change',e=>{activeBuildingId=e.target.value; localStorage.setItem('audit-bovin-active-building',activeBuildingId); renderBuilding();});
+  document.getElementById('add-building')?.addEventListener('click',()=>{
+    const name=prompt('Nom du bâtiment :','Bâtiment principal'); if(!name) return;
+    const b={id:uid('building'),name,type:'Stabulation libre',orientation:'Non renseignée',ventilation:'Non renseignée',plan:{shapes:[]},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    farm.buildings.push(b); activeBuildingId=b.id; localStorage.setItem('audit-bovin-active-building',b.id); ensureBuildingAudit(visit,b.id); saveDatabase(db); renderBuilding();
+  });
+  document.getElementById('delete-building')?.addEventListener('click',()=>{if(!confirm('Supprimer ce bâtiment et ses données de cette visite ?'))return; farm.buildings=farm.buildings.filter(b=>b.id!==building.id); delete visit.buildingAudits[building.id]; activeBuildingId=farm.buildings[0]?.id||''; localStorage.setItem('audit-bovin-active-building',activeBuildingId); saveDatabase(db); renderBuilding();});
+  app.querySelectorAll('[data-building-tab]').forEach(btn=>btn.onclick=()=>{activeBuildingTab=btn.dataset.buildingTab; localStorage.setItem('audit-bovin-building-tab',activeBuildingTab); renderBuilding();});
+  if(building) renderBuildingPanel(ctx);
+}
+
+function renderBuildingPanel(ctx){
+  const panel=document.getElementById('building-panel'); if(!panel)return;
+  const renderers={structure:renderBuildingStructure,plan:renderBuildingPlan,water:renderBuildingWater,electric:renderBuildingElectric,litter:renderBuildingLitter,ambience:renderBuildingAmbience,questionnaire:renderBuildingQuestionnaire};
+  renderers[activeBuildingTab]?.(panel,ctx);
+}
+
+function renderBuildingStructure(panel,{visit,building}){
+  panel.innerHTML=`<section class="card"><h3>Fiche permanente du bâtiment</h3><div class="grid cols-3">
+    <div class="field"><label>Nom</label><input data-bfield="name" value="${escapeHtml(building.name||'')}"></div>
+    <div class="field"><label>Type</label><select data-bfield="type">${buildingTypes.map(v=>`<option ${building.type===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Année / ancienneté</label><input data-bfield="year" value="${escapeHtml(building.year||'')}"></div>
+    <div class="field"><label>Orientation</label><select data-bfield="orientation">${buildingOrientations.map(v=>`<option ${building.orientation===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Ventilation</label><select data-bfield="ventilation">${ventilationTypes.map(v=>`<option ${building.ventilation===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Catégories accueillies</label><input data-bfield="categories" value="${escapeHtml(building.categories||'')}" placeholder="Veaux, génisses, vaches…"></div>
+    <div class="field"><label>Longueur (m)</label><input type="number" step="0.1" data-bfield="length" value="${escapeHtml(building.length||'')}"></div>
+    <div class="field"><label>Largeur (m)</label><input type="number" step="0.1" data-bfield="width" value="${escapeHtml(building.width||'')}"></div>
+    <div class="field"><label>Hauteur / volume</label><input data-bfield="height" value="${escapeHtml(building.height||'')}"></div>
+    <div class="field"><label>Sol</label><input data-bfield="floor" value="${escapeHtml(building.floor||'')}"></div>
+    <div class="field"><label>Toiture</label><input data-bfield="roof" value="${escapeHtml(building.roof||'')}"></div>
+    <div class="field"><label>Bardage / ouvertures</label><input data-bfield="cladding" value="${escapeHtml(building.cladding||'')}"></div>
+    <div class="field field-wide"><label>Observations permanentes</label><textarea data-bfield="notes">${escapeHtml(building.notes||'')}</textarea></div>
+  </div></section>`;
+  panel.querySelectorAll('[data-bfield]').forEach(el=>{const save=()=>saveBuildingPermanent(building,el.dataset.bfield,el.value);el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save);});
+}
+
+function planCanvasHtml(){return `<section class="card"><div class="section-title"><div><h3>Plan interactif</h3><div class="muted">Trait libre, trait droit, rectangle et repères. Relâchez pour enregistrer automatiquement.</div></div><span class="badge autosave">Auto</span></div>
+  <div class="plan-toolbar">
+    <button class="plan-tool active" data-tool="free">✏️ Libre</button><button class="plan-tool" data-tool="line">📏 Trait droit</button><button class="plan-tool" data-tool="rect">▭ Rectangle</button><button class="plan-tool" data-tool="water">💧 Abreuvoir</button><button class="plan-tool" data-tool="electric">⚡ Point électrique</button><button class="plan-tool" data-tool="litter">🛏️ Litière</button><button class="plan-tool" data-tool="text">T Texte</button>
+    <label class="plan-width">Épaisseur <select id="plan-width"><option value="2">Fine</option><option value="4" selected>Moyenne</option><option value="7">Épaisse</option></select></label>
+    <button class="btn small" id="plan-undo">Annuler</button><button class="btn small" id="plan-redo">Rétablir</button><button class="btn small danger" id="plan-clear">Effacer</button>
+  </div><div class="plan-canvas-wrap"><canvas id="building-canvas" width="1000" height="580"></canvas></div><div class="muted small-text">Astuce : le trait droit et le rectangle affichent un aperçu pendant le déplacement. Les repères sont ajoutés par un simple clic.</div></section>`;}
+
+function renderBuildingPlan(panel,{building}){
+  panel.innerHTML=planCanvasHtml(); initPlanCanvas(building);
+}
+
+function initPlanCanvas(building){
+  const canvas=document.getElementById('building-canvas'); if(!canvas)return; const ctx=canvas.getContext('2d');
+  building.plan=building.plan||{shapes:[]}; building.plan.shapes=Array.isArray(building.plan.shapes)?building.plan.shapes:[];
+  let tool='free', drawing=false,start=null,current=null,temp=null,redo=[]; const history=building.plan.shapes;
+  const point=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}};
+  const color=t=>({free:'#1f2937',line:'#1f2937',rect:'#1f6f43',water:'#0ea5e9',electric:'#eab308',litter:'#a16207',text:'#1f2937'}[t]||'#1f2937');
+  const drawShape=s=>{ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=s.color||color(s.type);ctx.fillStyle=s.color||color(s.type);ctx.lineWidth=s.width||4;
+    if(s.type==='free'){ctx.beginPath();s.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
+    if(s.type==='line'){ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();}
+    if(s.type==='rect'){ctx.strokeRect(s.x,s.y,s.w,s.h);}
+    if(['water','electric','litter'].includes(s.type)){ctx.beginPath();ctx.arc(s.x,s.y,16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(s.type==='water'?'W':s.type==='electric'?'E':'L',s.x,s.y);}
+    if(s.type==='text'){ctx.font='18px sans-serif';ctx.fillText(s.text||'',s.x,s.y);}
+    ctx.restore();};
+  const renderCanvas=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#edf2ef';ctx.lineWidth=1;for(let x=0;x<canvas.width;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}for(let y=0;y<canvas.height;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}history.forEach(drawShape);if(temp)drawShape(temp)};
+  const commit=s=>{if(!s)return;history.push(s);redo=[];building.updatedAt=new Date().toISOString();saveDatabase(db);temp=null;renderCanvas();};
+  document.querySelectorAll('.plan-tool').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.plan-tool').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tool=btn.dataset.tool;});
+  canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);const p=point(e);const width=Number(document.getElementById('plan-width')?.value||4);
+    if(['water','electric','litter'].includes(tool)){commit({type:tool,x:p.x,y:p.y,width,color:color(tool)});return}
+    if(tool==='text'){const text=prompt('Texte à ajouter :');if(text)commit({type:'text',x:p.x,y:p.y,text,color:color(tool)});return}
+    drawing=true;start=p;current=p;if(tool==='free')temp={type:'free',points:[p],width,color:color(tool)};});
+  canvas.addEventListener('pointermove',e=>{if(!drawing)return;current=point(e);const width=Number(document.getElementById('plan-width')?.value||4);if(tool==='free')temp.points.push(current);if(tool==='line')temp={type:'line',x1:start.x,y1:start.y,x2:current.x,y2:current.y,width,color:color(tool)};if(tool==='rect')temp={type:'rect',x:Math.min(start.x,current.x),y:Math.min(start.y,current.y),w:Math.abs(current.x-start.x),h:Math.abs(current.y-start.y),width,color:color(tool)};renderCanvas();});
+  const finish=()=>{if(!drawing)return;drawing=false;if(temp && (tool==='free'?temp.points.length>1:true))commit(temp);else{temp=null;renderCanvas()}}; canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);
+  document.getElementById('plan-undo').onclick=()=>{const s=history.pop();if(s)redo.push(s);saveDatabase(db);renderCanvas()};document.getElementById('plan-redo').onclick=()=>{const s=redo.pop();if(s)history.push(s);saveDatabase(db);renderCanvas()};document.getElementById('plan-clear').onclick=()=>{if(confirm('Effacer tout le plan ?')){redo.push(...history.splice(0));saveDatabase(db);renderCanvas()}};
+  renderCanvas(); planRuntime={renderCanvas};
+}
+
+function rowInput(value,attrs=''){return `<input ${attrs} value="${escapeHtml(value??'')}">`}
+function renderBuildingWater(panel,{visit,audit}){
+  panel.innerHTML=`<section class="card"><div class="section-title"><div><h3>Eau et abreuvoirs</h3><div class="muted">Une ligne par point d’eau.</div></div><button class="btn primary" id="add-drinker">Ajouter un abreuvoir</button></div>${audit.drinkers.length?`<div class="table-wrap"><table class="building-table"><thead><tr><th>Nom</th><th>Type</th><th>Catégorie</th><th>Origine</th><th>Débit L/min</th><th>Hauteur cm</th><th>Profondeur cm</th><th>Temp. °C</th><th>pH</th><th>Redox</th><th>Conductivité</th><th>Nitrates</th><th>Nettoyage</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.drinkers.map(r=>`<tr><td>${rowInput(r.name,`data-drinker-field="name" data-id="${r.id}"`)}</td><td><select data-drinker-field="type" data-id="${r.id}">${drinkerTypes.map(v=>`<option ${r.type===v?'selected':''}>${v}</option>`).join('')}</select></td><td>${rowInput(r.category,`data-drinker-field="category" data-id="${r.id}"`)}</td><td><select data-drinker-field="origin" data-id="${r.id}">${waterOrigins.map(v=>`<option ${r.origin===v?'selected':''}>${v}</option>`).join('')}</select></td>${['flow','height','depth','temperature','ph','redox','conductivity','nitrates'].map(f=>`<td>${rowInput(r[f],`type="number" step="any" inputmode="decimal" data-drinker-field="${f}" data-id="${r.id}"`)}</td>`).join('')}<td>${rowInput(r.cleaning,`data-drinker-field="cleaning" data-id="${r.id}"`)}</td><td><textarea data-drinker-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-drinker="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucun abreuvoir renseigné.</div>'}</section>`;
+  document.getElementById('add-drinker').onclick=()=>{audit.drinkers.push({id:uid('drinker'),name:`Abreuvoir ${audit.drinkers.length+1}`,type:'Bac collectif',origin:'Réseau'});saveBuildingAudit(visit);renderBuildingWater(panel,currentBuildingContext())};
+  panel.querySelectorAll('[data-drinker-field]').forEach(el=>{const save=()=>{const r=audit.drinkers.find(x=>x.id===el.dataset.id);if(r){r[el.dataset.drinkerField]=el.value;saveBuildingAudit(visit)}};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});panel.querySelectorAll('[data-delete-drinker]').forEach(b=>b.onclick=()=>{audit.drinkers=audit.drinkers.filter(x=>x.id!==b.dataset.deleteDrinker);saveBuildingAudit(visit);renderBuildingWater(panel,currentBuildingContext())});
+}
+
+function renderBuildingElectric(panel,{visit,audit}){
+  panel.innerHTML=`<section class="card"><div class="section-title"><div><h3>Mesures électriques</h3><div class="muted">Abreuvoirs, barrières, cornadis, auges, logettes…</div></div><button class="btn primary" id="add-electric">Ajouter une mesure</button></div>${audit.electric.length?`<div class="table-wrap"><table class="building-table"><thead><tr><th>Équipement</th><th>Localisation</th><th>Valeur</th><th>Unité</th><th>AC / DC</th><th>Conditions</th><th>Correction</th><th>Valeur après</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.electric.map(r=>`<tr><td>${rowInput(r.equipment,`data-electric-field="equipment" data-id="${r.id}"`)}</td><td>${rowInput(r.location,`data-electric-field="location" data-id="${r.id}"`)}</td><td>${rowInput(r.value,`type="number" step="any" inputmode="decimal" data-electric-field="value" data-id="${r.id}"`)}</td><td><select data-electric-field="unit" data-id="${r.id}">${['mV','V','µA','mA'].map(v=>`<option ${r.unit===v?'selected':''}>${v}</option>`).join('')}</select></td><td><select data-electric-field="current" data-id="${r.id}">${['AC','DC','Non précisé'].map(v=>`<option ${r.current===v?'selected':''}>${v}</option>`).join('')}</select></td><td>${rowInput(r.conditions,`data-electric-field="conditions" data-id="${r.id}"`)}</td><td>${rowInput(r.correction,`data-electric-field="correction" data-id="${r.id}"`)}</td><td>${rowInput(r.after,`type="number" step="any" data-electric-field="after" data-id="${r.id}"`)}</td><td><textarea data-electric-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-electric="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucune mesure électrique.</div>'}</section>`;
+  document.getElementById('add-electric').onclick=()=>{audit.electric.push({id:uid('electric'),equipment:'Abreuvoir',unit:'mV',current:'AC'});saveBuildingAudit(visit);renderBuildingElectric(panel,currentBuildingContext())};
+  panel.querySelectorAll('[data-electric-field]').forEach(el=>{const save=()=>{const r=audit.electric.find(x=>x.id===el.dataset.id);if(r){r[el.dataset.electricField]=el.value;saveBuildingAudit(visit)}};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});panel.querySelectorAll('[data-delete-electric]').forEach(b=>b.onclick=()=>{audit.electric=audit.electric.filter(x=>x.id!==b.dataset.deleteElectric);saveBuildingAudit(visit);renderBuildingElectric(panel,currentBuildingContext())});
+}
+
+function renderBuildingLitter(panel,{visit,audit}){
+  panel.innerHTML=`<section class="card"><div class="section-title"><div><h3>Litière et paillage</h3><div class="muted">Une ligne par zone ou lot.</div></div><button class="btn primary" id="add-litter">Ajouter une zone</button></div>${audit.litters.length?`<div class="table-wrap"><table class="building-table"><thead><tr><th>Zone / lot</th><th>Type</th><th>pH</th><th>Redox</th><th>Temp. °C</th><th>Humidité %</th><th>Épaisseur cm</th><th>Fréquence paillage</th><th>Quantité</th><th>Unité</th><th>Curage</th><th>Nettoyage</th><th>Désinfection</th><th>Taux vibratoire</th><th>Failles</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.litters.map(r=>`<tr><td>${rowInput(r.zone,`data-litter-field="zone" data-id="${r.id}"`)}</td><td><select data-litter-field="type" data-id="${r.id}">${litterTypes.map(v=>`<option ${r.type===v?'selected':''}>${v}</option>`).join('')}</select></td>${['ph','redox','temperature','humidity','thickness'].map(f=>`<td>${rowInput(r[f],`type="number" step="any" inputmode="decimal" data-litter-field="${f}" data-id="${r.id}"`)}</td>`).join('')}<td>${rowInput(r.beddingFrequency,`data-litter-field="beddingFrequency" data-id="${r.id}"`)}</td><td>${rowInput(r.quantity,`type="number" step="any" data-litter-field="quantity" data-id="${r.id}"`)}</td><td><select data-litter-field="quantityUnit" data-id="${r.id}">${['kg/j','kg/semaine','bottes/j','bottes/semaine','Autre'].map(v=>`<option ${r.quantityUnit===v?'selected':''}>${v}</option>`).join('')}</select></td><td>${rowInput(r.cleanout,`data-litter-field="cleanout" data-id="${r.id}"`)}</td><td>${rowInput(r.cleaning,`data-litter-field="cleaning" data-id="${r.id}"`)}</td><td>${rowInput(r.disinfection,`data-litter-field="disinfection" data-id="${r.id}"`)}</td><td>${rowInput(r.vibration,`type="number" step="any" data-litter-field="vibration" data-id="${r.id}"`)}</td><td>${rowInput(r.cracks,`data-litter-field="cracks" data-id="${r.id}"`)}</td><td><textarea data-litter-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-litter="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucune zone de litière.</div>'}</section>`;
+  document.getElementById('add-litter').onclick=()=>{audit.litters.push({id:uid('litter'),zone:`Zone ${audit.litters.length+1}`,type:'Paille',quantityUnit:'kg/j'});saveBuildingAudit(visit);renderBuildingLitter(panel,currentBuildingContext())};
+  panel.querySelectorAll('[data-litter-field]').forEach(el=>{const save=()=>{const r=audit.litters.find(x=>x.id===el.dataset.id);if(r){r[el.dataset.litterField]=el.value;saveBuildingAudit(visit)}};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});panel.querySelectorAll('[data-delete-litter]').forEach(b=>b.onclick=()=>{audit.litters=audit.litters.filter(x=>x.id!==b.dataset.deleteLitter);saveBuildingAudit(visit);renderBuildingLitter(panel,currentBuildingContext())});
+}
+
+function renderBuildingAmbience(panel,{visit,audit}){
+  const a=audit.ambience;
+  panel.innerHTML=`<section class="card"><h3>Ambiance du bâtiment</h3><div class="grid cols-3">${[['temperature','Température °C'],['humidity','Hygrométrie %'],['co2','CO₂ ppm'],['nh3','NH₃ ppm'],['light','Luminosité'],['noise','Bruit'],['airSpeed','Vitesse d’air'],['odor','Odeurs'],['flies','Mouches / nuisibles']].map(([k,l])=>`<div class="field"><label>${l}</label><input data-ambience="${k}" value="${escapeHtml(a[k]||'')}"></div>`).join('')}<div class="field field-wide"><label>Observations</label><textarea data-ambience="comment">${escapeHtml(a.comment||'')}</textarea></div></div></section>`;
+  panel.querySelectorAll('[data-ambience]').forEach(el=>{const save=()=>{a[el.dataset.ambience]=el.value;saveBuildingAudit(visit)};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});
+}
+
+function renderBuildingQuestionnaire(panel,{visit,audit}){
+  panel.innerHTML=`<div class="section-title"><div><h3>Questionnaire bâtiment</h3><div class="muted">Les thèmes sont repliés. Ouvrez-les au fur et à mesure.</div></div></div><div class="question-groups">${buildingQuestionGroups.map(([group,questions],gi)=>`<details class="card question-group"><summary><strong>${escapeHtml(group)}</strong><span class="muted">${questions.filter(q=>audit.questionnaire[q]?.status).length}/${questions.length} renseigné(s)</span></summary><div class="question-list">${questions.map(q=>{const item=audit.questionnaire[q]||{};return `<div class="question-row"><div><strong>${escapeHtml(q)}</strong><input class="question-comment" data-qcomment="${escapeHtml(q)}" value="${escapeHtml(item.comment||'')}" placeholder="Commentaire"></div><select data-qstatus="${escapeHtml(q)}"><option value="">Non renseigné</option>${['Satisfaisant','À surveiller','À corriger','Non concerné'].map(v=>`<option ${item.status===v?'selected':''}>${v}</option>`).join('')}</select></div>`}).join('')}</div></details>`).join('')}</div>`;
+  panel.querySelectorAll('[data-qstatus]').forEach(el=>el.addEventListener('change',()=>{const q=el.dataset.qstatus;audit.questionnaire[q]=audit.questionnaire[q]||{};audit.questionnaire[q].status=el.value;saveBuildingAudit(visit);renderBuildingQuestionnaire(panel,currentBuildingContext())}));
+  panel.querySelectorAll('[data-qcomment]').forEach(el=>{const save=()=>{const q=el.dataset.qcomment;audit.questionnaire[q]=audit.questionnaire[q]||{};audit.questionnaire[q].comment=el.value;saveBuildingAudit(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
 }
 
 function renderBackup() {

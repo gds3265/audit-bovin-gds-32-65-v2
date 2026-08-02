@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f4f7f5",
   "theme_color": "#1f6f43",
-  "description": "Gestion des exploitations, visites, sujets et noyau stable, animaux, analyse, mesures générales et alimentation.",
+  "description": "Gestion des exploitations, visites, sujets, analyses, mesures générales, alimentation et bâtiment.",
   "icons": [
     {
       "src": "icon-192.png",
