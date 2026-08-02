@@ -1,8 +1,10 @@
-AUDIT BOVIN GDS 32-65 — V10.5 MOTEUR D’ANALYSE TRANSPARENT
+AUDIT BOVIN GDS 32-65 — V10.6
 
-1. Décompresser le ZIP.
-2. Dans le dépôt GitHub déjà utilisé : Add file > Upload files.
-3. Importer tous les fichiers à la racine puis Commit changes.
-4. Ouvrir GitHub Pages avec ?v=10.5.
+Évolutions :
+- colonnes des matrices ajustées ;
+- colonne Commentaire / observation dans chaque famille ;
+- sauvegarde automatique des commentaires ;
+- médiane retirée des statistiques ;
+- min, moyenne et max conservés.
 
-Tests : matrices Urines/Sang/Bouses séparées ; saisie 500 g en une frappe ; statistiques min/moyenne/médiane/max ; onglet Raisonnement ; sauvegarde après fermeture.
+Diffusion : importer tous les fichiers à la racine du même dépôt GitHub, puis ouvrir avec ?v=10.6.
