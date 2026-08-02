@@ -1,10 +1,9 @@
-Audit Bovin GDS 32-65 — V10.13 Plan zones et objets linéaires
+Audit Bovin GDS 32-65 — V10.14 Plan compact et équipements linéaires
 
 1. Décompresser le ZIP.
-2. Dans le dépôt GitHub existant : Add file > Upload files.
-3. Importer tous les fichiers à la racine.
-4. Commit changes.
-5. Attendre le déploiement GitHub Pages.
-6. Ouvrir le site avec ?v=10.13.
+2. Importer tous les fichiers à la racine du dépôt GitHub.
+3. Valider avec Commit changes.
+4. Attendre le déploiement GitHub Pages.
+5. Ouvrir le site avec ?v=10.14.
 
-Nouveautés : cornadis et barrières en longueur, passage d’homme, objets redimensionnables, zones étendues et personnalisables.
+Nouveautés : barre d’outils compacte, panneau de propriétés contextuel, nombre de places du cornadis, barre au garrot, attaches individuelles et réglage des dimensions des objets.
