@@ -1,5 +1,7 @@
-Audit Bovin GDS 32-65 - V11.1
+Audit Bovin GDS 32-65 — V11.2 Bibliothèque technique
 
-Module Audit optimisé : menus spécifiques, fourrages/cultures, achats/ventes, mortalité, renouvellement calculé et documents vierges corrigés.
-
-Déployer tous les fichiers à la racine du dépôt GitHub Pages puis ouvrir avec ?v=11.1.
+1. Décompresser le ZIP.
+2. Importer TOUS les fichiers et le dossier docs à la racine du dépôt GitHub.
+3. Valider le commit.
+4. Ouvrir GitHub Pages avec ?v=11.2.
+5. Vérifier l’onglet Bibliothèque et les boutons ℹ depuis Analyse, Alimentation et Bâtiment.
