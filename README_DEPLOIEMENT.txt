@@ -1,3 +1,5 @@
+AUDIT BOVIN GDS 32-65 — VERSION 11.8 MODULE PHOTO
+
 Audit Bovin GDS 32-65 — V11.6
 
 Ajout : conclusion courte automatique et modifiable (points forts, points à revoir, trois actions, prochaine visite et impression).
