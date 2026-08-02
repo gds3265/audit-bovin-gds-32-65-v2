@@ -205,3 +205,21 @@ th { background: #f0f5f2; font-size: .88rem; }
 .plan-toolbar-compact .plan-tool{padding:6px 8px;white-space:nowrap;font-size:.84rem}.plan-toolbar-compact .plan-tool span{display:inline}.plan-toolbar-compact .plan-width.compact{padding:4px 6px;white-space:nowrap;font-size:.82rem}.plan-history-actions{display:flex;gap:4px;margin-left:auto}.plan-more{position:relative}.plan-more>summary{list-style:none;cursor:pointer;border:1px solid #cbd5cf;background:#fff;border-radius:9px;padding:6px 9px;font-weight:750;white-space:nowrap}.plan-more>summary::-webkit-details-marker{display:none}.plan-more-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;width:310px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px;border:1px solid #cbd5cf;border-radius:10px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.16)}.plan-more-menu .plan-tool{text-align:left}
 .plan-layout{grid-template-columns:minmax(0,1fr) 260px}.plan-inspector.collapsed{display:none}.plan-canvas-wrap canvas{min-height:560px}.plan-inspector{max-height:650px;overflow:auto}
 @media(max-width:1100px){.plan-toolbar-compact{overflow-x:auto;overflow-y:visible}.plan-toolbar-compact .plan-tool span{display:none}.plan-toolbar-compact .plan-tool{min-width:42px}.plan-more-menu{position:fixed;left:12px;right:12px;top:140px;width:auto;max-height:55vh;overflow:auto}.plan-layout{grid-template-columns:1fr}.plan-inspector:not(.collapsed){position:sticky;bottom:8px;z-index:6;max-height:46vh}}
+
+/* V10.15 — boîte à outils verticale et contour automatique */
+.plan-designer-grid{display:grid;grid-template-columns:240px minmax(0,1fr) 250px;gap:12px;align-items:start}
+.plan-toolbox{position:sticky;top:8px;max-height:72vh;overflow:auto;display:grid;gap:8px;padding:8px;border:1px solid #dbe7df;border-radius:12px;background:#f8fbf9}
+.plan-toolbox-group{padding:7px;border:1px solid #dfe9e3;border-radius:10px;background:#fff}
+.plan-toolbox-group h4{margin:0 0 6px;font-size:.82rem;color:#365347;text-transform:uppercase;letter-spacing:.03em}
+.plan-toolbox-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.plan-toolbox .plan-tool{display:flex;align-items:center;gap:6px;justify-content:flex-start;min-width:0;padding:7px 6px;font-size:.78rem;text-align:left}
+.plan-toolbox .plan-tool-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;flex:0 0 21px;font-size:1rem}
+.plan-toolbox-settings .plan-width{width:100%;justify-content:space-between;margin-bottom:7px}
+.plan-toolbox-settings .plan-history-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-left:0}
+.plan-toolbox-settings .plan-history-actions .btn{width:100%;margin:0;padding:6px 5px;font-size:.76rem}
+.plan-canvas-column{min-width:0}
+.plan-canvas-column .plan-canvas-wrap{min-height:560px}
+.plan-canvas-column canvas{min-width:700px}
+.info-box{margin-top:12px;padding:10px 12px;border:1px solid #b9d8c7;border-radius:10px;background:#edf8f1;color:#244a35}
+@media(max-width:1150px){.plan-designer-grid{grid-template-columns:210px minmax(0,1fr)}.plan-designer-grid>.plan-inspector{grid-column:1/-1}.plan-toolbox{max-height:62vh}}
+@media(max-width:760px){.plan-designer-grid{grid-template-columns:1fr}.plan-toolbox{position:static;max-height:none}.plan-toolbox{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.plan-toolbox-group{height:100%}.plan-toolbox-settings{grid-column:1/-1}.plan-canvas-column canvas{min-width:720px}.plan-canvas-column .plan-canvas-wrap{min-height:430px}}

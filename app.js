@@ -869,46 +869,70 @@ function renderBuildingPanel(ctx){
   renderers[activeBuildingTab]?.(panel,ctx);
 }
 
+function updateBuildingOutline(building){
+  const lengthM=Number(building.length), widthM=Number(building.width);
+  if(!(lengthM>0&&widthM>0)) return false;
+  building.plan=building.plan||{shapes:[]};
+  building.plan.shapes=Array.isArray(building.plan.shapes)?building.plan.shapes:[];
+  const maxW=860,maxH=520,padX=70,padY=65;
+  const scale=Math.min(maxW/lengthM,maxH/widthM);
+  const w=Math.max(80,lengthM*scale),h=Math.max(60,widthM*scale);
+  let outline=building.plan.shapes.find(x=>x.type==='building_outline');
+  if(!outline){
+    outline={id:'building-outline',type:'building_outline'};
+    building.plan.shapes.unshift(outline);
+  }
+  Object.assign(outline,{x:(1000-w)/2,y:(650-h)/2,w,h,label:`${building.name||'Bâtiment'} — ${lengthM} × ${widthM} m`,lengthM,widthM,color:'#1f6f43',width:5,locked:true});
+  building.plan.scalePxPerM=scale;
+  building.updatedAt=new Date().toISOString();
+  saveDatabase(db);
+  return true;
+}
+
 function renderBuildingStructure(panel,{visit,building}){
-  panel.innerHTML=`<section class="card"><h3>Fiche permanente du bâtiment</h3><div class="grid cols-3">
+  panel.innerHTML=`<section class="card"><div class="section-title"><div><h3>Fiche permanente du bâtiment</h3><div class="muted">Renseignez longueur et largeur : le contour du bâtiment est créé automatiquement sur le plan.</div></div><button class="btn primary" id="create-building-outline">Créer / actualiser le contour</button></div><div class="grid cols-3">
     <div class="field"><label>Nom</label><input data-bfield="name" value="${escapeHtml(building.name||'')}"></div>
     <div class="field"><label>Type</label><select data-bfield="type">${buildingTypes.map(v=>`<option ${building.type===v?'selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field"><label>Année / ancienneté</label><input data-bfield="year" value="${escapeHtml(building.year||'')}"></div>
     <div class="field"><label>Orientation</label><select data-bfield="orientation">${buildingOrientations.map(v=>`<option ${building.orientation===v?'selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field"><label>Ventilation</label><select data-bfield="ventilation">${ventilationTypes.map(v=>`<option ${building.ventilation===v?'selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field"><label>Catégories accueillies</label><input data-bfield="categories" value="${escapeHtml(building.categories||'')}" placeholder="Veaux, génisses, vaches…"></div>
-    <div class="field"><label>Longueur (m)</label><input type="number" step="0.1" data-bfield="length" value="${escapeHtml(building.length||'')}"></div>
-    <div class="field"><label>Largeur (m)</label><input type="number" step="0.1" data-bfield="width" value="${escapeHtml(building.width||'')}"></div>
+    <div class="field"><label>Longueur du bâtiment (m)</label><input type="number" step="0.1" min="0" data-bfield="length" value="${escapeHtml(building.length||'')}"></div>
+    <div class="field"><label>Largeur du bâtiment (m)</label><input type="number" step="0.1" min="0" data-bfield="width" value="${escapeHtml(building.width||'')}"></div>
     <div class="field"><label>Hauteur / volume</label><input data-bfield="height" value="${escapeHtml(building.height||'')}"></div>
     <div class="field"><label>Sol</label><input data-bfield="floor" value="${escapeHtml(building.floor||'')}"></div>
     <div class="field"><label>Toiture</label><input data-bfield="roof" value="${escapeHtml(building.roof||'')}"></div>
     <div class="field"><label>Bardage / ouvertures</label><input data-bfield="cladding" value="${escapeHtml(building.cladding||'')}"></div>
     <div class="field field-wide"><label>Observations permanentes</label><textarea data-bfield="notes">${escapeHtml(building.notes||'')}</textarea></div>
-  </div></section>`;
-  panel.querySelectorAll('[data-bfield]').forEach(el=>{const save=()=>saveBuildingPermanent(building,el.dataset.bfield,el.value);el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save);});
+  </div><div class="info-box small-text">Le rectangle est mis à l’échelle pour tenir dans le plan. Vous pourrez ensuite ajouter les cloisons, zones et équipements à l’intérieur.</div></section>`;
+  panel.querySelectorAll('[data-bfield]').forEach(el=>{
+    const save=()=>{saveBuildingPermanent(building,el.dataset.bfield,el.value);if(['length','width','name'].includes(el.dataset.bfield))updateBuildingOutline(building)};
+    el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save);
+  });
+  document.getElementById('create-building-outline')?.addEventListener('click',()=>{
+    if(updateBuildingOutline(building)){toast('Contour du bâtiment créé / actualisé.');activeBuildingTab='plan';localStorage.setItem('audit-bovin-building-tab','plan');renderBuilding();}
+    else toast('Renseignez une longueur et une largeur supérieures à 0.');
+  });
 }
 
-function planCanvasHtml(){return `<section class="card plan-card"><div class="section-title plan-title"><div><h3>Plan interactif</h3><div class="muted">Outils compacts, objets redimensionnables et sauvegarde automatique.</div></div><span class="badge autosave">Auto</span></div>
-  <div class="plan-toolbar plan-toolbar-compact">
-    <button class="plan-tool active" data-tool="select" title="Sélectionner et déplacer">↖ <span>Sélection</span></button>
-    <button class="plan-tool" data-tool="free" title="Dessin libre">✏️ <span>Libre</span></button>
-    <button class="plan-tool" data-tool="line" title="Trait droit">📏 <span>Trait</span></button>
-    <button class="plan-tool" data-tool="rect" title="Rectangle">▭ <span>Rectangle</span></button>
-    <button class="plan-tool" data-tool="cornadis" title="Cornadis linéaire">▥ <span>Cornadis</span></button>
-    <button class="plan-tool" data-tool="barriere" title="Barrière linéaire">━ <span>Barrière</span></button>
-    <button class="plan-tool" data-tool="barre_garrot" title="Barre au garrot">▔ <span>Barre garrot</span></button>
-    <button class="plan-tool" data-tool="attaches" title="Attaches individuelles">⛓️ <span>Attaches</span></button>
-    <button class="plan-tool" data-tool="passage_homme" title="Passage d’homme">🚶 <span>Passage</span></button>
-    <button class="plan-tool" data-tool="water" title="Abreuvoir">💧 <span>Abreuvoir</span></button>
-    <button class="plan-tool" data-tool="ventilateur" title="Ventilateur">🌀 <span>Ventilateur</span></button>
-    <details class="plan-more"><summary>＋ Plus</summary><div class="plan-more-menu">
-      <button class="plan-tool" data-tool="text">T Texte</button><button class="plan-tool" data-tool="mangeoire">🥣 Mangeoire</button><button class="plan-tool" data-tool="logette">▱ Logette</button><button class="plan-tool" data-tool="porte">🚪 Porte</button><button class="plan-tool" data-tool="fenetre">▣ Fenêtre</button><button class="plan-tool" data-tool="zone_litter">🛏️ Aire paillée</button><button class="plan-tool" data-tool="zone_feed">🌾 Couloir alimentation</button><button class="plan-tool" data-tool="zone_exercise">🐄 Aire d’exercice</button><button class="plan-tool" data-tool="zone_custom">🏷️ Zone libre</button><button class="plan-tool" data-tool="electric">⚡ Point électrique</button><button class="plan-tool" data-tool="litter">🛏️ Litière mesurée</button>
-    </div></details>
-    <label class="plan-width compact">Ép. <select id="plan-width"><option value="2">Fine</option><option value="4" selected>Moy.</option><option value="7">Épaisse</option></select></label>
-    <div class="plan-history-actions"><button class="btn small" id="plan-undo" title="Annuler">↩</button><button class="btn small" id="plan-redo" title="Rétablir">↪</button><button class="btn small danger" id="plan-delete-selected" title="Supprimer la sélection">🗑</button><button class="btn small danger" id="plan-clear" title="Effacer tout">Tout effacer</button></div>
-  </div><div class="plan-layout"><div class="plan-canvas-wrap"><canvas id="building-canvas" width="1000" height="650"></canvas></div><aside id="plan-inspector" class="plan-inspector collapsed"><h4>Objet sélectionné</h4><p class="muted">Cliquez sur un objet pour afficher ses propriétés.</p></aside></div><div class="muted small-text">Les objets linéaires se dessinent par glisser-déposer. Sélectionnez ensuite un objet pour régler sa longueur, sa taille et ses propriétés.</div></section>`;}
+function planToolButton(tool,icon,label,title=''){return `<button class="plan-tool" data-tool="${tool}" title="${escapeHtml(title||label)}"><span class="plan-tool-icon">${icon}</span><span>${label}</span></button>`}
+function planToolGroup(title,buttons){return `<section class="plan-toolbox-group"><h4>${title}</h4><div class="plan-toolbox-grid">${buttons.join('')}</div></section>`}
+function planCanvasHtml(){return `<section class="card plan-card"><div class="section-title plan-title"><div><h3>Plan interactif</h3><div class="muted">Bibliothèque verticale en blocs de deux colonnes. Le plan reste visible pendant le choix des outils.</div></div><span class="badge autosave">Auto</span></div>
+  <div class="plan-designer-grid">
+    <aside class="plan-toolbox" aria-label="Outils du plan">
+      ${planToolGroup('Dessin',[`<button class="plan-tool active" data-tool="select"><span class="plan-tool-icon">↖</span><span>Sélection</span></button>`,planToolButton('free','✏️','Libre'),planToolButton('line','📏','Trait droit'),planToolButton('rect','▭','Rectangle'),planToolButton('text','T','Texte')])}
+      ${planToolGroup('Structure',[planToolButton('porte','🚪','Porte'),planToolButton('fenetre','▣','Fenêtre'),planToolButton('barriere','━','Barrière'),planToolButton('passage_homme','🚶','Passage homme')])}
+      ${planToolGroup('Alimentation',[planToolButton('cornadis','▥','Cornadis'),planToolButton('barre_garrot','▔','Barre garrot'),planToolButton('attaches','⛓️','Attaches'),planToolButton('mangeoire','🥣','Mangeoire')])}
+      ${planToolGroup('Eau / ambiance',[planToolButton('water','💧','Abreuvoir'),planToolButton('ventilateur','🌀','Ventilateur'),planToolButton('electric','⚡','Point électrique')])}
+      ${planToolGroup('Zones',[planToolButton('zone_litter','🛏️','Aire paillée'),planToolButton('zone_feed','🌾','Couloir alim.'),planToolButton('zone_exercise','🐄','Aire exercice'),planToolButton('logette','▱','Logette'),planToolButton('litter','🟫','Litière mesurée'),planToolButton('zone_custom','🏷️','Zone libre')])}
+      <section class="plan-toolbox-group plan-toolbox-settings"><h4>Réglages</h4><label class="plan-width compact">Épaisseur <select id="plan-width"><option value="2">Fine</option><option value="4" selected>Moyenne</option><option value="7">Épaisse</option></select></label><div class="plan-history-actions"><button class="btn small" id="plan-undo" title="Annuler">↩ Annuler</button><button class="btn small" id="plan-redo" title="Rétablir">↪ Rétablir</button><button class="btn small danger" id="plan-delete-selected" title="Supprimer la sélection">🗑 Sélection</button><button class="btn small danger" id="plan-clear" title="Effacer tout sauf le contour">Effacer le contenu</button></div></section>
+    </aside>
+    <div class="plan-canvas-column"><div class="plan-canvas-wrap"><canvas id="building-canvas" width="1000" height="650"></canvas></div><div class="muted small-text">Le contour vert correspond aux dimensions renseignées dans la fiche Structure. Les objets linéaires et les zones se dessinent par glisser-déposer.</div></div>
+    <aside id="plan-inspector" class="plan-inspector collapsed"><h4>Objet sélectionné</h4><p class="muted">Cliquez sur un objet pour afficher ses propriétés.</p></aside>
+  </div></section>`;}
 
 function renderBuildingPlan(panel,{building,audit,visit}){
+  if(!building.plan?.shapes?.some(s=>s.type==='building_outline')) updateBuildingOutline(building);
   panel.innerHTML=planCanvasHtml(); initPlanCanvas(building,audit,visit);
 }
 
@@ -926,6 +950,7 @@ function initPlanCanvas(building,audit,visit){
   const color=t=>({free:'#1f2937',line:'#1f2937',rect:'#1f6f43',text:'#1f2937',...Object.fromEntries(Object.entries(objectMeta).map(([k,v])=>[k,v.color]))}[t]||'#1f2937');
   const meta=s=>objectMeta[s.type]; const isLinear=s=>meta(s)?.kind==='linear'; const isZone=s=>meta(s)?.kind==='zone'; const isPoint=s=>meta(s)?.kind==='point'; const isObject=s=>!!meta(s);
   const drawShape=s=>{ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=s.color||color(s.type);ctx.fillStyle=s.color||color(s.type);ctx.lineWidth=s.width||4;
+    if(s.type==='building_outline'){ctx.strokeStyle=s.color||'#1f6f43';ctx.lineWidth=s.width||5;ctx.setLineDash([12,6]);ctx.strokeRect(s.x,s.y,s.w,s.h);ctx.setLineDash([]);ctx.fillStyle='#1f6f43';ctx.font='bold 15px sans-serif';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText(s.label||'Contour du bâtiment',s.x,s.y-8);ctx.restore();return;}
     if(s.type==='free'){ctx.beginPath();s.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
     if(s.type==='line'||isLinear(s)){ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();if(isLinear(s)){const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;ctx.fillStyle='#fff';ctx.strokeStyle=s.color||color(s.type);ctx.lineWidth=1;ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';const label=s.label||meta(s).label;const tw=ctx.measureText(label).width+10;ctx.fillRect(mx-tw/2,my-10,tw,20);ctx.strokeRect(mx-tw/2,my-10,tw,20);ctx.fillStyle=s.color||color(s.type);ctx.fillText(label,mx,my);}}
     if(s.type==='rect'){ctx.strokeRect(s.x,s.y,s.w,s.h);}
@@ -938,7 +963,7 @@ function initPlanCanvas(building,audit,visit){
   const persist=()=>{building.updatedAt=new Date().toISOString();saveDatabase(db);renderInspector();renderCanvas()};
   const commit=s=>{if(!s)return;s.id=s.id||uid('shape');history.push(s);redo=[];temp=null;selectedId=s.id;persist();};
   const distanceToSegment=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;if(!l2)return Math.hypot(p.x-a.x,p.y-a.y);let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy))};
-  const hit=p=>[...history].reverse().find(s=>{if(isPoint(s))return Math.abs(p.x-s.x)<(s.w||54)/2+8&&Math.abs(p.y-s.y)<(s.h||38)/2+8;if(isZone(s)||s.type==='rect')return p.x>=s.x-7&&p.x<=s.x+s.w+7&&p.y>=s.y-7&&p.y<=s.y+s.h+7;if(isLinear(s)||s.type==='line')return distanceToSegment(p,{x:s.x1,y:s.y1},{x:s.x2,y:s.y2})<12;if(s.type==='text')return Math.abs(p.x-s.x)<80&&Math.abs(p.y-s.y)<24;return false});
+  const hit=p=>[...history].reverse().find(s=>{if(s.type==='building_outline')return false;if(isPoint(s))return Math.abs(p.x-s.x)<(s.w||54)/2+8&&Math.abs(p.y-s.y)<(s.h||38)/2+8;if(isZone(s)||s.type==='rect')return p.x>=s.x-7&&p.x<=s.x+s.w+7&&p.y>=s.y-7&&p.y<=s.y+s.h+7;if(isLinear(s)||s.type==='line')return distanceToSegment(p,{x:s.x1,y:s.y1},{x:s.x2,y:s.y2})<12;if(s.type==='text')return Math.abs(p.x-s.x)<80&&Math.abs(p.y-s.y)<24;return false});
   const linkedRow=s=>s.linkKind==='drinker'?audit.drinkers.find(r=>r.id===s.linkId):s.linkKind==='electric'?audit.electric.find(r=>r.id===s.linkId):s.linkKind==='litter'?audit.litters.find(r=>r.id===s.linkId):null;
   const setLinearLength=(s,newLength)=>{const dx=s.x2-s.x1,dy=s.y2-s.y1,old=Math.hypot(dx,dy)||1;const ux=dx/old,uy=dy/old;s.x2=s.x1+ux*newLength;s.y2=s.y1+uy*newLength};
   const renderInspector=()=>{const box=document.getElementById('plan-inspector');if(!box)return;const s=history.find(x=>x.id===selectedId);if(!s){box.classList.add('collapsed');box.innerHTML='<h4>Objet sélectionné</h4><p class="muted">Cliquez sur un objet pour afficher ses propriétés.</p>';return}box.classList.remove('collapsed');const row=linkedRow(s);const m=meta(s);const isLin=isLinear(s),isZn=isZone(s),isPt=isPoint(s);const length=isLin?Math.round(Math.hypot(s.x2-s.x1,s.y2-s.y1)):0;box.innerHTML=`<h4>${escapeHtml(s.label||m?.label||s.type)}</h4><div class="field"><label>Libellé / nom de zone</label><input id="shape-label" value="${escapeHtml(s.label||'')}"></div><div class="muted small-text">Type : ${escapeHtml(m?.label||s.type)}</div>${s.type==='cornadis'?`<div class="field"><label>Nombre de places</label><input id="shape-places" type="number" min="0" step="1" value="${escapeHtml(s.places??'')}"></div><div class="field"><label>Type de cornadis</label><select id="shape-cornadis-type">${['Autobloquant','Simple','Tubulaire','Autre'].map(v=>`<option ${s.cornadisType===v?'selected':''}>${v}</option>`).join('')}</select></div>`:''}${s.type==='barre_garrot'?`<div class="field"><label>Hauteur (cm)</label><input id="shape-garrot-height" type="number" min="0" step="1" value="${escapeHtml(s.heightCm??'')}"></div>`:''}${s.type==='attaches'?`<div class="field"><label>Nombre d’attaches</label><input id="shape-places" type="number" min="0" step="1" value="${escapeHtml(s.places??'')}"></div><div class="field"><label>Type d’attache</label><select id="shape-attach-type">${['Chaîne','Collier','Licol','Câble','Autre'].map(v=>`<option ${s.attachType===v?'selected':''}>${v}</option>`).join('')}</select></div>`:''}${isLin?`<div class="field"><label>Longueur sur le plan</label><input id="shape-length" type="number" min="20" max="950" value="${length}"></div><div class="actions compact"><button class="btn small" id="linear-horizontal">Horizontal</button><button class="btn small" id="linear-vertical">Vertical</button></div>`:''}${isZn||isPt?`<div class="grid cols-2"><div class="field"><label>Largeur</label><input id="shape-w" type="number" min="20" max="950" value="${Math.round(s.w||(isPt?54:150))}"></div><div class="field"><label>Hauteur</label><input id="shape-h" type="number" min="20" max="550" value="${Math.round(s.h||(isPt?38:100))}"></div></div>`:''}${isZn?`<div class="field"><label>Correspondance / usage de la zone</label><select id="shape-zone-type">${['Aire paillée','Couloir d’alimentation','Aire d’exercice','Logettes','Case veaux','Zone de stockage','Aire d’attente','Parc d’isolement','Autre'].map(v=>`<option ${s.zoneType===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>Commentaire de zone</label><textarea id="shape-zone-comment">${escapeHtml(s.comment||'')}</textarea></div>`:''}${row?`<div class="plan-linked-summary">${s.linkKind==='drinker'?`Type : ${escapeHtml(row.type||'')}<br>Matériau : ${escapeHtml(row.material||'')}<br>Débit : ${escapeHtml(row.flow||'—')} L/min`:s.linkKind==='electric'?`Valeur : ${escapeHtml(row.value||'—')} ${escapeHtml(row.unit||'')}`:`Zone : ${escapeHtml(row.zone||'')}<br>pH : ${escapeHtml(row.ph||'—')}`}</div><button class="btn primary" id="open-linked-row">Ouvrir la fiche liée</button>`:'<p class="muted">Objet permanent du plan.</p>'}<button class="btn danger" id="delete-shape-inspector">Supprimer cet objet</button>`;
@@ -957,7 +982,7 @@ function initPlanCanvas(building,audit,visit){
   canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);const p=point(e);const width=Number(document.getElementById('plan-width')?.value||4);if(tool==='select'){const s=hit(p);selectedId=s?.id||'';if(s){if(isPoint(s))dragOffset={kind:'point',x:p.x-s.x,y:p.y-s.y};else if(isZone(s)||s.type==='rect')dragOffset={kind:'zone',x:p.x-s.x,y:p.y-s.y};else if(isLinear(s)||s.type==='line')dragOffset={kind:'linear',x:p.x-s.x1,y:p.y-s.y1,x2:s.x2-s.x1,y2:s.y2-s.y1};drawing=true}else dragOffset=null;renderInspector();renderCanvas();return}if(['water','electric'].includes(tool)){createLinkedObject(tool,p);return}if(isPoint({type:tool})){commit({type:tool,x:p.x,y:p.y,label:meta({type:tool}).label,w:54,h:38});return}if(tool==='text'){const text=prompt('Texte à ajouter :');if(text)commit({type:'text',x:p.x,y:p.y,text});return}drawing=true;start=p;if(tool==='free')temp={type:'free',points:[p],width,color:color(tool)};});
   canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);if(tool==='select'){const s=history.find(x=>x.id===selectedId);if(s&&dragOffset){if(dragOffset.kind==='point'){s.x=p.x-dragOffset.x;s.y=p.y-dragOffset.y}else if(dragOffset.kind==='zone'){s.x=p.x-dragOffset.x;s.y=p.y-dragOffset.y}else if(dragOffset.kind==='linear'){s.x1=p.x-dragOffset.x;s.y1=p.y-dragOffset.y;s.x2=s.x1+dragOffset.x2;s.y2=s.y1+dragOffset.y2}renderCanvas()}return}const width=Number(document.getElementById('plan-width')?.value||4);if(tool==='free')temp.points.push(p);if(tool==='line'||['cornadis','barriere','barre_garrot','attaches','passage_homme'].includes(tool))temp={type:tool,x1:start.x,y1:start.y,x2:p.x,y2:p.y,width,color:color(tool),label:meta({type:tool})?.label};if(tool==='rect'||['zone_litter','zone_feed','zone_exercise','zone_custom','litter'].includes(tool))temp={type:tool,x:Math.min(start.x,p.x),y:Math.min(start.y,p.y),w:Math.abs(p.x-start.x),h:Math.abs(p.y-start.y),width,color:color(tool),label:meta({type:tool})?.label,zoneType:meta({type:tool})?.label};renderCanvas();});
   const finish=()=>{if(!drawing)return;drawing=false;if(tool==='select'){persist();return}if(temp&&(tool==='free'?temp.points.length>1:(isLinear(temp)||temp.type==='line'?Math.hypot(temp.x2-temp.x1,temp.y2-temp.y1)>8:(isZone(temp)||temp.type==='rect'?temp.w>8&&temp.h>8:true)))){if(tool==='litter')createLinkedLitterZone(temp);else commit(temp)}else{temp=null;renderCanvas()}};canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);
-  document.getElementById('plan-undo').onclick=()=>{const s=history.pop();if(s)redo.push(s);selectedId='';persist()};document.getElementById('plan-redo').onclick=()=>{const s=redo.pop();if(s)history.push(s);persist()};document.getElementById('plan-delete-selected').onclick=()=>{if(!selectedId)return;const i=history.findIndex(x=>x.id===selectedId);if(i>=0)history.splice(i,1);selectedId='';persist()};document.getElementById('plan-clear').onclick=()=>{if(confirm('Effacer tout le plan ?')){redo.push(...history.splice(0));selectedId='';persist()}};
+  document.getElementById('plan-undo').onclick=()=>{const s=history.pop();if(s)redo.push(s);selectedId='';persist()};document.getElementById('plan-redo').onclick=()=>{const s=redo.pop();if(s)history.push(s);persist()};document.getElementById('plan-delete-selected').onclick=()=>{if(!selectedId)return;const i=history.findIndex(x=>x.id===selectedId);if(i>=0)history.splice(i,1);selectedId='';persist()};document.getElementById('plan-clear').onclick=()=>{if(confirm('Effacer tous les objets ajoutés en conservant le contour du bâtiment ?')){const kept=history.filter(s=>s.type==='building_outline');const removed=history.filter(s=>s.type!=='building_outline');redo.push(...removed);history.splice(0,history.length,...kept);selectedId='';persist()}};
   renderCanvas();renderInspector();planRuntime={renderCanvas};
 }
 
