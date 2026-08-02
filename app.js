@@ -276,7 +276,7 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -1427,6 +1427,93 @@ function analysisPrintHtml(){return `<h2>Grille complète des mesures animales �
 function feedingPrintHtml(){return `<h2>Alimentation</h2><table><thead><tr>${['Catégorie','Type d’aliment','Nature / composition','Quantité','Unité','Distribution','Fréquence','Commentaire'].map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${Array.from({length:18},()=>`<tr>${Array.from({length:8},()=>'<td class="blank-line"></td>').join('')}</tr>`).join('')}</tbody></table>`}
 function printAuditDocument(visit,mode){const filled=mode==='audit-filled';let title,content;if(mode==='full-blank'){title='Guide complet vierge';content=analysisPrintHtml()+feedingPrintHtml()+auditPrintHtml(visit,false)}else if(mode==='analysis-blank'){title='Grilles analyses vierges';content=analysisPrintHtml()}else if(mode==='audit-blank'){title='Audit vierge';content=auditPrintHtml(visit,false)}else{title='Audit renseigné';content=auditPrintHtml(visit,true)}const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>${printBaseStyles()}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — ${title}</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${mode.includes('blank')?'':escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${mode.includes('blank')?'':escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${mode.includes('blank')?'':escapeHtml(visit.technician||'')}</div></div>${content}</body></html>`);w.document.close()}
 function printAuditGuide(visit,filled){printAuditDocument(visit,filled?'audit-filled':'audit-blank')}
+
+
+
+function reportLines(value){
+  return String(value||'').split(/\n|•|;/).map(x=>x.trim()).filter(Boolean);
+}
+function reportList(value, empty='Aucun élément renseigné.'){
+  const items=reportLines(value);
+  return items.length?`<ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`:`<p class="report-empty">${escapeHtml(empty)}</p>`;
+}
+function reportFarm(visit){return db.farms.find(f=>f.id===visit.farmId)||{};}
+function reportMeta(visit){
+  const farm=reportFarm(visit);
+  return {farm:farm.name||'Exploitation non renseignée',farmer:farm.manager||farm.owner||'',date:formatDate(visit.date),technician:visit.technician||'',type:visit.type||'',location:farm.address||farm.city||''};
+}
+function reportStats(visit){
+  const subjects=visit.subjects||[];
+  const measured=subjects.filter(s=>Object.values(s.measurements?.analysis||{}).some(v=>v!==''&&v!==null&&v!==undefined)).length;
+  const general=visit.analysisGeneral||{};
+  return {subjects:subjects.length,measured,general:(general.tamis?.length||0)+(general.silos?.length||0)+(general.soils?.length||0)+(general.plants?.length||0)};
+}
+function reportHeader(visit,title,subtitle=''){
+  const m=reportMeta(visit),st=reportStats(visit);
+  return `<header class="report-cover"><div class="report-brand"><div class="report-logo">GDS<br>32-65</div><div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle)}</p></div></div><div class="report-cover-grid"><div><span>Exploitation</span><strong>${escapeHtml(m.farm)}</strong></div><div><span>Date</span><strong>${escapeHtml(m.date)}</strong></div><div><span>Technicien</span><strong>${escapeHtml(m.technician||'Non renseigné')}</strong></div><div><span>Type de visite</span><strong>${escapeHtml(m.type||'Non renseigné')}</strong></div><div><span>Sujets observés</span><strong>${st.subjects}</strong></div><div><span>Sujets avec mesures</span><strong>${st.measured}</strong></div></div></header>`;
+}
+function reportConclusionHtml(visit){
+  const c=ensureVisitConclusion(visit);
+  const priorities=(c.priorities||[]).filter(x=>x.text);
+  return `<section class="report-section"><h2>Résumé de la visite</h2><div class="report-summary-grid"><article class="report-box positive"><h3>✅ Points forts</h3>${reportList(c.strengths)}</article><article class="report-box warning"><h3>⚠️ Points à améliorer</h3>${reportList([c.high,c.medium,c.low].filter(Boolean).join('\n'))}</article></div><article class="report-box"><h3>Conclusion générale</h3><p>${escapeHtml(c.general||'').replace(/\n/g,'<br>')}</p></article></section><section class="report-section"><h2>Actions principales</h2><table><thead><tr><th>Action</th><th>Décision</th><th>Commentaire</th></tr></thead><tbody>${priorities.length?priorities.map((a,i)=>`<tr><td><strong>${i+1}. ${escapeHtml(a.text)}</strong>${a.source?`<br><small>${escapeHtml(a.source)}</small>`:''}</td><td>${escapeHtml(a.decision||'À étudier')}</td><td>${escapeHtml(a.comment||'')}</td></tr>`).join(''):'<tr><td colspan="3">Aucune action principale renseignée.</td></tr>'}</tbody></table><h3>À vérifier lors de la prochaine visite</h3>${reportList(c.next)}</section>`;
+}
+function reportAnalysisTable(visit){
+  const groups=categoryAnalysis(visit);
+  if(!groups.length)return '<p class="report-empty">Aucune donnée d’analyse exploitable.</p>';
+  return groups.map(g=>`<article class="report-subsection"><h3>${escapeHtml(g.category)} <small>(${g.subjects.length} sujet(s))</small></h3><table><thead><tr><th>Paramètre</th><th>n</th><th>Min</th><th>Moy.</th><th>Max</th><th>Hors réf.</th></tr></thead><tbody>${g.parameterResults.map(r=>`<tr><td>${escapeHtml(r.parameter.label)}</td><td>${r.measured.length}</td><td>${r.minimum.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td><td>${r.average.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td><td>${r.maximum.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td><td>${r.outOfRange}/${r.measured.length}</td></tr>`).join('')}</tbody></table>${visit.analysisConclusions?.[g.category]?`<p><strong>Conclusion du technicien :</strong> ${escapeHtml(visit.analysisConclusions[g.category])}</p>`:''}</article>`).join('');
+}
+function reportReasoningHtml(visit){
+  const groups=categoryAnalysis(visit), cards=[];
+  groups.forEach(g=>buildKnowledgePistes(visit,g).forEach(h=>{const state=reasoningState(visit,`${g.category}:${h.id}`);if(state.status!=='dismissed')cards.push({...h,category:g.category,state});}));
+  if(!cards.length)return '<p class="report-empty">Aucune piste de raisonnement retenue.</p>';
+  return cards.map(h=>`<article class="report-reason"><h3>${escapeHtml(h.title)} <small>— ${escapeHtml(h.category)}</small></h3><p><strong>Confiance :</strong> ${escapeHtml(h.confidence.label)} · ${h.sourceCount} source(s)</p><p>${escapeHtml(h.summary)}</p>${h.mechanism?`<p><strong>Ce que cette piste peut traduire :</strong> ${escapeHtml(h.mechanism)}</p>`:''}<div class="report-columns"><div><h4>Éléments en faveur</h4>${reportList((h.evidence||[]).join('\n'))}</div><div><h4>Prudence / contradictions</h4>${reportList((h.nuance||[]).join('\n'))}</div><div><h4>Facteurs à examiner</h4>${reportList((h.causes||[]).join('\n'))}</div><div><h4>Données manquantes</h4>${reportList((h.missing||[]).join('\n'))}</div></div>${h.state.note?`<p><strong>Commentaire du technicien :</strong> ${escapeHtml(h.state.note)}</p>`:''}</article>`).join('');
+}
+function reportFeedingHtml(visit){
+  const rows=visit.feeding?.rations||[];
+  if(!rows.length)return '<p class="report-empty">Aucune ration renseignée.</p>';
+  return `<table><thead><tr><th>Catégorie</th><th>Type</th><th>Nature</th><th>Quantité</th><th>Distribution</th><th>Commentaire</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(r.category||'')}</td><td>${escapeHtml(r.type||'')}</td><td>${escapeHtml(r.nature||r.detail||'')}</td><td>${escapeHtml([r.quantity,r.unit].filter(Boolean).join(' '))}</td><td>${escapeHtml(r.distribution||'')}</td><td>${escapeHtml(r.comment||'')}</td></tr>`).join('')}</tbody></table>`;
+}
+function reportBuildingHtml(visit){
+  const rec=buildingRecords(visit);
+  return `<div class="report-kpis"><div><span>Abreuvoirs</span><strong>${rec.drinkers.length}</strong></div><div><span>Mesures électriques</span><strong>${rec.electric.length}</strong></div><div><span>Zones de litière</span><strong>${rec.litters.length}</strong></div></div>${rec.drinkers.length?`<h3>Abreuvoirs</h3><table><thead><tr><th>Nom</th><th>Type</th><th>Matériau</th><th>Débit</th><th>pH</th><th>Redox</th><th>Commentaire</th></tr></thead><tbody>${rec.drinkers.map(d=>`<tr><td>${escapeHtml(d.name||'')}</td><td>${escapeHtml(d.type||'')}</td><td>${escapeHtml(d.material||'')}</td><td>${escapeHtml(d.flow||'')}</td><td>${escapeHtml(d.ph||'')}</td><td>${escapeHtml(d.redox||'')}</td><td>${escapeHtml(d.comment||'')}</td></tr>`).join('')}</tbody></table>`:''}`;
+}
+function reportAuditHtml(visit){
+  const a=ensureAuditGlobal(visit);
+  return auditGlobalSections.map(s=>{const summary=a.chapterSummaries?.[s.id]||{};const answered=s.questions.filter(q=>{const x=a.answers[q]||{};return x.answer||(x.values||[]).length||x.comment;});return `<article class="report-subsection"><h3>${s.icon} ${escapeHtml(s.title)}</h3><p>${answered.length}/${s.questions.length} éléments renseignés.</p>${summary.strengths?`<p><strong>Points forts :</strong> ${escapeHtml(summary.strengths)}</p>`:''}${summary.watch?`<p><strong>Points de vigilance :</strong> ${escapeHtml(summary.watch)}</p>`:''}${summary.comments?`<p><strong>Commentaires :</strong> ${escapeHtml(summary.comments)}</p>`:''}</article>`}).join('');
+}
+function reportDocumentHtml(visit,type,options={}){
+  const titles={farmer:'Rapport Éleveur',technical:'Rapport Technique',expert:'Rapport Expert'};
+  let body=reportHeader(visit,titles[type]||'Rapport de visite',type==='farmer'?'Synthèse claire et plan d’action':'Audit Bovin GDS 32-65');
+  body+=reportConclusionHtml(visit);
+  if(type!=='farmer'){
+    if(options.analysis!==false)body+=`<section class="report-section page-break"><h2>Analyses et synthèses détaillées</h2>${reportAnalysisTable(visit)}</section>`;
+    if(options.feeding!==false)body+=`<section class="report-section"><h2>Alimentation</h2>${reportFeedingHtml(visit)}</section>`;
+    if(options.building!==false)body+=`<section class="report-section"><h2>Bâtiment, eau et environnement</h2>${reportBuildingHtml(visit)}</section>`;
+    if(options.audit!==false)body+=`<section class="report-section"><h2>Audit global</h2>${reportAuditHtml(visit)}</section>`;
+  }
+  if(type==='expert')body+=`<section class="report-section page-break"><h2>Raisonnement 5mVet détaillé</h2>${reportReasoningHtml(visit)}</section>`;
+  body+=`<footer class="report-footer"><p>Ce rapport constitue une aide au raisonnement fondée sur les données recueillies lors de la visite. Les pistes proposées restent soumises à la validation du technicien et, lorsque nécessaire, à l’appréciation du vétérinaire.</p><div class="signature-grid"><div><strong>Éleveur</strong><br><br>Signature :</div><div><strong>Technicien</strong><br><br>Signature :</div></div></footer>`;
+  return body;
+}
+function fullReportStyles(){return `${printBaseStyles()} body{max-width:980px;margin:0 auto;padding:20px;background:#fff;color:#16231c}.report-cover{padding:24px;border:2px solid #1f6f43;border-radius:16px;margin-bottom:24px}.report-brand{display:flex;gap:18px;align-items:center}.report-logo{width:72px;height:72px;border-radius:18px;background:#1f6f43;color:white;display:grid;place-items:center;text-align:center;font-weight:800}.report-cover h1{margin:0}.report-cover-grid,.report-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}.report-cover-grid>div,.report-kpis>div{padding:10px;background:#f3f7f4;border-radius:8px}.report-cover-grid span,.report-kpis span{display:block;color:#66756c;font-size:9pt}.report-cover-grid strong,.report-kpis strong{display:block;margin-top:3px}.report-section{margin:22px 0}.report-summary-grid,.report-columns{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.report-box,.report-reason,.report-subsection{border:1px solid #cfdad3;border-radius:10px;padding:12px;margin:10px 0}.report-box.positive{border-left:6px solid #2e8b57}.report-box.warning{border-left:6px solid #e0a326}.report-empty{color:#6b746e;font-style:italic}.report-footer{margin-top:30px;border-top:2px solid #d5dfd8;padding-top:16px}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:25px}.signature-grid>div{min-height:90px;border:1px solid #aab5ad;padding:12px}.page-break{page-break-before:always}@media(max-width:700px){.report-cover-grid,.report-kpis,.report-summary-grid,.report-columns{grid-template-columns:1fr}}`}
+function openReportWindow(visit,type,options={}){
+  const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return null;}
+  w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Rapport ${type}</title><style>${fullReportStyles()}</style></head><body><div class="no-print" style="position:sticky;top:0;background:white;padding:8px;border-bottom:1px solid #ddd;z-index:5"><button onclick="window.print()">Imprimer / Enregistrer en PDF</button></div>${reportDocumentHtml(visit,type,options)}</body></html>`);w.document.close();return w;
+}
+function downloadWordReport(visit,type,options={}){
+  const html=`<!doctype html><html><head><meta charset="utf-8"><style>${fullReportStyles()}</style></head><body>${reportDocumentHtml(visit,type,options)}</body></html>`;
+  const blob=new Blob(['\ufeff',html],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`rapport-${type}-${slugify(farmName(visit.farmId))}-${visit.date||'visite'}.doc`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  visit.generatedReports=Array.isArray(visit.generatedReports)?visit.generatedReports:[];visit.generatedReports.unshift({id:uid('report'),type,format:'Word',createdAt:new Date().toISOString()});saveDatabase(db);
+}
+function reportOptionsFromUi(){return {analysis:document.getElementById('report-opt-analysis')?.checked!==false,feeding:document.getElementById('report-opt-feeding')?.checked!==false,building:document.getElementById('report-opt-building')?.checked!==false,audit:document.getElementById('report-opt-audit')?.checked!==false};}
+function renderReports(){
+  const visit=activeVisit();if(!visit){renderNoActiveVisit('Rapports');return;}
+  visit.generatedReports=Array.isArray(visit.generatedReports)?visit.generatedReports:[];
+  app.innerHTML=`<div class="section-title"><div><h2>Rapports professionnels</h2><div class="muted">Trois niveaux de restitution à partir de la visite active.</div></div><span class="badge autosave">v11.7</span></div>${activeVisitBanner(visit)}<section class="report-choice-grid"><article class="card report-choice"><div class="report-choice-icon">👨‍🌾</div><h3>Rapport Éleveur</h3><p>Résumé, points forts, points à améliorer et actions principales.</p><div class="actions"><button class="btn" data-report-pdf="farmer">PDF / Imprimer</button><button class="btn secondary" data-report-word="farmer">Word modifiable</button></div></article><article class="card report-choice"><div class="report-choice-icon">👨‍⚕️</div><h3>Rapport Technique</h3><p>Conclusion, analyses, alimentation, bâtiment et audit détaillé.</p><div class="actions"><button class="btn" data-report-pdf="technical">PDF / Imprimer</button><button class="btn secondary" data-report-word="technical">Word modifiable</button></div></article><article class="card report-choice"><div class="report-choice-icon">🎓</div><h3>Rapport Expert</h3><p>Rapport technique enrichi du raisonnement 5mVet transparent.</p><div class="actions"><button class="btn" data-report-pdf="expert">PDF / Imprimer</button><button class="btn secondary" data-report-word="expert">Word modifiable</button></div></article></section><section class="card"><h3>Options des rapports Technique et Expert</h3><div class="report-options"><label><input type="checkbox" id="report-opt-analysis" checked> Analyses et synthèses</label><label><input type="checkbox" id="report-opt-feeding" checked> Alimentation</label><label><input type="checkbox" id="report-opt-building" checked> Bâtiment et eau</label><label><input type="checkbox" id="report-opt-audit" checked> Audit global</label></div></section><section class="card"><div class="section-title"><div><h3>Plan d’action sur une page</h3><div class="muted">Export court destiné au suivi avec l’éleveur.</div></div><button class="btn" id="print-action-report">Imprimer / PDF</button></div></section><section class="card"><h3>Historique des exports</h3>${visit.generatedReports.length?`<div class="report-history">${visit.generatedReports.slice(0,12).map(r=>`<div><strong>${escapeHtml(r.type)}</strong><span>${escapeHtml(r.format)} · ${formatDateTime(r.createdAt)}</span></div>`).join('')}</div>`:'<div class="empty">Aucun export enregistré pour cette visite.</div>'}</section>`;
+  app.querySelectorAll('[data-report-pdf]').forEach(b=>b.onclick=()=>{const type=b.dataset.reportPdf;openReportWindow(visit,type,reportOptionsFromUi());visit.generatedReports.unshift({id:uid('report'),type,format:'PDF / impression',createdAt:new Date().toISOString()});saveDatabase(db);});
+  app.querySelectorAll('[data-report-word]').forEach(b=>b.onclick=()=>downloadWordReport(visit,b.dataset.reportWord,reportOptionsFromUi()));
+  document.getElementById('print-action-report').onclick=()=>{const c=ensureVisitConclusion(visit),w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return;}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><style>${fullReportStyles()}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button>${reportHeader(visit,'Plan d’action','Synthèse sur une page')}<section class="report-section"><h2>Actions décidées</h2><table><thead><tr><th>Action</th><th>Décision</th><th>Commentaire</th><th>Réalisée</th></tr></thead><tbody>${(c.priorities||[]).filter(a=>a.text).map(a=>`<tr><td>${escapeHtml(a.text)}</td><td>${escapeHtml(a.decision||'')}</td><td>${escapeHtml(a.comment||'')}</td><td>☐</td></tr>`).join('')}</tbody></table><h2>À vérifier lors de la prochaine visite</h2>${reportList(c.next)}</section></body></html>`);w.document.close();};
+}
 
 function renderBackup() {
   app.innerHTML = `
