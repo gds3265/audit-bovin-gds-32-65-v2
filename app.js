@@ -754,7 +754,7 @@ function dataQualityForGroup(visit, group){
   return rows.map(r=>({...r,ratio:r.total?r.value/r.total:0,level:r.total&&r.value/r.total>=.7?'high':r.total&&r.value/r.total>=.3?'medium':'low'}));
 }
 function makePiste(rule,evidence,nuance,missing,score,sources){
-  return {...rule,evidence,nuance,missing,confidence:confidenceLabel(score,evidence.length,nuance.length,new Set(sources).size),sourceCount:new Set(sources).size};
+  return {...rule,evidence,nuance,missing,causes:rule.causes||[],confidence:confidenceLabel(score,evidence.length,nuance.length,new Set(sources).size),sourceCount:new Set(sources).size};
 }
 function buildKnowledgePistes(visit,group){
   const subjects=group.subjects,pistes=[];
@@ -791,7 +791,12 @@ function buildKnowledgePistes(visit,group){
     if(rumen.length){e.push(`${rumen.length}/${subjects.length} remplissage(s) ruminal(aux) faible(s)`);score+=1;src.push('observation')}
     if((visit.analysisGeneral?.tamis||[]).length){e.push(`${visit.analysisGeneral.tamis.length} relevé(s) de tamis disponible(s)`);score+=1;src.push('tamis')}
     if(!measured('fecesPH').length)m.push('pH des bouses non renseigné');if(!measured('fecesRedox').length)m.push('Redox des bouses non renseigné');
-    if(e.length)pistes.push(makePiste(rule('digestion-structure'),e,n,m,score,src));
+    if(e.length)pistes.push(makePiste(rule('intestinal-imbalance'),e,n,m,score,src));
+    const fiberEvidence=[];let fiberScore=0;const fibers=obs('fecesAspect',['Fibres longues','Grains']),lowRumen=obs('rumenFill',['1','2']);
+    if(fibers.length){fiberEvidence.push(`${fibers.length}/${subjects.length} sujet(s) avec fibres longues ou grains visibles dans les bouses`);fiberScore+=2;}
+    if(lowRumen.length){fiberEvidence.push(`${lowRumen.length}/${subjects.length} remplissage(s) ruminal(aux) faible(s)`);fiberScore+=1;}
+    if((visit.analysisGeneral?.tamis||[]).length){fiberEvidence.push(`${visit.analysisGeneral.tamis.length} relevé(s) de tamis disponible(s)`);fiberScore+=1;}
+    if(fiberEvidence.length>=2)pistes.push(makePiste(rule('fiber-structure'),fiberEvidence,[],[],fiberScore,['bouses','physique','tamis']));
   }
   {
     const e=[],n=[],m=[],src=[];let score=0;const dense=abnormal('urineDensity','high'),dark=abnormal('urineColor','high'),lowFlow=build.drinkers.filter(d=>numericValue(d.flow)!==null&&numericValue(d.flow)<10),poorAccess=build.drinkers.filter(d=>['Moyenne','Insuffisante'].includes(d.accessibility));
@@ -810,6 +815,18 @@ function buildKnowledgePistes(visit,group){
     if((visit.analysisGeneral?.silos||[]).length){e.push(`${visit.analysisGeneral.silos.length} relevé(s) de silo disponible(s)`);score+=1;src.push('fourrages')}
     if(!ration.length)m.push('Ration non renseignée');if(!settings.mineralization)m.push('Minéralisation non précisée');
     if(e.length>=2||settings.saltAccess==='Absent')pistes.push(makePiste(rule('feeding-practices'),e,n,m,score,src));
+    if(settings.saltAccess==='Absent'||settings.saltAccess==='Insuffisant'||/absent|insuffisant|rare/i.test(settings.mineralization||'')){
+      const se=['Accès au sel indiqué comme absent ou insuffisant'];
+      if(abnormal('urineDensity','high').length)se.push('Urines concentrées sur une partie du lot');
+      if(build.drinkers.some(d=>numericValue(d.flow)!==null&&numericValue(d.flow)<10))se.push('Au moins un débit d’abreuvoir faible');
+      pistes.push(makePiste(rule('salt-deficiency'),se,[],['Consommation réelle de sel non mesurée'],3+se.length,['alimentation','urines','bâtiment']));
+    }
+    const ureaHigh=abnormal('urea','high'),ureaLow=abnormal('urea','low');
+    if(ureaHigh.length||ureaLow.length){
+      const ne=[];if(ureaHigh.length)ne.push(`${ureaHigh.length}/${subjects.length} urémie(s) élevée(s)`);if(ureaLow.length)ne.push(`${ureaLow.length}/${subjects.length} urémie(s) basse(s)`);
+      if(ration.length)ne.push('Ration renseignée pour permettre un croisement azote–énergie');
+      pistes.push(makePiste(rule('nitrogen-balance'),ne,[],ration.length?[]:['Ration non renseignée'],2+ne.length,['sang','alimentation']));
+    }
   }
   {
     const e=[],n=[],m=[],src=[];let score=0;const wet=build.litters.filter(l=>numericValue(l.humidity)!==null&&numericValue(l.humidity)>=60),hot=build.litters.filter(l=>numericValue(l.temperature)!==null&&numericValue(l.temperature)>=35),electric=build.electric.filter(x=>numericValue(x.value)!==null&&numericValue(x.value)>20),q=build.questionnaire.filter(x=>['À surveiller','À corriger'].includes(x.status));
@@ -831,7 +848,7 @@ function buildKnowledgePistes(visit,group){
 }
 function reasoningState(visit,pisteId){visit.reasoningReview=visit.reasoningReview||{};return visit.reasoningReview[pisteId]||{status:'active',note:''};}
 function renderQualityTable(rows){return `<div class="quality-grid">${rows.map(r=>`<div class="quality-item ${r.level}"><div><strong>${escapeHtml(r.label)}</strong><small>${r.value}/${r.total}</small></div><div class="quality-bar"><i style="width:${Math.min(100,Math.round(r.ratio*100))}%"></i></div></div>`).join('')}</div>`;}
-function renderKnowledgePiste(visit,h,group){const state=reasoningState(visit,`${group.category}:${h.id}`);const list=(title,items,cls)=>items.length?`<div class="reason-block ${cls}"><strong>${title}</strong><ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`:'';return `<article class="reason-card ${state.status==='dismissed'?'dismissed':''}"><div class="reason-head"><div><span class="reason-domain">${escapeHtml(KNOWLEDGE_AXES.find(a=>a.id===h.axis)?.label||h.axis)}</span><h4>${escapeHtml(h.title)}</h4></div><span class="confidence ${h.confidence.className}">Confiance ${h.confidence.label} · ${h.sourceCount} source(s)</span></div><p>${escapeHtml(h.summary)}</p>${list('Faits et observations qui vont dans ce sens',h.evidence,'supports')}${list('Éléments qui invitent à la prudence',h.nuance,'nuances')}${list('Données manquantes',h.missing,'missing')}${list('Points à approfondir',h.checks,'checks')}<div class="reason-review"><select data-reason-status="${escapeHtml(group.category+':'+h.id)}"><option value="active" ${state.status==='active'?'selected':''}>Piste retenue</option><option value="dismissed" ${state.status==='dismissed'?'selected':''}>Piste écartée</option><option value="watch" ${state.status==='watch'?'selected':''}>À surveiller</option></select><textarea data-reason-note="${escapeHtml(group.category+':'+h.id)}" placeholder="Justification / commentaire du technicien">${escapeHtml(state.note||'')}</textarea></div></article>`;}
+function renderKnowledgePiste(visit,h,group){const state=reasoningState(visit,`${group.category}:${h.id}`);const list=(title,items,cls)=>items?.length?`<div class="reason-block ${cls}"><strong>${title}</strong><ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`:'';return `<article class="reason-card ${state.status==='dismissed'?'dismissed':''}"><div class="reason-head"><div><span class="reason-domain">${escapeHtml(KNOWLEDGE_AXES.find(a=>a.id===h.axis)?.label||h.axis)}</span><h4>${escapeHtml(h.title)}</h4></div><span class="confidence ${h.confidence.className}">Confiance ${h.confidence.label} · ${h.sourceCount} source(s)</span></div><p>${escapeHtml(h.summary)}</p>${h.mechanism?`<div class="reason-explanation"><strong>Ce que cette piste peut traduire</strong><p>${escapeHtml(h.mechanism)}</p></div>`:''}${list('Faits et observations qui vont dans ce sens',h.evidence,'supports')}${list('Éléments qui invitent à la prudence',h.nuance,'nuances')}${list('Facteurs possibles à examiner',h.causes,'causes')}${list('Données manquantes',h.missing,'missing')}${list('Pistes de vérification',h.checks,'checks')}<div class="reason-review"><select data-reason-status="${escapeHtml(group.category+':'+h.id)}"><option value="active" ${state.status==='active'?'selected':''}>Piste retenue</option><option value="dismissed" ${state.status==='dismissed'?'selected':''}>Piste écartée</option><option value="watch" ${state.status==='watch'?'selected':''}>À surveiller</option></select><textarea data-reason-note="${escapeHtml(group.category+':'+h.id)}" placeholder="Justification / commentaire du technicien">${escapeHtml(state.note||'')}</textarea></div></article>`;}
 function renderReasoningSection(visit){
   const groups=categoryAnalysis(visit);if(!groups.length)return'<div class="empty">Classez les sujets et saisissez des valeurs pour générer le raisonnement.</div>';
   return `<div class="notice"><strong>Moteur transparent :</strong> les faits mesurés, observations, données manquantes et pistes d’interprétation sont séparés. Le technicien peut retenir, surveiller ou écarter chaque piste.</div><div class="reason-groups">${groups.map(group=>{const quality=dataQualityForGroup(visit,group),pistes=buildKnowledgePistes(visit,group);return `<section class="card"><div class="section-title"><div><h3>${escapeHtml(group.category)}</h3><span class="muted">${group.subjects.length} sujet(s) · analyse par lot</span></div></div><h4>Fiabilité des données</h4>${renderQualityTable(quality)}<h4 style="margin-top:18px">Pistes d’interprétation</h4>${pistes.length?`<div class="reason-grid">${pistes.map(h=>renderKnowledgePiste(visit,h,group)).join('')}</div>`:'<div class="empty">Aucune piste suffisamment étayée avec les données actuelles.</div>'}</section>`}).join('')}</div>`;
