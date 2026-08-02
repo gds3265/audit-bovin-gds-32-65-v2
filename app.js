@@ -17,6 +17,10 @@ const fileInput = document.getElementById('json-file-input');
 const visitTypes = ['Bilan 5MVet', 'Audit complet', 'Visite métabolique', 'Audit bâtiment', 'Audit alimentation', 'Audit sanitaire', 'Audit vêlage', 'Audit veaux', 'Suivi', 'Autre'];
 const categories = ['Non classé', 'Veau 0–15 jours', 'Veau 15–60 jours', 'Génisse', 'Engraissement', 'Préparation vêlage', 'Tarie', 'Fraîche vêlée', 'Début lactation', 'Pic de lactation', 'Milieu lactation', 'Fin lactation', 'Vache allaitante', 'Autre'];
 const physiologicalStages = ['Non renseigné', 'Vide', 'Synchronisation des chaleurs', 'Pleine', 'Lactation'];
+const feedingCategories = ['Veaux', 'Génisses', 'Engraissement', 'Vaches en production', 'Préparation vêlage', 'Vaches taries', 'Vaches allaitantes', 'Taureaux', 'Autre'];
+const feedTypes = ['Ensilage', 'Enrubanné', 'Foin', 'Regain', 'Paille', 'Concentré', 'Correcteur', 'Minéral', 'Sel', 'Bicarbonate', 'Levures', 'Mélasse / sucre', 'Autre'];
+const feedUnits = ['kg brut/j', 'kg MS/j', 'g/j', 'L/j', 'À volonté', 'Autre'];
+const distributionModes = ['Mélangeuse', 'Désileuse', 'Râtelier', 'Cornadis', 'DAC', 'Robot', 'Libre-service', 'Manuel', 'Pâturage', 'Autre'];
 const measurementFamilies = [
   ['urine', 'Urines', '🟡'], ['blood', 'Sang', '🔴'], ['feces', 'Bouses', '🟤'],
   ['physical', 'Observations physiques', '🟢'], ['milk', 'Lait', '🔵'], ['colostrum', 'Colostrum', '🟣']
@@ -53,6 +57,10 @@ function migrateDatabase() {
       subject.measurements.observations = subject.measurements.observations && typeof subject.measurements.observations === 'object' ? subject.measurements.observations : {};
       subject.measurements.comments = subject.measurements.comments && typeof subject.measurements.comments === 'object' ? subject.measurements.comments : {};
     });
+    visit.feeding = visit.feeding && typeof visit.feeding === 'object' ? visit.feeding : {};
+    visit.feeding.rations = Array.isArray(visit.feeding.rations) ? visit.feeding.rations : [];
+    visit.feeding.settings = visit.feeding.settings && typeof visit.feeding.settings === 'object' ? visit.feeding.settings : {};
+    visit.feeding.history = Array.isArray(visit.feeding.history) ? visit.feeding.history : [];
   });
   if (activeVisitId && !db.visits.some(v => v.id === activeVisitId)) setActiveVisit('');
   saveDatabase(db);
@@ -103,7 +111,7 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -684,6 +692,92 @@ function bindAnalysisEvents(visit) {
   app.querySelectorAll('[data-remove-action]').forEach(b=>b.onclick=()=>{visit.analysisActions=visit.analysisActions.filter(a=>a.id!==b.dataset.removeAction);saveDatabase(db);renderAnalysis();});
   document.getElementById('analysis-demo')?.addEventListener('click',()=>{if(!confirm('Charger un jeu d’essai ?'))return;const cats=['Fraîche vêlée','Pic de lactation','Préparation vêlage','Fin lactation'];visit.subjects.forEach((s,i)=>{if(!s.category||s.category==='Non classé')s.category=cats[i%cats.length];const alert=i%3===1;s.measurements.analysis={nec:alert?'2':'3.25',urineColor:alert?'4':'2',urinePH:alert?'8.7':'7.3',urineRedox:alert?'15':'-10',urineBrix:alert?'9':'4',urineDensity:alert?'1036':'1020',glucose:alert?'39':'58',boh:alert?'1.5':'0.4',bloodPH:alert?'7.5':'7.4',urea:alert?'0.34':'0.25',fecesPH:alert?'6.2':'6.65',fecesRedox:alert?'-145':'-205',milkPH:'6.6',milkBrix:'11',colostrumBrix:'24'};s.measurements.observations={muscles:alert?'-':'0',coat:alert?['Ternes','Hirsutes']:['Fins','Soyeux'],fecesAspect:alert?['Liquides','Grains']:['Moulées'],limbs:alert?['Boiterie']:[],locomotion:alert?'2':'1',rumenFill:alert?'2':'4'};});visit.analysisGeneral.tamis=[{id:uid('tamis'),category:'Vaches en production',represented:'8',total:'500',t1:'80',t2:'65',comment:'Mélange du lot'}];saveDatabase(db);renderAnalysis();});
   document.getElementById('analysis-clear')?.addEventListener('click',()=>{if(!confirm('Effacer toutes les données du module Analyse ?'))return;visit.subjects.forEach(s=>{s.measurements.analysis={};s.measurements.observations={};s.measurements.comments={};});visit.analysisGeneral={tamis:[],silos:[],soils:[],plants:[]};visit.analysisConclusions={};visit.analysisActions=[];saveDatabase(db);renderAnalysis();});
+}
+
+
+function feedingRowHtml(row, index) {
+  return `<tr data-feeding-row="${row.id}">
+    <td class="row-number">${index + 1}</td>
+    <td><select data-feeding-field="category" data-id="${row.id}">${feedingCategories.map(v => `<option ${row.category===v?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td><select data-feeding-field="type" data-id="${row.id}">${feedTypes.map(v => `<option ${row.type===v?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td><input data-feeding-field="nature" data-id="${row.id}" value="${escapeHtml(row.nature || '')}" placeholder="Ex. maïs, prairie, VL18…" /></td>
+    <td><input data-feeding-field="quantity" data-id="${row.id}" inputmode="decimal" value="${escapeHtml(row.quantity || '')}" placeholder="Quantité" /></td>
+    <td><select data-feeding-field="unit" data-id="${row.id}">${feedUnits.map(v => `<option ${row.unit===v?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td><select data-feeding-field="distribution" data-id="${row.id}">${distributionModes.map(v => `<option ${row.distribution===v?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td><input data-feeding-field="frequency" data-id="${row.id}" value="${escapeHtml(row.frequency || '')}" placeholder="Ex. 2 fois/j, 8 h–18 h" /></td>
+    <td><textarea data-feeding-field="comment" data-id="${row.id}" placeholder="Commentaire">${escapeHtml(row.comment || '')}</textarea></td>
+    <td><div class="feeding-row-actions"><button type="button" class="btn small" data-duplicate-feed="${row.id}">Dupliquer</button><button type="button" class="btn small danger" data-delete-feed="${row.id}">Supprimer</button></div></td>
+  </tr>`;
+}
+
+function renderFeeding() {
+  const visit = activeVisit();
+  if (visit) {
+    visit.feeding = visit.feeding && typeof visit.feeding === 'object' ? visit.feeding : { rations: [], settings: {}, history: [] };
+    visit.feeding.rations = Array.isArray(visit.feeding.rations) ? visit.feeding.rations : [];
+    visit.feeding.settings = visit.feeding.settings && typeof visit.feeding.settings === 'object' ? visit.feeding.settings : {};
+  }
+  const settings = visit?.feeding?.settings || {};
+  const rows = visit?.feeding?.rations || [];
+  app.innerHTML = `
+    <div class="section-title"><div><h2>Alimentation</h2><div class="muted">Rations par catégorie, distribution, minéralisation et transitions.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+    ${activeVisitBanner(visit)}
+    ${!visit ? '<section class="empty">Choisissez une visite dans l’onglet Visites.</section>' : `
+      <section class="card feeding-card">
+        <div class="section-title"><div><h3>Tableau des rations</h3><div class="muted">Ajoutez autant d’aliments que nécessaire pour chaque catégorie.</div></div><div class="actions"><button type="button" class="btn primary" id="add-feed-row">Ajouter un aliment</button><button type="button" class="btn" id="add-feed-category">Ajouter une ration type</button></div></div>
+        ${rows.length ? `<div class="table-wrap feeding-table-wrap"><table class="feeding-table"><thead><tr><th>#</th><th>Catégorie</th><th>Type d’aliment</th><th>Nature / composition</th><th>Quantité</th><th>Unité</th><th>Mode de distribution</th><th>Fréquence / horaires</th><th>Commentaire</th><th>Actions</th></tr></thead><tbody>${rows.map(feedingRowHtml).join('')}</tbody></table></div>` : '<div class="empty">Aucun aliment renseigné. Cliquez sur « Ajouter un aliment ».</div>'}
+      </section>
+      <section class="grid cols-2" style="margin-top:16px">
+        <article class="card"><h3>Distribution et mélangeuse</h3>
+          <div class="field"><label>Ordre de chargement / distribution</label><textarea data-feeding-setting="loadingOrder" placeholder="Ex. paille, foin, concentrés, minéraux, ensilage…">${escapeHtml(settings.loadingOrder || '')}</textarea></div>
+          <div class="row"><div class="field"><label>Nombre de distributions / jour</label><input data-feeding-setting="distributionsPerDay" inputmode="numeric" value="${escapeHtml(settings.distributionsPerDay || '')}" /></div><div class="field"><label>Temps de mélange</label><input data-feeding-setting="mixingTime" value="${escapeHtml(settings.mixingTime || '')}" placeholder="Ex. 10 min" /></div></div>
+          <div class="field"><label>Matériel / mélangeuse</label><input data-feeding-setting="equipment" value="${escapeHtml(settings.equipment || '')}" placeholder="Marque, modèle, capacité…" /></div>
+          <div class="field"><label>Observations sur la distribution</label><textarea data-feeding-setting="distributionNotes">${escapeHtml(settings.distributionNotes || '')}</textarea></div>
+        </article>
+        <article class="card"><h3>Transitions, sel et minéralisation</h3>
+          <div class="field"><label>Transition alimentaire</label><textarea data-feeding-setting="transition" placeholder="Durée, modalités, changements récents…">${escapeHtml(settings.transition || '')}</textarea></div>
+          <div class="field"><label>Accès au sel</label><select data-feeding-setting="saltAccess"><option value="">Non renseigné</option>${['Permanent', 'Ponctuel', 'Absent', 'Variable selon les lots'].map(v=>`<option ${settings.saltAccess===v?'selected':''}>${v}</option>`).join('')}</select></div>
+          <div class="field"><label>Minéralisation / compléments</label><textarea data-feeding-setting="mineralization" placeholder="Produit, quantité, fréquence, mode de distribution…">${escapeHtml(settings.mineralization || '')}</textarea></div>
+          <div class="field"><label>Eau et restriction éventuelle</label><textarea data-feeding-setting="waterNotes">${escapeHtml(settings.waterNotes || '')}</textarea></div>
+        </article>
+      </section>
+      <section class="card" style="margin-top:16px"><h3>Commentaire général alimentation</h3><textarea class="feeding-general-comment" data-feeding-setting="generalComment" placeholder="Synthèse de la ration, points forts, points à vérifier…">${escapeHtml(settings.generalComment || '')}</textarea></section>`}`;
+
+  if (!visit) return;
+  const addRow = (preset = {}) => {
+    visit.feeding.rations.push({ id: uid('feed'), category: preset.category || 'Vaches en production', type: preset.type || 'Ensilage', nature: '', quantity: '', unit: 'kg brut/j', distribution: 'Mélangeuse', frequency: '', comment: '', ...preset });
+    visit.updatedAt = new Date().toISOString();
+    saveDatabase(db); renderFeeding();
+  };
+  document.getElementById('add-feed-row')?.addEventListener('click', () => addRow());
+  document.getElementById('add-feed-category')?.addEventListener('click', () => {
+    const category = prompt('Nom de la catégorie animale :', 'Vaches en production');
+    if (!category) return;
+    ['Ensilage','Foin','Concentré','Minéral','Sel'].forEach(type => addRow({ category, type }));
+  });
+  app.querySelectorAll('[data-feeding-field]').forEach(el => {
+    const save = () => {
+      const row = visit.feeding.rations.find(r => r.id === el.dataset.id);
+      if (!row) return;
+      row[el.dataset.feedingField] = el.value;
+      row.updatedAt = new Date().toISOString();
+      visit.updatedAt = new Date().toISOString();
+      saveDatabase(db);
+    };
+    el.addEventListener('input', save); el.addEventListener('change', save); el.addEventListener('blur', save);
+  });
+  app.querySelectorAll('[data-feeding-setting]').forEach(el => {
+    const save = () => { visit.feeding.settings[el.dataset.feedingSetting] = el.value; visit.updatedAt = new Date().toISOString(); saveDatabase(db); };
+    el.addEventListener('input', save); el.addEventListener('change', save); el.addEventListener('blur', save);
+  });
+  app.querySelectorAll('[data-delete-feed]').forEach(button => button.onclick = () => {
+    if (!confirm('Supprimer cette ligne de ration ?')) return;
+    visit.feeding.rations = visit.feeding.rations.filter(r => r.id !== button.dataset.deleteFeed); saveDatabase(db); renderFeeding();
+  });
+  app.querySelectorAll('[data-duplicate-feed]').forEach(button => button.onclick = () => {
+    const source = visit.feeding.rations.find(r => r.id === button.dataset.duplicateFeed); if (!source) return;
+    visit.feeding.rations.push({ ...source, id: uid('feed'), nature: source.nature || '', updatedAt: new Date().toISOString() }); saveDatabase(db); renderFeeding();
+  });
 }
 
 function renderBackup() {
