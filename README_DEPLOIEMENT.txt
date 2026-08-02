@@ -1,8 +1,6 @@
-Audit Bovin GDS 32-65 — V11.3 Planches
+Audit Bovin GDS 32-65 — V11.4
 
-1. Décompresser le ZIP.
-2. Importer tous les fichiers directement à la racine du dépôt GitHub.
-3. Remplacer les fichiers existants.
-4. Ouvrir le site avec ?v=11.3.
+Importer tous les fichiers directement à la racine du dépôt GitHub.
+Ouvrir ensuite le site avec ?v=11.4.
 
-La bibliothèque et les PDF ont été supprimés. L’onglet Planches fonctionne hors ligne.
+Cette version ajoute le moteur de raisonnement transparent par lot, la qualité des données, les pistes d’interprétation et leur validation par le technicien.

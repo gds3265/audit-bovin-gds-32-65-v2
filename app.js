@@ -1,6 +1,7 @@
 import { loadDatabase, saveDatabase, loadDraft, saveDraft, clearDraft, replaceDatabase } from './storage.js';
 import { uid, formatDate, formatDateTime, escapeHtml, downloadJson, slugify } from './utils.js';
 import { THRESHOLDS, CATEGORY_RULE_MAP } from './analysis-rules.js';
+import { KNOWLEDGE_AXES, KNOWLEDGE_RULES } from './knowledge-base.js';
 
 let db = loadDatabase();
 let currentView = 'dashboard';
@@ -647,6 +648,7 @@ function ensureAnalysisVisit(visit) {
   visit.analysisGeneral = visit.analysisGeneral || { tamis:[], silos:[], soils:[], plants:[] };
   Object.keys(generalConfigs).forEach(key => visit.analysisGeneral[key] = Array.isArray(visit.analysisGeneral[key]) ? visit.analysisGeneral[key] : []);
   visit.analysisActions = Array.isArray(visit.analysisActions) ? visit.analysisActions : [];
+  visit.reasoningReview = visit.reasoningReview && typeof visit.reasoningReview === 'object' ? visit.reasoningReview : {};
   (visit.subjects || []).forEach(subject => {
     subject.measurements = subject.measurements && typeof subject.measurements === 'object' ? subject.measurements : {};
     subject.measurements.analysis = subject.measurements.analysis && typeof subject.measurements.analysis === 'object' ? subject.measurements.analysis : {};
@@ -718,57 +720,121 @@ function resultFor(subject,key) {
 function isLow(subject,key){const r=resultFor(subject,key);return r&&['red-low','yellow-low'].includes(r.classification.status);}
 function isHigh(subject,key){const r=resultFor(subject,key);return r&&['red-high','yellow-high'].includes(r.classification.status);}
 function hasObservation(subject,key,values){const raw=subject.measurements.observations?.[key];const list=Array.isArray(raw)?raw:(raw?[raw]:[]);return list.some(v=>values.includes(v));}
-function confidenceLabel(score,evidenceCount,contradictionsCount){
-  if(evidenceCount>=3&&score>=5&&contradictionsCount===0)return{label:'élevée',className:'high'};
+function confidenceLabel(score,evidenceCount,contradictionsCount,sourceCount=1){
+  if(evidenceCount>=4&&sourceCount>=2&&score>=7&&contradictionsCount<=1)return{label:'élevée',className:'high'};
   if(evidenceCount>=2&&score>=3)return{label:'modérée',className:'medium'};
   return{label:'faible',className:'low'};
 }
-function buildHypotheses(group) {
-  const subjects=group.subjects, hypotheses=[];
-  {
-    const evidence=[],nuance=[],missing=[];let score=0;
-    const lowGly=ratioCount(subjects,s=>isLow(s,'glucose')), highBoh=ratioCount(subjects,s=>isHigh(s,'boh')), lowNec=ratioCount(subjects,s=>isLow(s,'nec')), poorMuscles=ratioCount(subjects,s=>['--','-'].includes(s.measurements.observations?.muscles));
-    if(lowGly.matching){evidence.push(`${lowGly.matching}/${lowGly.total} glycémie(s) basse(s)`);score+=lowGly.ratio>=.5?2:1;}
-    if(highBoh.matching){evidence.push(`${highBoh.matching}/${highBoh.total} BOH élevé(s)`);score+=highBoh.ratio>=.5?3:2;}
-    if(lowNec.matching){evidence.push(`${lowNec.matching}/${lowNec.total} NEC basse(s)`);score+=lowNec.ratio>=.5?2:1;}
-    if(poorMuscles.matching){evidence.push(`${poorMuscles.matching}/${poorMuscles.total} musculature(s) faible(s)`);score+=1;}
-    const normalGly=ratioCount(subjects,s=>resultFor(s,'glucose')?.classification.status==='green');if(normalGly.ratio>=.7)nuance.push('La majorité des glycémies est dans la plage de référence.');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.glucose)!==null))missing.push('Glycémies non renseignées');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.boh)!==null))missing.push('BOH non renseignés');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.nec)!==null))missing.push('NEC non renseignées');
-    if(evidence.length)hypotheses.push({domain:'Métabolisme énergétique',title:'Équilibre énergétique à approfondir',confidence:confidenceLabel(score,evidence.length,nuance.length),summary:'Les éléments observés peuvent être compatibles avec un déficit énergétique. Cette piste doit être confrontée au stade physiologique, à la ration et à la dynamique du lot.',evidence,nuance,missing,checks:['Vérifier la transition alimentaire et l’ingestion réelle','Confronter avec la ration et la qualité des fourrages','Compléter les mesures manquantes sur un nombre représentatif de sujets']});
-  }
-  {
-    const evidence=[],nuance=[],missing=[];let score=0;
-    const dense=ratioCount(subjects,s=>isHigh(s,'urineDensity')),dark=ratioCount(subjects,s=>isHigh(s,'urineColor')),highBrix=ratioCount(subjects,s=>isHigh(s,'urineBrix'));
-    if(dense.matching){evidence.push(`${dense.matching}/${dense.total} densité(s) urinaire(s) élevée(s)`);score+=dense.ratio>=.5?3:2;}
-    if(dark.matching){evidence.push(`${dark.matching}/${dark.total} urine(s) foncée(s)`);score+=dark.ratio>=.5?2:1;}
-    if(highBrix.matching){evidence.push(`${highBrix.matching}/${highBrix.total} Brix urinaire(s) élevé(s)`);score+=1;}
-    const normal=ratioCount(subjects,s=>resultFor(s,'urineDensity')?.classification.status==='green');if(normal.ratio>=.7)nuance.push('La majorité des densités urinaires est dans la plage de référence.');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.urineDensity)!==null))missing.push('Densités urinaires non renseignées');
-    if(evidence.length)hypotheses.push({domain:'Hydratation',title:'Accès à l’eau / hydratation à vérifier',confidence:confidenceLabel(score,evidence.length,nuance.length),summary:'La concentration ou la couleur des urines peut inviter à vérifier l’accès à l’eau, le débit et les conditions d’abreuvement. Ces résultats ne suffisent pas à attribuer une cause.',evidence,nuance,missing,checks:['Mesurer les débits des abreuvoirs','Vérifier le nombre, la propreté et l’accessibilité des points d’eau','Confronter aux conditions météorologiques et à la consommation estimée']});
-  }
-  {
-    const evidence=[],nuance=[],missing=[];let score=0;
-    const ph=ratioCount(subjects,s=>{const r=resultFor(s,'fecesPH');return r&&statusSeverity(r.classification.status)>=2;}), redox=ratioCount(subjects,s=>{const r=resultFor(s,'fecesRedox');return r&&statusSeverity(r.classification.status)>=2;}), aspect=ratioCount(subjects,s=>hasObservation(s,'fecesAspect',['Liquides','Molles','Collantes','Grains','Fibres longues'])), rumen=ratioCount(subjects,s=>['1','2'].includes(String(s.measurements.observations?.rumenFill||'')));
-    if(ph.matching){evidence.push(`${ph.matching}/${ph.total} pH de bouses hors plage`);score+=2;}
-    if(redox.matching){evidence.push(`${redox.matching}/${redox.total} redox de bouses hors plage`);score+=2;}
-    if(aspect.matching){evidence.push(`${aspect.matching}/${aspect.total} aspect(s) de bouses à surveiller`);score+=aspect.ratio>=.5?2:1;}
-    if(rumen.matching){evidence.push(`${rumen.matching}/${rumen.total} remplissage(s) du rumen faible(s)`);score+=1;}
-    const normal=ratioCount(subjects,s=>resultFor(s,'fecesPH')?.classification.status==='green'&&resultFor(s,'fecesRedox')?.classification.status==='green');if(normal.ratio>=.7)nuance.push('La majorité des couples pH/redox des bouses est dans la plage de référence.');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.fecesPH)!==null))missing.push('pH des bouses non renseigné');
-    if(!subjects.some(s=>numericValue(s.measurements.analysis?.fecesRedox)!==null))missing.push('Redox des bouses non renseigné');
-    if(evidence.length)hypotheses.push({domain:'Digestion',title:'Digestion et structure de ration à approfondir',confidence:confidenceLabel(score,evidence.length,nuance.length),summary:'La combinaison des mesures et des observations de bouses peut justifier une vérification de la digestion et de la structure physique de la ration.',evidence,nuance,missing,checks:['Confronter avec le tamis à bouses','Vérifier la fibrosité, le tri et l’ordre de distribution','Examiner la qualité et la conservation des fourrages']});
-  }
-  return hypotheses;
+function auditAttentionCount(visit, sectionId){
+  const answers=visit.auditGlobal?.answers||{};
+  const section=auditGlobalSections.find(x=>x.id===sectionId);
+  if(!section)return 0;
+  return section.questions.filter(q=>['À surveiller','À corriger'].includes(answers[q]?.status||answers[q]?.evaluation||'')).length;
 }
-function renderHypothesisCard(h){
-  const list=(title,items,cls)=>items.length?`<div class="reason-block ${cls}"><strong>${title}</strong><ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`:'';
-  return `<article class="reason-card"><div class="reason-head"><div><span class="reason-domain">${escapeHtml(h.domain)}</span><h4>${escapeHtml(h.title)}</h4></div><span class="confidence ${h.confidence.className}">Confiance ${h.confidence.label}</span></div><p>${escapeHtml(h.summary)}</p>${list('Éléments qui vont dans ce sens',h.evidence,'supports')}${list('Éléments qui invitent à la prudence',h.nuance,'nuances')}${list('Données manquantes',h.missing,'missing')}${list('À vérifier pour approfondir',h.checks,'checks')}</article>`;
+function buildingRecords(visit){
+  const audits=Object.values(visit.buildingAudits||{});
+  return {
+    drinkers:audits.flatMap(a=>a.drinkers||[]), electric:audits.flatMap(a=>a.electric||[]),
+    litters:audits.flatMap(a=>a.litters||[]), ambience:audits.map(a=>a.ambience||{}),
+    questionnaire:audits.flatMap(a=>Object.values(a.questionnaire||{}))
+  };
 }
+function dataQualityForGroup(visit, group){
+  const subjects=group.subjects,total=Math.max(1,subjects.length);
+  const count=(keys,source='analysis')=>subjects.filter(s=>keys.some(k=>{const v=s.measurements?.[source]?.[k];return Array.isArray(v)?v.length>0:(v!==''&&v!==null&&v!==undefined);})).length;
+  const build=buildingRecords(visit);
+  const rows=[
+    {label:'Urines',value:count(['urinePH','urineRedox','urineDensity','urineColor']),total},
+    {label:'Sang',value:count(['glucose','boh','bloodPH','urea']),total},
+    {label:'Bouses',value:count(['fecesPH','fecesRedox'])+count(['fecesAspect'],'observations'),total:total*2},
+    {label:'Physique',value:count(['nec'])+count(['rumenFill','muscles','coat','limbs'],'observations'),total:total*2},
+    {label:'Alimentation',value:(visit.feeding?.rations||[]).length?1:0,total:1},
+    {label:'Bâtiment / eau',value:(build.drinkers.length+build.litters.length+build.electric.length)>0?1:0,total:1}
+  ];
+  return rows.map(r=>({...r,ratio:r.total?r.value/r.total:0,level:r.total&&r.value/r.total>=.7?'high':r.total&&r.value/r.total>=.3?'medium':'low'}));
+}
+function makePiste(rule,evidence,nuance,missing,score,sources){
+  return {...rule,evidence,nuance,missing,confidence:confidenceLabel(score,evidence.length,nuance.length,new Set(sources).size),sourceCount:new Set(sources).size};
+}
+function buildKnowledgePistes(visit,group){
+  const subjects=group.subjects,pistes=[];
+  const rule=id=>KNOWLEDGE_RULES.find(r=>r.id===id);
+  const measured=(key)=>subjects.filter(s=>numericValue(s.measurements.analysis?.[key])!==null);
+  const abnormal=(key,direction='any')=>subjects.filter(s=>{const r=resultFor(s,key);if(!r)return false;const st=r.classification.status;return direction==='low'?['red-low','yellow-low'].includes(st):direction==='high'?['red-high','yellow-high'].includes(st):statusSeverity(st)>=2;});
+  const obs=(key,vals)=>subjects.filter(s=>hasObservation(s,key,vals));
+  const build=buildingRecords(visit);
+  {
+    const e=[],n=[],m=[],src=[];let score=0;
+    const boh=abnormal('boh','high'),gly=abnormal('glucose','low'),nec=abnormal('nec','low'),rumen=obs('rumenFill',['1','2']),muscle=obs('muscles',['--','-']);
+    if(boh.length){e.push(`${boh.length}/${subjects.length} BOH au-dessus du repère`);score+=3;src.push('sang')}
+    if(gly.length){e.push(`${gly.length}/${subjects.length} glycémie(s) basse(s)`);score+=2;src.push('sang')}
+    if(nec.length){e.push(`${nec.length}/${subjects.length} NEC basse(s)`);score+=2;src.push('physique')}
+    if(rumen.length){e.push(`${rumen.length}/${subjects.length} remplissage(s) ruminal(aux) faible(s)`);score+=1;src.push('observation')}
+    if(muscle.length){e.push(`${muscle.length}/${subjects.length} musculature(s) faible(s)`);score+=1;src.push('observation')}
+    if(measured('glucose').length&&abnormal('glucose').length===0)n.push('Les glycémies renseignées sont majoritairement dans la plage de référence.');
+    if(!measured('glucose').length)m.push('Glycémies non renseignées');if(!measured('boh').length)m.push('BOH non renseignés');if(!measured('nec').length)m.push('NEC non renseignées');
+    if(e.length)pistes.push(makePiste(rule('energy-balance'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const ph=abnormal('urinePH'),redox=abnormal('urineRedox');
+    if(ph.length){e.push(`${ph.length}/${subjects.length} pH urinaire(s) hors repère`);score+=2;src.push('urines')}
+    if(redox.length){e.push(`${redox.length}/${subjects.length} redox urinaire(s) hors repère`);score+=2;src.push('urines')}
+    if(visit.feeding?.settings?.mineralization){e.push('Minéralisation renseignée dans le module Alimentation');score+=1;src.push('alimentation')}
+    if(!measured('urinePH').length)m.push('pH urinaires non renseignés');if(!measured('urineRedox').length)m.push('Redox urinaires non renseignés');
+    if(e.length)pistes.push(makePiste(rule('urine-balance'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const ph=abnormal('fecesPH'),redox=abnormal('fecesRedox'),aspect=obs('fecesAspect',['Liquides','Molles','Collantes','Grains','Fibres longues']),rumen=obs('rumenFill',['1','2']);
+    if(ph.length){e.push(`${ph.length}/${subjects.length} pH de bouses hors repère`);score+=2;src.push('bouses')}
+    if(redox.length){e.push(`${redox.length}/${subjects.length} redox de bouses hors repère`);score+=2;src.push('bouses')}
+    if(aspect.length){e.push(`${aspect.length}/${subjects.length} aspect(s) de bouses à surveiller`);score+=2;src.push('observation')}
+    if(rumen.length){e.push(`${rumen.length}/${subjects.length} remplissage(s) ruminal(aux) faible(s)`);score+=1;src.push('observation')}
+    if((visit.analysisGeneral?.tamis||[]).length){e.push(`${visit.analysisGeneral.tamis.length} relevé(s) de tamis disponible(s)`);score+=1;src.push('tamis')}
+    if(!measured('fecesPH').length)m.push('pH des bouses non renseigné');if(!measured('fecesRedox').length)m.push('Redox des bouses non renseigné');
+    if(e.length)pistes.push(makePiste(rule('digestion-structure'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const dense=abnormal('urineDensity','high'),dark=abnormal('urineColor','high'),lowFlow=build.drinkers.filter(d=>numericValue(d.flow)!==null&&numericValue(d.flow)<10),poorAccess=build.drinkers.filter(d=>['Moyenne','Insuffisante'].includes(d.accessibility));
+    if(dense.length){e.push(`${dense.length}/${subjects.length} densité(s) urinaire(s) élevée(s)`);score+=2;src.push('urines')}
+    if(dark.length){e.push(`${dark.length}/${subjects.length} urine(s) foncée(s)`);score+=1;src.push('urines')}
+    if(lowFlow.length){e.push(`${lowFlow.length} abreuvoir(s) avec débit inférieur à 10 L/min`);score+=2;src.push('bâtiment')}
+    if(poorAccess.length){e.push(`${poorAccess.length} point(s) d’eau à accessibilité moyenne ou insuffisante`);score+=2;src.push('bâtiment')}
+    if(!build.drinkers.length)m.push('Aucun abreuvoir renseigné dans le bâtiment');if(!measured('urineDensity').length)m.push('Densités urinaires non renseignées');
+    if(e.length)pistes.push(makePiste(rule('water-access'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const ration=visit.feeding?.rations||[],settings=visit.feeding?.settings||{};
+    if(ration.length){e.push(`${ration.length} ligne(s) de ration renseignée(s)`);score+=1;src.push('alimentation')}
+    if(settings.transition){e.push('Une transition alimentaire est documentée');score+=1;src.push('alimentation')}
+    if(settings.saltAccess==='Absent'){e.push('Accès au sel indiqué comme absent');score+=2;src.push('alimentation')}
+    if((visit.analysisGeneral?.silos||[]).length){e.push(`${visit.analysisGeneral.silos.length} relevé(s) de silo disponible(s)`);score+=1;src.push('fourrages')}
+    if(!ration.length)m.push('Ration non renseignée');if(!settings.mineralization)m.push('Minéralisation non précisée');
+    if(e.length>=2||settings.saltAccess==='Absent')pistes.push(makePiste(rule('feeding-practices'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const wet=build.litters.filter(l=>numericValue(l.humidity)!==null&&numericValue(l.humidity)>=60),hot=build.litters.filter(l=>numericValue(l.temperature)!==null&&numericValue(l.temperature)>=35),electric=build.electric.filter(x=>numericValue(x.value)!==null&&numericValue(x.value)>20),q=build.questionnaire.filter(x=>['À surveiller','À corriger'].includes(x.status));
+    if(wet.length){e.push(`${wet.length} zone(s) de litière avec humidité élevée`);score+=2;src.push('litière')}
+    if(hot.length){e.push(`${hot.length} zone(s) de litière avec température élevée`);score+=2;src.push('litière')}
+    if(electric.length){e.push(`${electric.length} mesure(s) électrique(s) supérieure(s) à 20 mV`);score+=2;src.push('électricité')}
+    if(q.length){e.push(`${q.length} point(s) du questionnaire bâtiment à surveiller ou corriger`);score+=2;src.push('questionnaire')}
+    if(!(build.litters.length+build.electric.length+build.questionnaire.length))m.push('Volet bâtiment peu ou pas renseigné');
+    if(e.length)pistes.push(makePiste(rule('building-conditions'),e,n,m,score,src));
+  }
+  {
+    const e=[],n=[],m=[],src=[];let score=0;const count=auditAttentionCount(visit,'reproduction');
+    if(count){e.push(`${count} réponse(s) reproduction à surveiller ou corriger`);score+=Math.min(4,count);src.push('audit')}
+    if(visit.auditGlobal?.renewal?.cowsEmpty){e.push(`${visit.auditGlobal.renewal.cowsEmpty} vache(s) vide(s) renseignée(s)`);score+=1;src.push('renouvellement')}
+    if(!visit.auditGlobal)m.push('Audit global non renseigné');
+    if(e.length)pistes.push(makePiste(rule('reproduction-practices'),e,n,m,score,src));
+  }
+  return pistes;
+}
+function reasoningState(visit,pisteId){visit.reasoningReview=visit.reasoningReview||{};return visit.reasoningReview[pisteId]||{status:'active',note:''};}
+function renderQualityTable(rows){return `<div class="quality-grid">${rows.map(r=>`<div class="quality-item ${r.level}"><div><strong>${escapeHtml(r.label)}</strong><small>${r.value}/${r.total}</small></div><div class="quality-bar"><i style="width:${Math.min(100,Math.round(r.ratio*100))}%"></i></div></div>`).join('')}</div>`;}
+function renderKnowledgePiste(visit,h,group){const state=reasoningState(visit,`${group.category}:${h.id}`);const list=(title,items,cls)=>items.length?`<div class="reason-block ${cls}"><strong>${title}</strong><ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`:'';return `<article class="reason-card ${state.status==='dismissed'?'dismissed':''}"><div class="reason-head"><div><span class="reason-domain">${escapeHtml(KNOWLEDGE_AXES.find(a=>a.id===h.axis)?.label||h.axis)}</span><h4>${escapeHtml(h.title)}</h4></div><span class="confidence ${h.confidence.className}">Confiance ${h.confidence.label} · ${h.sourceCount} source(s)</span></div><p>${escapeHtml(h.summary)}</p>${list('Faits et observations qui vont dans ce sens',h.evidence,'supports')}${list('Éléments qui invitent à la prudence',h.nuance,'nuances')}${list('Données manquantes',h.missing,'missing')}${list('Points à approfondir',h.checks,'checks')}<div class="reason-review"><select data-reason-status="${escapeHtml(group.category+':'+h.id)}"><option value="active" ${state.status==='active'?'selected':''}>Piste retenue</option><option value="dismissed" ${state.status==='dismissed'?'selected':''}>Piste écartée</option><option value="watch" ${state.status==='watch'?'selected':''}>À surveiller</option></select><textarea data-reason-note="${escapeHtml(group.category+':'+h.id)}" placeholder="Justification / commentaire du technicien">${escapeHtml(state.note||'')}</textarea></div></article>`;}
 function renderReasoningSection(visit){
   const groups=categoryAnalysis(visit);if(!groups.length)return'<div class="empty">Classez les sujets et saisissez des valeurs pour générer le raisonnement.</div>';
-  return `<div class="notice"><strong>Lecture transparente :</strong> chaque piste est justifiée par les données qui la soutiennent, les éléments qui la nuancent et les informations manquantes. Le technicien conserve la conclusion.</div><div class="reason-groups">${groups.map(group=>{const hypotheses=buildHypotheses(group);return `<section class="card"><div class="section-title"><div><h3>${escapeHtml(group.category)}</h3><span class="muted">${group.subjects.length} sujet(s)</span></div></div>${hypotheses.length?`<div class="reason-grid">${hypotheses.map(renderHypothesisCard).join('')}</div>`:'<div class="empty">Aucune hypothèse suffisamment étayée avec les données actuelles.</div>'}</section>`;}).join('')}</div>`;
+  return `<div class="notice"><strong>Moteur transparent :</strong> les faits mesurés, observations, données manquantes et pistes d’interprétation sont séparés. Le technicien peut retenir, surveiller ou écarter chaque piste.</div><div class="reason-groups">${groups.map(group=>{const quality=dataQualityForGroup(visit,group),pistes=buildKnowledgePistes(visit,group);return `<section class="card"><div class="section-title"><div><h3>${escapeHtml(group.category)}</h3><span class="muted">${group.subjects.length} sujet(s) · analyse par lot</span></div></div><h4>Fiabilité des données</h4>${renderQualityTable(quality)}<h4 style="margin-top:18px">Pistes d’interprétation</h4>${pistes.length?`<div class="reason-grid">${pistes.map(h=>renderKnowledgePiste(visit,h,group)).join('')}</div>`:'<div class="empty">Aucune piste suffisamment étayée avec les données actuelles.</div>'}</section>`}).join('')}</div>`;
 }
 
 function renderAnalysisSummary(visit) {
@@ -855,6 +921,8 @@ function bindAnalysisEvents(visit) {
   document.getElementById('add-custom-action')?.addEventListener('click',()=>{visit.analysisActions.push({id:uid('action'),text:'',responsible:'',status:'À faire'});saveDatabase(db);renderAnalysis();});
   app.querySelectorAll('[data-action-field]').forEach(el=>{const save=()=>{const a=visit.analysisActions.find(x=>x.id===el.dataset.actionId);a[el.dataset.actionField]=el.value;saveDatabase(db);};el.oninput=save;el.onchange=save;});
   app.querySelectorAll('[data-remove-action]').forEach(b=>b.onclick=()=>{visit.analysisActions=visit.analysisActions.filter(a=>a.id!==b.dataset.removeAction);saveDatabase(db);renderAnalysis();});
+  app.querySelectorAll('[data-reason-status]').forEach(el=>el.onchange=()=>{visit.reasoningReview=visit.reasoningReview||{};const cur=visit.reasoningReview[el.dataset.reasonStatus]||{};visit.reasoningReview[el.dataset.reasonStatus]={...cur,status:el.value};saveDatabase(db);renderAnalysis();});
+  app.querySelectorAll('[data-reason-note]').forEach(el=>el.oninput=()=>{visit.reasoningReview=visit.reasoningReview||{};const cur=visit.reasoningReview[el.dataset.reasonNote]||{status:'active'};visit.reasoningReview[el.dataset.reasonNote]={...cur,note:el.value};saveDatabase(db);});
   document.getElementById('analysis-demo')?.addEventListener('click',()=>{if(!confirm('Charger un jeu d’essai ?'))return;const cats=['Fraîche vêlée','Pic de lactation','Préparation vêlage','Fin lactation'];visit.subjects.forEach((s,i)=>{if(!s.category||s.category==='Non classé')s.category=cats[i%cats.length];const alert=i%3===1;s.measurements.analysis={nec:alert?'2':'3.25',urineColor:alert?'4':'2',urinePH:alert?'8.7':'7.3',urineRedox:alert?'15':'-10',urineBrix:alert?'9':'4',urineDensity:alert?'1036':'1020',glucose:alert?'39':'58',boh:alert?'1.5':'0.4',bloodPH:alert?'7.5':'7.4',urea:alert?'0.34':'0.25',fecesPH:alert?'6.2':'6.65',fecesRedox:alert?'-145':'-205',milkPH:'6.6',milkBrix:'11',colostrumBrix:'24'};s.measurements.observations={muscles:alert?'-':'0',coat:alert?['Ternes','Hirsutes']:['Fins','Soyeux'],fecesAspect:alert?['Liquides','Grains']:['Moulées'],limbs:alert?['Boiterie']:[],locomotion:alert?'2':'1',rumenFill:alert?'2':'4'};});visit.analysisGeneral.tamis=[{id:uid('tamis'),category:'Vaches en production',represented:'8',total:'500',t1:'80',t2:'65',comment:'Mélange du lot'}];saveDatabase(db);renderAnalysis();});
   document.getElementById('analysis-clear')?.addEventListener('click',()=>{if(!confirm('Effacer toutes les données du module Analyse ?'))return;visit.subjects.forEach(s=>{s.measurements.analysis={};s.measurements.observations={};s.measurements.comments={};});visit.analysisGeneral={tamis:[],silos:[],soils:[],plants:[]};visit.analysisConclusions={};visit.analysisActions=[];saveDatabase(db);renderAnalysis();});
 }
