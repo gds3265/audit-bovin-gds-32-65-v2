@@ -1,9 +1,9 @@
-AUDIT BOVIN GDS 32-65 — V10.3 MODULE ANALYSE
+AUDIT BOVIN GDS 32-65 — V10.4 MODULE ANALYSE
 
 1. Décompresser le ZIP.
 2. Importer tous les fichiers à la racine du dépôt GitHub de la V10.1/V10.2.
 3. Valider le commit.
-4. Attendre GitHub Pages puis ouvrir avec ?v=10.3.
+4. Attendre GitHub Pages puis ouvrir avec ?v=10.4.
 
 TEST CONSEILLÉ
 - Ouvrir Analyse.

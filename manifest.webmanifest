@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f4f7f5",
   "theme_color": "#1f6f43",
-  "description": "Gestion des exploitations, visites, sujets et prototype d’analyse 5MVet.",
+  "description": "Gestion des exploitations, visites, sujets et module d’analyse complète 5MVet.",
   "icons": [
     {
       "src": "icon-192.png",
