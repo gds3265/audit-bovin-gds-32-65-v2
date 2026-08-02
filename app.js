@@ -1131,65 +1131,138 @@ function renderBuildingQuestionnaire(panel,{visit,audit}){
   panel.querySelectorAll('[data-qcomment]').forEach(el=>{const save=()=>{const q=el.dataset.qcomment;audit.questionnaire[q]=audit.questionnaire[q]||{};audit.questionnaire[q].comment=el.value;saveBuildingAudit(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
 }
 
+
+const auditDefaultPresets = ['Oui', 'Partiellement', 'Non', 'Non concerné', 'À préciser'];
+const auditQuestionPresets = {
+  'Principaux problèmes sanitaires rencontrés sur les 12 derniers mois': ['Aucun problème majeur','Diarrhées','Troubles respiratoires','Avortements','Boiteries','Mammites','Mortalité veaux','Mortalité adultes','Autre'],
+  'Plan de vaccination formalisé et adapté aux risques': ['Oui, protocole écrit','Oui, protocole oral','Partiellement','Non','Non concerné'],
+  'Protocoles de vermifugation fondés sur les coprologies ou le risque': ['Coprologies systématiques','Coprologies ponctuelles','Selon le risque','Traitement systématique','Aucun protocole'],
+  'Analyses coprologiques réalisées et résultats conservés': ['Oui régulièrement','Oui ponctuellement','Non','Prévu'],
+  'Organisation de la mise à la reproduction': ['Monte naturelle','Insémination artificielle','Mixte','Synchronisation','Autre'],
+  'Diagnostics de gestation réalisés': ['Systématiques','Ponctuels','Non réalisés','Selon suspicion'],
+  'Gestion des vaches vides': ['Réforme','Remise à la reproduction','Lot spécifique','Décision au cas par cas','Non définie'],
+  'Distribution du colostrum dans les délais': ['< 2 heures','2 à 6 heures','> 6 heures','Variable','Non tracé'],
+  'Qualité du colostrum contrôlée': ['Réfractomètre systématique','Contrôle visuel','Ponctuellement','Non'],
+  'Quantité de colostrum distribuée adaptée': ['Oui systématiquement','Variable','Insuffisante','Non tracée'],
+  'Conditions de logement des veaux adaptées': ['Individuel','Collectif','Mixte','À améliorer','Non concerné'],
+  'Gestion du sevrage': ['Progressif','Brutal','Selon poids','Selon âge','Variable'],
+  'Allotement cohérent avec les besoins des animaux': ['Oui','Partiellement','Non','Peu d’allotement'],
+  'Sortie des animaux et accès au pâturage organisés': ['Pâturage tournant','Pâturage continu','Estive','Sorties ponctuelles','Pas de sortie'],
+  'Gestion de l’estive': ['Pas d’estive','Estive organisée','Estive partielle','À préciser'],
+  'Transitions alimentaires anticipées': ['Progressives','Courtes','Absentes','Variables'],
+  'Tarissement organisé et durée adaptée': ['Oui','Partiellement','Non','Non concerné'],
+  'Observation quotidienne du troupeau': ['Plusieurs fois/jour','1 fois/jour','Irrégulière','Déléguée'],
+  'Parage préventif et suivi des aplombs': ['Systématique','À la demande','Ponctuel','Non réalisé'],
+  'Type de sol identifié pour les principales parcelles': ['Argileux','Limoneux','Sableux','Argilo-limoneux','Limono-argileux','Calcaire','Hydromorphe','Mixte','Non connu'],
+  'Fertilisation et amendements adaptés': ['Plan de fumure','Selon analyses','Selon habitudes','À ajuster','Non documenté'],
+  'Foin : qualité visuelle satisfaisante': ['Très bonne','Bonne','Moyenne','Mauvaise','Variable selon lots'],
+  'Foin : méthode de réalisation documentée': ['Fauché non conditionné','Fauché conditionné','Fanage','Andainage de nuit','Andainage au soleil','Balles rondes','Balles carrées','Séchage en grange','Plusieurs méthodes'],
+  'Ensilage : qualité du tassement et du bâchage': ['Très bonne','Correcte','À améliorer','Défauts visibles','Non évaluée'],
+  'Stockage des fourrages protégé': ['Sous bâtiment','Bâché','Extérieur','Mixte','À améliorer'],
+  'Analyses de fourrages disponibles': ['Tous les fourrages','Principaux fourrages','Ponctuellement','Aucune'],
+  'Débouchés de l’exploitation clairement identifiés': ['Oui','Partiellement','Non'],
+  'Autonomie fourragère estimée': ['> 90 %','75–90 %','50–75 %','< 50 %','Non calculée'],
+  'Objectifs de l’éleveur clairement définis': ['Oui et écrits','Oui oralement','Partiellement','Non'],
+  'Temps de travail et astreintes compatibles avec l’organisation': ['Oui','Tendu en période de pointe','Insuffisant','À réorganiser'],
+  'Suivi des actions décidées lors des visites précédentes': ['Systématique','Partiel','Non formalisé','Première visite']
+};
+const herdTimelineTypes = [
+  'Mise à l’herbe','Retour en bâtiment','Estive','Descente d’estive','Vaccination du troupeau','Vermifugation','Coproscopie','Parage',
+  'Mise à la reproduction','Diagnostic de gestation','Période de mises bas','Sevrage','Autre'
+];
+const cropTimelineTypes = [
+  'Fumier','Lisier','Compost','Préparation du sol','Semis printemps','Semis été','Semis automne','Semis hiver','Fertilisation','Irrigation',
+  'Traitement','Fauche foin','Regain','Enrubannage','Ensilage','Récolte grain','Pâturage','Autre'
+];
 function ensureAuditGlobal(visit) {
   visit.auditGlobal = visit.auditGlobal && typeof visit.auditGlobal === 'object' ? visit.auditGlobal : {};
   visit.auditGlobal.answers = visit.auditGlobal.answers && typeof visit.auditGlobal.answers === 'object' ? visit.auditGlobal.answers : {};
   visit.auditGlobal.outlets = Array.isArray(visit.auditGlobal.outlets) ? visit.auditGlobal.outlets : [];
   visit.auditGlobal.reforms = visit.auditGlobal.reforms && typeof visit.auditGlobal.reforms === 'object' ? visit.auditGlobal.reforms : {};
   visit.auditGlobal.renewal = visit.auditGlobal.renewal && typeof visit.auditGlobal.renewal === 'object' ? visit.auditGlobal.renewal : {};
+  visit.auditGlobal.timelines = visit.auditGlobal.timelines && typeof visit.auditGlobal.timelines === 'object' ? visit.auditGlobal.timelines : {};
+  visit.auditGlobal.timelines.startMonth = visit.auditGlobal.timelines.startMonth || `${(visit.date || new Date().toISOString().slice(0,10)).slice(0,7)}`;
+  visit.auditGlobal.timelines.herd = Array.isArray(visit.auditGlobal.timelines.herd) ? visit.auditGlobal.timelines.herd : [];
+  visit.auditGlobal.timelines.crops = Array.isArray(visit.auditGlobal.timelines.crops) ? visit.auditGlobal.timelines.crops : [];
   return visit.auditGlobal;
 }
 function auditCompletion(audit) {
   const all = auditGlobalSections.flatMap(s => s.questions);
-  const done = all.filter(q => audit.answers[q]?.status || audit.answers[q]?.answer || audit.answers[q]?.comment).length;
+  const done = all.filter(q => audit.answers[q]?.status || audit.answers[q]?.answer || audit.answers[q]?.preset || audit.answers[q]?.comment).length;
   return { done, total: all.length, pct: all.length ? Math.round(done / all.length * 100) : 0 };
 }
 function saveAuditGlobal(visit) { visit.updatedAt = new Date().toISOString(); saveDatabase(db); }
+function presetsForQuestion(q) { return auditQuestionPresets[q] || auditDefaultPresets; }
 function auditQuestionRow(q, audit) {
   const item = audit.answers[q] || {};
-  return `<div class="audit-question-row">
-    <div class="audit-question-main"><strong>${escapeHtml(q)}</strong><input data-audit-answer="${escapeHtml(q)}" value="${escapeHtml(item.answer||'')}" placeholder="Réponse / donnée factuelle"></div>
+  const presets = presetsForQuestion(q);
+  return `<div class="audit-question-row audit-question-row-v2">
+    <div class="audit-question-main"><strong>${escapeHtml(q)}</strong>
+      <select data-audit-preset="${escapeHtml(q)}"><option value="">Choix rapide…</option>${presets.map(v=>`<option value="${escapeHtml(v)}" ${item.preset===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select>
+      <input data-audit-answer="${escapeHtml(q)}" value="${escapeHtml(item.answer||'')}" placeholder="Précision ou autre réponse" />
+    </div>
     <select data-audit-status="${escapeHtml(q)}"><option value="">Non évalué</option>${['Satisfaisant','À surveiller','À corriger','Non concerné'].map(v=>`<option ${item.status===v?'selected':''}>${v}</option>`).join('')}</select>
     <textarea data-audit-comment="${escapeHtml(q)}" placeholder="Commentaire, précision, action à envisager">${escapeHtml(item.comment||'')}</textarea>
   </div>`;
 }
+function timelineMonths(startMonth) {
+  const [y,m] = (startMonth || new Date().toISOString().slice(0,7)).split('-').map(Number);
+  return Array.from({length:18},(_,i)=>{const d=new Date(y,m-1+i,1);return {key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'})}});
+}
+function timelineVisual(kind, audit) {
+  const months=timelineMonths(audit.timelines.startMonth); const events=audit.timelines[kind]||[];
+  return `<div class="timeline-board"><div class="timeline-months">${months.map(m=>`<span>${escapeHtml(m.label)}</span>`).join('')}</div>
+  <div class="timeline-events">${events.length?events.map(ev=>{const si=Math.max(0,months.findIndex(m=>m.key===ev.start));const rawEnd=months.findIndex(m=>m.key===(ev.end||ev.start));const ei=Math.max(si,rawEnd<0?si:rawEnd);const left=(si/18)*100;const width=((ei-si+1)/18)*100;return `<div class="timeline-event-row"><div class="timeline-event-label"><strong>${escapeHtml(ev.type||'Événement')}</strong>${ev.comment?`<small>${escapeHtml(ev.comment)}</small>`:''}</div><div class="timeline-track"><div class="timeline-bar ${kind}" style="left:${left}%;width:${width}%">${si===ei?'●':''}</div></div><button class="btn small danger" data-delete-timeline="${kind}" data-id="${ev.id}">×</button></div>`}).join(''):'<div class="empty compact">Aucun événement placé sur cette frise.</div>'}</div></div>`;
+}
+function timelineEditor(kind, audit) {
+  const months=timelineMonths(audit.timelines.startMonth); const types=kind==='herd'?herdTimelineTypes:cropTimelineTypes;
+  return `<section class="card timeline-card"><div class="section-title"><div><h3>${kind==='herd'?'🐄 Frise conduite de l’élevage':'🌱 Frise cultures et fourrages'}</h3><div class="muted">Vue globale des pratiques habituelles sur 18 mois. Un événement peut être ponctuel ou durer plusieurs mois.</div></div></div>
+  ${timelineVisual(kind,audit)}
+  <div class="timeline-add"><select data-timeline-type="${kind}">${types.map(v=>`<option>${escapeHtml(v)}</option>`).join('')}</select><select data-timeline-start="${kind}">${months.map(m=>`<option value="${m.key}">${escapeHtml(m.label)}</option>`).join('')}</select><select data-timeline-end="${kind}">${months.map(m=>`<option value="${m.key}">${escapeHtml(m.label)}</option>`).join('')}</select><input data-timeline-comment="${kind}" placeholder="Note facultative"><button class="btn primary" data-add-timeline="${kind}">Ajouter</button></div></section>`;
+}
 function renderAuditGlobal() {
   const visit = activeVisit();
   if (!visit) { app.innerHTML = `<div class="section-title"><h2>Audit global</h2></div>${activeVisitBanner(null)}`; return; }
-  const audit = ensureAuditGlobal(visit);
-  const comp = auditCompletion(audit);
-  app.innerHTML = `<div class="section-title"><div><h2>Audit global</h2><div class="muted">Toutes les rubriques sont repliées au départ. Ouvrez uniquement le thème à compléter.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+  const audit = ensureAuditGlobal(visit); const comp = auditCompletion(audit);
+  app.innerHTML = `<div class="section-title"><div><h2>Audit global</h2><div class="muted">Rubriques repliées, choix rapides préenregistrés, frises de conduite et documents d’audit.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
   ${activeVisitBanner(visit)}
   <section class="card audit-progress-card"><div><strong>Avancement de l’audit</strong><span>${comp.done}/${comp.total} questions renseignées</span></div><div class="progress-track large"><div style="width:${comp.pct}%"></div></div><strong>${comp.pct}%</strong></section>
-  <div class="audit-toolbar"><button class="btn secondary" id="print-blank-audit">Imprimer le guide vierge</button><button class="btn secondary" id="print-filled-audit">Imprimer l’audit renseigné</button><button class="btn" id="open-all-audit">Tout ouvrir</button><button class="btn" id="close-all-audit">Tout fermer</button></div>
-  <div class="audit-sections">${auditGlobalSections.map(section=>{const done=section.questions.filter(q=>{const i=audit.answers[q]||{};return i.status||i.answer||i.comment}).length;return `<details class="card audit-section" data-audit-section="${section.id}"><summary><span><span class="audit-icon">${section.icon}</span><strong>${escapeHtml(section.title)}</strong></span><span class="audit-count">${done}/${section.questions.length}</span></summary><div class="audit-question-list">${section.questions.map(q=>auditQuestionRow(q,audit)).join('')}</div></details>`}).join('')}</div>
-  <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Débouchés</h3><div class="muted">Une ligne par débouché. Quantité, prix et chiffre d’affaires peuvent rester estimatifs.</div></div><button class="btn primary" id="add-outlet">Ajouter un débouché</button></div>${audit.outlets.length?`<div class="table-wrap"><table class="audit-table"><thead><tr><th>Débouché</th><th>Produit / précision</th><th>Quantité</th><th>Unité</th><th>Tarif unitaire</th><th>Chiffre d’affaires</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.outlets.map((r,i)=>`<tr><td><select data-outlet-field="type" data-id="${r.id}">${outletTypes.map(v=>`<option ${r.type===v?'selected':''}>${v}</option>`).join('')}</select></td><td><input data-outlet-field="product" data-id="${r.id}" value="${escapeHtml(r.product||'')}"></td><td><input type="number" step="any" data-outlet-field="quantity" data-id="${r.id}" value="${escapeHtml(r.quantity||'')}"></td><td><input data-outlet-field="unit" data-id="${r.id}" value="${escapeHtml(r.unit||'')}"></td><td><input type="number" step="any" data-outlet-field="unitPrice" data-id="${r.id}" value="${escapeHtml(r.unitPrice||'')}"></td><td><input type="number" step="any" data-outlet-field="turnover" data-id="${r.id}" value="${escapeHtml(r.turnover||'')}"></td><td><textarea data-outlet-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-outlet="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucun débouché renseigné.</div>'}</section>
+  <section class="card audit-docs-card"><div class="section-title"><div><h3>Documents imprimables</h3><div class="muted">Choisissez uniquement les parties nécessaires. Le guide complet réunit analyses, alimentation et audit.</div></div></div><div class="audit-toolbar wrap"><button class="btn secondary" id="print-full-blank">Guide complet vierge</button><button class="btn secondary" id="print-analysis-blank">Grilles analyses seules</button><button class="btn secondary" id="print-audit-blank">Audit seul vierge</button><button class="btn secondary" id="print-audit-filled">Audit renseigné</button><button class="btn" id="open-all-audit">Tout ouvrir</button><button class="btn" id="close-all-audit">Tout fermer</button></div></section>
+  <section class="card timeline-settings"><div class="field"><label>Mois de départ des frises</label><input type="month" id="timeline-start-month" value="${escapeHtml(audit.timelines.startMonth)}"></div><div class="muted">Les frises décrivent la manière habituelle de travailler sur l’exploitation. Les changements ponctuels seront notés dans les commentaires.</div></section>
+  <div class="timeline-grid">${timelineEditor('herd',audit)}${timelineEditor('crops',audit)}</div>
+  <div class="audit-sections">${auditGlobalSections.map(section=>{const done=section.questions.filter(q=>{const i=audit.answers[q]||{};return i.status||i.answer||i.preset||i.comment}).length;return `<details class="card audit-section" data-audit-section="${section.id}"><summary><span><span class="audit-icon">${section.icon}</span><strong>${escapeHtml(section.title)}</strong></span><span class="audit-count">${done}/${section.questions.length}</span></summary><div class="audit-question-list">${section.questions.map(q=>auditQuestionRow(q,audit)).join('')}</div></details>`}).join('')}</div>
+  <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Débouchés</h3><div class="muted">Une ligne par débouché. Quantité, prix et chiffre d’affaires peuvent rester estimatifs.</div></div><button class="btn primary" id="add-outlet">Ajouter un débouché</button></div>${audit.outlets.length?`<div class="table-wrap"><table class="audit-table"><thead><tr><th>Débouché</th><th>Produit / précision</th><th>Quantité</th><th>Unité</th><th>Tarif unitaire</th><th>Chiffre d’affaires</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.outlets.map(r=>`<tr><td><select data-outlet-field="type" data-id="${r.id}">${outletTypes.map(v=>`<option ${r.type===v?'selected':''}>${v}</option>`).join('')}</select></td><td><input data-outlet-field="product" data-id="${r.id}" value="${escapeHtml(r.product||'')}"></td><td><input type="number" step="any" data-outlet-field="quantity" data-id="${r.id}" value="${escapeHtml(r.quantity||'')}"></td><td><input data-outlet-field="unit" data-id="${r.id}" value="${escapeHtml(r.unit||'')}"></td><td><input type="number" step="any" data-outlet-field="unitPrice" data-id="${r.id}" value="${escapeHtml(r.unitPrice||'')}"></td><td><input type="number" step="any" data-outlet-field="turnover" data-id="${r.id}" value="${escapeHtml(r.turnover||'')}"></td><td><textarea data-outlet-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-outlet="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucun débouché renseigné.</div>'}</section>
   <section class="grid cols-2" style="margin-top:16px"><article class="card"><h3>Réformes annuelles</h3><div class="field"><label>Nombre annuel de réformes</label><input type="number" min="0" data-reform-field="annualCount" value="${escapeHtml(audit.reforms.annualCount||'')}"></div><div class="field"><label>Âge moyen à la réforme</label><input data-reform-field="averageAge" value="${escapeHtml(audit.reforms.averageAge||'')}"></div><h4>Motifs</h4>${reformReasons.map(reason=>`<div class="audit-reason-row"><label>${escapeHtml(reason)}</label><input type="number" min="0" step="1" data-reform-reason="${escapeHtml(reason)}" value="${escapeHtml(audit.reforms.reasons?.[reason]||'')}"></div>`).join('')}<div class="field"><label>Commentaire</label><textarea data-reform-field="comment">${escapeHtml(audit.reforms.comment||'')}</textarea></div></article>
   <article class="card"><h3>Renouvellement</h3>${[['femaleBirths','Naissances femelles annuelles'],['heifersKept','Génisses gardées'],['heifersSold','Génisses vendues'],['heifersBought','Génisses achetées'],['replacementHeifers','Génisses de renouvellement présentes']].map(([k,l])=>`<div class="field"><label>${l}</label><input type="number" min="0" step="1" data-renewal-field="${k}" value="${escapeHtml(audit.renewal[k]||'')}"></div>`).join('')}<div class="field"><label>Objectif de renouvellement / commentaire</label><textarea data-renewal-field="comment">${escapeHtml(audit.renewal.comment||'')}</textarea></div></article></section>
   <section class="card" style="margin-top:16px"><h3>Conclusion libre de l’audit global</h3><textarea id="audit-global-notes" class="audit-global-notes" placeholder="Points forts, points de vigilance, priorités…">${escapeHtml(audit.notes||'')}</textarea></section>`;
-
   const saveAnswer=(q,field,value)=>{audit.answers[q]=audit.answers[q]||{};audit.answers[q][field]=value;saveAuditGlobal(visit)};
+  app.querySelectorAll('[data-audit-preset]').forEach(el=>el.addEventListener('change',()=>{saveAnswer(el.dataset.auditPreset,'preset',el.value);const answer=app.querySelector(`[data-audit-answer="${CSS.escape(el.dataset.auditPreset)}"]`);if(answer&&!answer.value){answer.value=el.value;saveAnswer(el.dataset.auditPreset,'answer',el.value)}}));
   app.querySelectorAll('[data-audit-answer]').forEach(el=>{const save=()=>saveAnswer(el.dataset.auditAnswer,'answer',el.value);el.addEventListener('input',save);el.addEventListener('blur',save)});
-  app.querySelectorAll('[data-audit-status]').forEach(el=>el.addEventListener('change',()=>{saveAnswer(el.dataset.auditStatus,'status',el.value);renderAuditGlobal()}));
+  app.querySelectorAll('[data-audit-status]').forEach(el=>el.addEventListener('change',()=>saveAnswer(el.dataset.auditStatus,'status',el.value)));
   app.querySelectorAll('[data-audit-comment]').forEach(el=>{const save=()=>saveAnswer(el.dataset.auditComment,'comment',el.value);el.addEventListener('input',save);el.addEventListener('blur',save)});
   document.getElementById('open-all-audit').onclick=()=>app.querySelectorAll('.audit-section').forEach(d=>d.open=true);
   document.getElementById('close-all-audit').onclick=()=>app.querySelectorAll('.audit-section').forEach(d=>d.open=false);
+  document.getElementById('timeline-start-month').addEventListener('change',e=>{audit.timelines.startMonth=e.target.value;saveAuditGlobal(visit);renderAuditGlobal()});
+  app.querySelectorAll('[data-add-timeline]').forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.addTimeline;const type=app.querySelector(`[data-timeline-type="${kind}"]`).value;const start=app.querySelector(`[data-timeline-start="${kind}"]`).value;const end=app.querySelector(`[data-timeline-end="${kind}"]`).value;const comment=app.querySelector(`[data-timeline-comment="${kind}"]`).value;audit.timelines[kind].push({id:uid('event'),type,start,end:end<start?start:end,comment});saveAuditGlobal(visit);renderAuditGlobal()});
+  app.querySelectorAll('[data-delete-timeline]').forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.deleteTimeline;audit.timelines[kind]=audit.timelines[kind].filter(x=>x.id!==btn.dataset.id);saveAuditGlobal(visit);renderAuditGlobal()});
   document.getElementById('add-outlet').onclick=()=>{audit.outlets.push({id:uid('outlet'),type:'Broutards'});saveAuditGlobal(visit);renderAuditGlobal()};
   app.querySelectorAll('[data-outlet-field]').forEach(el=>{const save=()=>{const r=audit.outlets.find(x=>x.id===el.dataset.id);if(r){r[el.dataset.outletField]=el.value;saveAuditGlobal(visit)}};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});
   app.querySelectorAll('[data-delete-outlet]').forEach(el=>el.onclick=()=>{audit.outlets=audit.outlets.filter(x=>x.id!==el.dataset.deleteOutlet);saveAuditGlobal(visit);renderAuditGlobal()});
   app.querySelectorAll('[data-reform-field]').forEach(el=>{const save=()=>{audit.reforms[el.dataset.reformField]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
   audit.reforms.reasons=audit.reforms.reasons||{};app.querySelectorAll('[data-reform-reason]').forEach(el=>{const save=()=>{audit.reforms.reasons[el.dataset.reformReason]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
   app.querySelectorAll('[data-renewal-field]').forEach(el=>{const save=()=>{audit.renewal[el.dataset.renewalField]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
-  const notes=document.getElementById('audit-global-notes');notes.addEventListener('input',()=>{audit.notes=notes.value;saveAuditGlobal(visit)});
-  document.getElementById('print-blank-audit').onclick=()=>printAuditGuide(visit,false);
-  document.getElementById('print-filled-audit').onclick=()=>printAuditGuide(visit,true);
+  document.getElementById('audit-global-notes').addEventListener('input',e=>{audit.notes=e.target.value;saveAuditGlobal(visit)});
+  document.getElementById('print-full-blank').onclick=()=>printAuditDocument(visit,'full-blank');
+  document.getElementById('print-analysis-blank').onclick=()=>printAuditDocument(visit,'analysis-blank');
+  document.getElementById('print-audit-blank').onclick=()=>printAuditDocument(visit,'audit-blank');
+  document.getElementById('print-audit-filled').onclick=()=>printAuditDocument(visit,'audit-filled');
 }
-function printAuditGuide(visit, filled) {
-  const audit=ensureAuditGlobal(visit);
-  const rows=auditGlobalSections.map(section=>`<h2>${section.icon} ${escapeHtml(section.title)}</h2><table><thead><tr><th>Question</th><th>Réponse / donnée</th><th>Évaluation</th><th>Commentaire</th></tr></thead><tbody>${section.questions.map(q=>{const i=filled?(audit.answers[q]||{}):{};return `<tr><td>${escapeHtml(q)}</td><td>${escapeHtml(i.answer||'')}</td><td>${escapeHtml(i.status||'')}</td><td>${escapeHtml(i.comment||'')}</td></tr>`}).join('')}</tbody></table>`).join('');
-  const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes pour imprimer le guide.');return}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Guide audit - ${escapeHtml(farmName(visit.farmId))}</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:20px}h1{color:#1f6f43}h2{margin-top:26px;color:#265c42}table{width:100%;border-collapse:collapse;margin-bottom:20px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #aab5ad;padding:7px;vertical-align:top;font-size:10.5pt}th{background:#e9f4ed}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.box{border:1px solid #aab5ad;padding:10px;min-height:35px}@media print{button{display:none}h2{page-break-after:avoid}}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — ${filled?'Audit renseigné':'Guide vierge'}</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${escapeHtml(visit.technician||'')}</div></div>${rows}</body></html>`);w.document.close();
-}
+function printBaseStyles(){return `body{font-family:Arial,sans-serif;color:#172033;margin:18px}h1{color:#1f6f43}h2{margin-top:26px;color:#265c42;border-bottom:2px solid #d8e8dd;padding-bottom:4px}h3{color:#315d47}table{width:100%;border-collapse:collapse;margin-bottom:18px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #aab5ad;padding:6px;vertical-align:top;font-size:9.5pt}th{background:#e9f4ed}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.box{border:1px solid #aab5ad;padding:10px;min-height:35px}.page-break{page-break-before:always}.blank-line{height:26px}.landscape{font-size:8pt}@page{size:A4;margin:12mm}@media print{button{display:none}h2{page-break-after:avoid}.landscape-page{page:landscape}}`;}
+function auditPrintHtml(visit,filled){const audit=ensureAuditGlobal(visit);return auditGlobalSections.map(section=>`<h2>${section.icon} ${escapeHtml(section.title)}</h2><table><thead><tr><th style="width:28%">Question</th><th style="width:18%">Choix proposés</th><th style="width:18%">Réponse</th><th style="width:12%">Évaluation</th><th>Commentaire</th></tr></thead><tbody>${section.questions.map(q=>{const i=filled?(audit.answers[q]||{}):{};return `<tr><td>${escapeHtml(q)}</td><td>${escapeHtml(presetsForQuestion(q).join(' / '))}</td><td>${escapeHtml(i.answer||i.preset||'')}</td><td>${escapeHtml(i.status||'')}</td><td>${escapeHtml(i.comment||'')}</td></tr>`}).join('')}</tbody></table>`).join('');}
+function analysisPrintHtml(visit){const rows=(visit.subjects&&visit.subjects.length?visit.subjects:Array.from({length:20},(_,i)=>({tag:'',location:'',category:''})));return `<h2>Grille complète des mesures animales</h2><div class="landscape-page"><table class="landscape"><thead><tr><th>Boucle / sujet</th><th>Emplacement</th><th>Catégorie</th><th>NEC</th><th>Coul. urine</th><th>pH U</th><th>Redox U</th><th>Brix U</th><th>Densité U</th><th>Gly</th><th>BOH</th><th>Urée</th><th>pH sang</th><th>Aspect bouses</th><th>pH B</th><th>Redox B</th><th>Muscles</th><th>Poils</th><th>Membres</th><th>SRR</th><th>Temp.</th><th>Commentaire</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${escapeHtml(s.tag||'')}</td><td>${escapeHtml(s.location||'')}</td><td>${escapeHtml(s.category||'')}</td>${Array.from({length:19},()=>'<td class="blank-line"></td>').join('')}</tr>`).join('')}</tbody></table></div><h2>Mesures générales</h2><table><thead><tr><th>Type</th><th>Catégorie / repère</th><th>Date</th><th>Valeurs</th><th>Commentaire</th></tr></thead><tbody>${Array.from({length:12},(_,i)=>`<tr><td>${i<3?'Tamis à bouses':i<6?'Silo / ensilage':i<9?'Sol':'Plantes / herbe'}</td><td></td><td></td><td></td><td></td></tr>`).join('')}</tbody></table>`;}
+function feedingPrintHtml(){return `<h2>Alimentation</h2><table><thead><tr><th>Catégorie</th><th>Type d’aliment</th><th>Nature / composition</th><th>Quantité</th><th>Unité</th><th>Mode de distribution</th><th>Fréquence / horaires</th><th>Commentaire</th></tr></thead><tbody>${Array.from({length:18},()=>'<tr>'+Array.from({length:8},()=>'<td class="blank-line"></td>').join('')+'</tr>').join('')}</tbody></table><h3>Distribution, transitions et minéralisation</h3><table><tbody><tr><th>Ordre de chargement</th><td class="blank-line"></td></tr><tr><th>Nombre de distributions / jour</th><td></td></tr><tr><th>Temps de mélange</th><td></td></tr><tr><th>Matériel</th><td></td></tr><tr><th>Transition alimentaire</th><td></td></tr><tr><th>Accès au sel</th><td></td></tr><tr><th>Minéralisation / compléments</th><td></td></tr><tr><th>Commentaire général</th><td class="blank-line"></td></tr></tbody></table>`;}
+function printAuditDocument(visit,mode){const filled=mode==='audit-filled';let content='';let title='';if(mode==='full-blank'){title='Guide complet vierge';content=analysisPrintHtml(visit)+feedingPrintHtml()+auditPrintHtml(visit,false)}else if(mode==='analysis-blank'){title='Grilles analyses vierges';content=analysisPrintHtml(visit)}else if(mode==='audit-blank'){title='Audit vierge';content=auditPrintHtml(visit,false)}else{title='Audit renseigné';content=auditPrintHtml(visit,true)}const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes pour imprimer le document.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)} - ${escapeHtml(farmName(visit.farmId))}</title><style>${printBaseStyles()}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — ${escapeHtml(title)}</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${escapeHtml(visit.technician||'')}</div></div>${content}</body></html>`);w.document.close();}
+function printAuditGuide(visit,filled){printAuditDocument(visit,filled?'audit-filled':'audit-blank');}
 
 function renderBackup() {
   app.innerHTML = `
