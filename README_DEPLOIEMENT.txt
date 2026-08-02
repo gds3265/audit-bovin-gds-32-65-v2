@@ -1,4 +1,4 @@
-AUDIT BOVIN GDS 32-65 — V10.6
+AUDIT BOVIN GDS 32-65 — V10.7
 
 Évolutions :
 - colonnes des matrices ajustées ;
@@ -7,4 +7,4 @@ AUDIT BOVIN GDS 32-65 — V10.6
 - médiane retirée des statistiques ;
 - min, moyenne et max conservés.
 
-Diffusion : importer tous les fichiers à la racine du même dépôt GitHub, puis ouvrir avec ?v=10.6.
+Diffusion : importer tous les fichiers à la racine du même dépôt GitHub, puis ouvrir avec ?v=10.7.

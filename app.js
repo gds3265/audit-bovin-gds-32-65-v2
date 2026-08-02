@@ -10,6 +10,7 @@ let openSubjectId = null;
 let activeAnalysisVisitId = localStorage.getItem('audit-bovin-active-analysis-visit') || '';
 let activeAnalysisSection = localStorage.getItem('audit-bovin-active-analysis-section') || 'numeric';
 let activeAnalysisFamily = localStorage.getItem('audit-bovin-active-analysis-family') || 'Urines';
+let focusedAnalysisSubjectId = localStorage.getItem('audit-bovin-focused-analysis-subject') || '';
 const app = document.getElementById('app');
 const fileInput = document.getElementById('json-file-input');
 
@@ -22,13 +23,35 @@ const measurementFamilies = [
 ];
 
 function migrateDatabase() {
+  // Conserver une copie locale avant toute normalisation de structure.
+  try {
+    if (!localStorage.getItem('audit-bovin-v10-backup-before-10-7')) {
+      localStorage.setItem('audit-bovin-v10-backup-before-10-7', JSON.stringify(db));
+    }
+  } catch (error) { console.warn('Sauvegarde de sécurité impossible', error); }
+
+  const legacyKeys = ['nec','urineColor','urinePH','urineRedox','urineBrix','urineDensity','glucose','boh','bloodPH','urea','fecesPH','fecesRedox','milkPH','milkBrix','colostrumBrix','colostrumDensity','colostrumPH'];
   db.farms = Array.isArray(db.farms) ? db.farms : [];
   db.visits = Array.isArray(db.visits) ? db.visits : [];
   db.visits.forEach(visit => {
     visit.subjects = Array.isArray(visit.subjects) ? visit.subjects : [];
     visit.subjects.forEach(subject => {
       subject.measurements = subject.measurements && typeof subject.measurements === 'object' ? subject.measurements : {};
-      subject.measurements.analysis = subject.measurements.analysis && typeof subject.measurements.analysis === 'object' ? subject.measurements.analysis : {};
+      const current = subject.measurements.analysis && typeof subject.measurements.analysis === 'object' ? subject.measurements.analysis : {};
+      const candidates = [
+        subject.analysis,
+        subject.measurements.numeric,
+        subject.measurements.values,
+        subject.measurements,
+        visit.analysisBySubject?.[subject.id],
+        ...(Array.isArray(visit.analysisRecords) ? visit.analysisRecords.filter(r => [r.subjectId,r.animalId,r.id].includes(subject.id)).map(r => r.measurements || r.values || r) : [])
+      ].filter(x => x && typeof x === 'object');
+      candidates.forEach(source => legacyKeys.forEach(key => {
+        if ((current[key] === undefined || current[key] === null || current[key] === '') && source[key] !== undefined && source[key] !== null && source[key] !== '') current[key] = source[key];
+      }));
+      subject.measurements.analysis = current;
+      subject.measurements.observations = subject.measurements.observations && typeof subject.measurements.observations === 'object' ? subject.measurements.observations : {};
+      subject.measurements.comments = subject.measurements.comments && typeof subject.measurements.comments === 'object' ? subject.measurements.comments : {};
     });
   });
   if (activeAnimalVisitId && !db.visits.some(v => v.id === activeAnimalVisitId)) activeAnimalVisitId = '';
@@ -267,7 +290,7 @@ function subjectDetailsHtml(subject) {
         <div class="field"><label>Lot</label><input name="lot" value="${escapeHtml(subject.lot || '')}" /></div>
       </section>
     </div>
-    <section class="measurement-overview"><h4>Suivi des mesures</h4><div class="measure-chips">${measurementFamilies.map(([key,label,icon]) => { const status = measurementStatus(subject,key); return `<span class="measure-chip ${status}">${icon} ${label}<small>${status === 'complete' ? 'Fait' : status === 'partial' ? 'Partiel' : 'Non réalisé'}</small></span>`; }).join('')}</div><p class="muted small-text">La saisie détaillée des mesures sera ajoutée dans le module suivant. Les emplacements sont déjà réservés dans la fiche du sujet.</p></section>
+    <section class="measurement-overview"><h4>Suivi des mesures</h4><div class="measure-chips">${measurementFamilies.map(([key,label,icon]) => { const status = measurementStatus(subject,key); return `<button type="button" class="measure-chip ${status}" data-open-measure="${key}" data-subject-id="${subject.id}">${icon} ${label}<small>${status === 'complete' ? 'Fait' : status === 'partial' ? 'Partiel' : 'Non réalisé'}</small></button>`; }).join('')}</div><p class="muted small-text">Cliquez sur une famille pour ouvrir directement sa matrice et la ligne de cet animal.</p></section>
     <div class="actions subject-actions"><span class="autosave-indicator">✓ Enregistrement automatique</span><button type="button" class="btn danger" data-delete-subject="${subject.id}">Supprimer le sujet</button></div>
   </form>`;
 }
@@ -351,6 +374,19 @@ function renderAnimals() {
     form.addEventListener('input', autosave);
     form.addEventListener('change', autosave);
   });
+
+  app.querySelectorAll('[data-open-measure]').forEach(button => button.addEventListener('click', () => {
+    const familyMap = { urine:'Urines', blood:'Sang', feces:'Bouses', physical:'Physique', milk:'Lait', colostrum:'Colostrum' };
+    activeAnalysisVisitId = visit.id;
+    activeAnalysisSection = 'numeric';
+    activeAnalysisFamily = familyMap[button.dataset.openMeasure] || 'Urines';
+    focusedAnalysisSubjectId = button.dataset.subjectId || '';
+    localStorage.setItem('audit-bovin-active-analysis-visit', activeAnalysisVisitId);
+    localStorage.setItem('audit-bovin-active-analysis-section', activeAnalysisSection);
+    localStorage.setItem('audit-bovin-active-analysis-family', activeAnalysisFamily);
+    localStorage.setItem('audit-bovin-focused-analysis-subject', focusedAnalysisSubjectId);
+    setView('analysis');
+  }));
 
   app.querySelectorAll('[data-delete-subject]').forEach(button => button.addEventListener('click', () => {
     const subject = visit.subjects.find(item => item.id === button.dataset.deleteSubject);
@@ -578,7 +614,7 @@ function renderNumericSection(visit) {
   const categoryWidth = 170;
   const valueWidth = activeAnalysisFamily === 'Physique' ? 150 : 118;
   const commentWidth = 280;
-  return `<section class="card"><div class="section-title"><div><h3>Mesures numériques par famille</h3><span class="muted">Les sujets sont repris automatiquement. La valeur est sauvegardée quand vous quittez la cellule.</span></div><span class="analysis-legend"><i class="green"></i> Référence <i class="yellow"></i> Vigilance <i class="red"></i> Écart <i class="grey"></i> En attente</span></div><nav class="family-tabs">${families.map(f=>`<button class="family-tab ${activeAnalysisFamily===f?'active':''}" data-analysis-family="${f}">${f}</button>`).join('')}</nav><div class="table-wrap analysis-table-wrap"><table class="analysis-table family-matrix"><colgroup><col style="width:${subjectWidth}px"><col style="width:${categoryWidth}px">${params.map(()=>`<col style="width:${valueWidth}px">`).join('')}<col style="width:${commentWidth}px"></colgroup><thead><tr><th class="sticky-col">Sujet</th><th class="sticky-col-2">Catégorie</th>${params.map(p=>`<th>${escapeHtml(p.short)}</th>`).join('')}<th class="comment-head">Commentaire / observation</th></tr></thead><tbody>${visit.subjects.map(subject=>`<tr><td class="sticky-col"><strong>${escapeHtml(subject.tag||'Sujet')}</strong><br><small>${escapeHtml(subject.location||'')}</small></td><td class="sticky-col-2"><span class="badge ${subject.category&&subject.category!=='Non classé'?'complete':'unclassified'}">${escapeHtml(subject.category||'Non classé')}</span></td>${params.map(p=>analysisCell(subject,p)).join('')}<td class="matrix-comment-cell"><textarea class="matrix-comment" data-family-comment data-subject-id="${subject.id}" data-family="${activeAnalysisFamily}" placeholder="Commentaire libre…">${escapeHtml(subject.measurements.comments?.[activeAnalysisFamily]||'')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
+  return `<section class="card"><div class="section-title"><div><h3>Mesures numériques par famille</h3><span class="muted">Les sujets sont repris automatiquement. La valeur est sauvegardée quand vous quittez la cellule.</span></div><span class="analysis-legend"><i class="green"></i> Référence <i class="yellow"></i> Vigilance <i class="red"></i> Écart <i class="grey"></i> En attente</span></div><nav class="family-tabs">${families.map(f=>`<button class="family-tab ${activeAnalysisFamily===f?'active':''}" data-analysis-family="${f}">${f}</button>`).join('')}</nav><div class="table-wrap analysis-table-wrap"><table class="analysis-table family-matrix"><colgroup><col style="width:${subjectWidth}px"><col style="width:${categoryWidth}px">${params.map(()=>`<col style="width:${valueWidth}px">`).join('')}<col style="width:${commentWidth}px"></colgroup><thead><tr><th class="sticky-col">Sujet</th><th class="sticky-col-2">Catégorie</th>${params.map(p=>`<th>${escapeHtml(p.short)}</th>`).join('')}<th class="comment-head">Commentaire / observation</th></tr></thead><tbody>${visit.subjects.map(subject=>`<tr data-analysis-subject-row="${subject.id}" class="${focusedAnalysisSubjectId===subject.id?'focused-subject-row':''}"><td class="sticky-col"><strong>${escapeHtml(subject.tag||'Sujet')}</strong><br><small>${escapeHtml(subject.location||'')}</small></td><td class="sticky-col-2"><span class="badge ${subject.category&&subject.category!=='Non classé'?'complete':'unclassified'}">${escapeHtml(subject.category||'Non classé')}</span></td>${params.map(p=>analysisCell(subject,p)).join('')}<td class="matrix-comment-cell"><textarea class="matrix-comment" data-family-comment data-subject-id="${subject.id}" data-family="${activeAnalysisFamily}" placeholder="Commentaire libre…">${escapeHtml(subject.measurements.comments?.[activeAnalysisFamily]||'')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
 }
 
 function obsControl(subject,field) { const data=subject.measurements.observations||{}; const current=data[field.key]; if(field.type==='number')return `<input data-observation data-subject-id="${subject.id}" data-key="${field.key}" type="number" step="${field.step||'1'}" value="${escapeHtml(current??'')}"/>`; if(field.type==='text')return `<input data-observation data-subject-id="${subject.id}" data-key="${field.key}" value="${escapeHtml(current??'')}"/>`; if(field.type==='single')return `<select data-observation data-subject-id="${subject.id}" data-key="${field.key}"><option value="">—</option>${field.options.map(o=>`<option ${current===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`; const selected=Array.isArray(current)?current:[]; return `<div class="chip-options">${field.options.map(o=>`<label class="choice-chip ${selected.includes(o)?'selected':''}"><input type="checkbox" data-observation-multi data-subject-id="${subject.id}" data-key="${field.key}" value="${escapeHtml(o)}" ${selected.includes(o)?'checked':''}/>${escapeHtml(o)}</label>`).join('')}</div>`; }
@@ -595,6 +631,13 @@ function renderAnalysis() {
   app.querySelectorAll('[data-analysis-section]').forEach(b=>b.onclick=()=>{activeAnalysisSection=b.dataset.analysisSection;localStorage.setItem('audit-bovin-active-analysis-section',activeAnalysisSection);renderAnalysis();});
   app.querySelectorAll('[data-analysis-family]').forEach(b=>b.onclick=()=>{activeAnalysisFamily=b.dataset.analysisFamily;localStorage.setItem('audit-bovin-active-analysis-family',activeAnalysisFamily);renderAnalysis();});
   bindAnalysisEvents(visit);
+  if (focusedAnalysisSubjectId && activeAnalysisSection === 'numeric') {
+    setTimeout(() => {
+      const row = app.querySelector(`[data-analysis-subject-row="${focusedAnalysisSubjectId}"]`);
+      row?.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
+      row?.querySelector('input')?.focus({ preventScroll:true });
+    }, 50);
+  }
 }
 function bindAnalysisEvents(visit) {
   if(!visit)return;

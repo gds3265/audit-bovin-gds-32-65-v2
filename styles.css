@@ -169,3 +169,8 @@ th { background: #f0f5f2; font-size: .88rem; }
 /* V10.6 — matrices ajustées et commentaires */
 .family-matrix{table-layout:fixed;min-width:max-content}.family-matrix th,.family-matrix td{vertical-align:top}.family-matrix .analysis-value-cell input{width:100%;min-width:0}.family-matrix .comment-head{text-align:left}.matrix-comment-cell{padding:7px!important}.matrix-comment{width:100%;min-width:240px;min-height:66px;resize:vertical;border:1px solid #cfd8d2;border-radius:8px;padding:8px;font:inherit;background:#fff}.matrix-comment:focus{outline:2px solid rgba(31,111,67,.2);border-color:#1f6f43}.analysis-table-wrap{overflow-x:auto}.stats-table{min-width:760px}
 @media(max-width:700px){.matrix-comment{min-width:210px}.family-matrix .sticky-col{min-width:130px}.family-matrix .sticky-col-2{min-width:150px}}
+
+/* V10.7 — navigation Animal → matrice et ligne ciblée */
+.measure-chip { border:1px solid var(--border); cursor:pointer; font:inherit; text-align:left; }
+.measure-chip:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.focused-subject-row td { outline:2px solid #2f855a; outline-offset:-2px; background-color:#effaf3 !important; }
