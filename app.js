@@ -5,9 +5,8 @@ import { THRESHOLDS, CATEGORY_RULE_MAP } from './analysis-rules.js';
 let db = loadDatabase();
 let currentView = 'dashboard';
 let editingVisitId = null;
-let activeAnimalVisitId = localStorage.getItem('audit-bovin-active-animal-visit') || '';
+let activeVisitId = localStorage.getItem('audit-bovin-active-visit') || localStorage.getItem('audit-bovin-active-visit') || localStorage.getItem('audit-bovin-active-visit') || '';
 let openSubjectId = null;
-let activeAnalysisVisitId = localStorage.getItem('audit-bovin-active-analysis-visit') || '';
 let activeAnalysisSection = localStorage.getItem('audit-bovin-active-analysis-section') || 'numeric';
 let activeAnalysisFamily = localStorage.getItem('audit-bovin-active-analysis-family') || 'Urines';
 let focusedAnalysisSubjectId = localStorage.getItem('audit-bovin-focused-analysis-subject') || '';
@@ -54,8 +53,7 @@ function migrateDatabase() {
       subject.measurements.comments = subject.measurements.comments && typeof subject.measurements.comments === 'object' ? subject.measurements.comments : {};
     });
   });
-  if (activeAnimalVisitId && !db.visits.some(v => v.id === activeAnimalVisitId)) activeAnimalVisitId = '';
-  if (activeAnalysisVisitId && !db.visits.some(v => v.id === activeAnalysisVisitId)) activeAnalysisVisitId = '';
+  if (activeVisitId && !db.visits.some(v => v.id === activeVisitId)) setActiveVisit('');
   saveDatabase(db);
 }
 migrateDatabase();
@@ -90,6 +88,17 @@ function farmName(farmId) {
 
 function visitLabel(visit) {
   return `${farmName(visit.farmId)} — ${formatDate(visit.date)} — ${visit.type || 'Visite'}`;
+}
+
+function setActiveVisit(id) {
+  activeVisitId = id || '';
+  if (activeVisitId) localStorage.setItem('audit-bovin-active-visit', activeVisitId);
+  else localStorage.removeItem('audit-bovin-active-visit');
+}
+function activeVisit() { return db.visits.find(v => v.id === activeVisitId) || null; }
+function activeVisitBanner(visit) {
+  if (!visit) return `<section class="card notice warning"><strong>Aucune visite active.</strong><br><span class="muted">Choisissez une visite dans l’onglet Visites.</span></section>`;
+  return `<section class="card active-visit-banner"><div><span class="muted">Visite active — verrouillée pour la saisie</span><strong>${escapeHtml(visitLabel(visit))}</strong></div><span class="badge complete">${visit.subjects?.length || 0} sujet(s)</span><span class="muted small-text">La visite ne peut être changée que depuis l’onglet Visites.</span></section>`;
 }
 
 function render() {
@@ -208,17 +217,15 @@ function renderVisits() {
       const visit = { id: uid('visit'), ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), journal: [], subjects: [] };
       addJournal(visit, 'Visite créée.');
       db.visits.push(visit);
-      activeAnimalVisitId = visit.id;
-      localStorage.setItem('audit-bovin-active-animal-visit', visit.id);
+      setActiveVisit(visit.id);
       showToast('Visite créée.');
     }
     saveDatabase(db); clearDraft(); editingVisitId = null; renderVisits();
   });
   document.getElementById('cancel-edit')?.addEventListener('click', () => { editingVisitId = null; clearDraft(); renderVisits(); });
-  app.querySelectorAll('[data-edit-visit]').forEach(button => button.onclick = () => { editingVisitId = button.dataset.editVisit; clearDraft(); renderVisits(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  app.querySelectorAll('[data-edit-visit]').forEach(button => button.onclick = () => { setActiveVisit(button.dataset.editVisit); editingVisitId = button.dataset.editVisit; clearDraft(); renderVisits(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
   app.querySelectorAll('[data-open-animals]').forEach(button => button.onclick = () => {
-    activeAnimalVisitId = button.dataset.openAnimals;
-    localStorage.setItem('audit-bovin-active-animal-visit', activeAnimalVisitId);
+    setActiveVisit(button.dataset.openAnimals);
     setView('animals');
   });
   app.querySelectorAll('[data-export-visit]').forEach(button => button.onclick = () => {
@@ -228,7 +235,7 @@ function renderVisits() {
   app.querySelectorAll('[data-delete-visit]').forEach(button => button.onclick = () => {
     if (confirm('Supprimer cette visite et tous ses sujets ?')) {
       db.visits = db.visits.filter(v => v.id !== button.dataset.deleteVisit);
-      if (activeAnimalVisitId === button.dataset.deleteVisit) activeAnimalVisitId = '';
+      if (activeVisitId === button.dataset.deleteVisit) setActiveVisit('');
       saveDatabase(db); renderVisits();
     }
   });
@@ -297,14 +304,11 @@ function subjectDetailsHtml(subject) {
 
 function renderAnimals() {
   const visits = db.visits.slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-  if (!activeAnimalVisitId && visits.length) activeAnimalVisitId = visits[0].id;
-  const visit = db.visits.find(v => v.id === activeAnimalVisitId);
+  if (!activeVisitId && visits.length) setActiveVisit(visits[0].id);
+  const visit = activeVisit();
   app.innerHTML = `
     <div class="section-title"><div><h2>Animaux / sujets de la visite</h2><div class="muted">Saisir d’abord le numéro de boucle et l’emplacement. Le classement peut être complété plus tard.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
-    <section class="card animal-visit-selector">
-      <div class="field no-margin"><label for="animal-visit-select">Visite active</label><select id="animal-visit-select"><option value="">Sélectionner une visite…</option>${visits.map(v => `<option value="${v.id}" ${v.id === activeAnimalVisitId ? 'selected' : ''}>${escapeHtml(visitLabel(v))}</option>`).join('')}</select></div>
-      ${visit ? `<div class="visit-meta"><strong>${escapeHtml(farmName(visit.farmId))}</strong><span>${formatDate(visit.date)}</span><span>${escapeHtml(visit.type || '')}</span><span>${visit.subjects?.length || 0} sujet(s)</span></div>` : ''}
-    </section>
+    ${activeVisitBanner(visit)}
     ${!visit ? `<section class="empty" style="margin-top:16px">Créez ou sélectionnez une visite avant d’ajouter des sujets.</section>` : `
       <section class="grid cols-2 animal-workspace" style="margin-top:16px">
         <form id="quick-subject-form" class="card quick-subject-form">
@@ -324,12 +328,6 @@ function renderAnimals() {
         <div class="subject-list">${visit.subjects?.length ? visit.subjects.map(subjectCardHtml).join('') : '<div class="empty">Aucun sujet. Ajoutez le premier animal avec le formulaire ci-dessus.</div>'}</div>
       </section>`}`;
 
-  document.getElementById('animal-visit-select').addEventListener('change', event => {
-    activeAnimalVisitId = event.target.value;
-    localStorage.setItem('audit-bovin-active-animal-visit', activeAnimalVisitId);
-    openSubjectId = null;
-    renderAnimals();
-  });
 
   const quickForm = document.getElementById('quick-subject-form');
   quickForm?.addEventListener('submit', event => {
@@ -377,11 +375,10 @@ function renderAnimals() {
 
   app.querySelectorAll('[data-open-measure]').forEach(button => button.addEventListener('click', () => {
     const familyMap = { urine:'Urines', blood:'Sang', feces:'Bouses', physical:'Physique', milk:'Lait', colostrum:'Colostrum' };
-    activeAnalysisVisitId = visit.id;
+    setActiveVisit(visit.id);
     activeAnalysisSection = 'numeric';
     activeAnalysisFamily = familyMap[button.dataset.openMeasure] || 'Urines';
     focusedAnalysisSubjectId = button.dataset.subjectId || '';
-    localStorage.setItem('audit-bovin-active-analysis-visit', activeAnalysisVisitId);
     localStorage.setItem('audit-bovin-active-analysis-section', activeAnalysisSection);
     localStorage.setItem('audit-bovin-active-analysis-family', activeAnalysisFamily);
     localStorage.setItem('audit-bovin-focused-analysis-subject', focusedAnalysisSubjectId);
@@ -609,12 +606,19 @@ function renderAnalysisSummary(visit) {
 
 function renderNumericSection(visit) {
   const families = ['Urines','Sang','Bouses','Physique','Lait','Colostrum'];
+  if (!families.includes(activeAnalysisFamily)) activeAnalysisFamily = 'Urines';
   const params = analysisParameters.filter(p => p.group === activeAnalysisFamily);
-  const subjectWidth = 150;
-  const categoryWidth = 170;
-  const valueWidth = activeAnalysisFamily === 'Physique' ? 150 : 118;
-  const commentWidth = 280;
-  return `<section class="card"><div class="section-title"><div><h3>Mesures numériques par famille</h3><span class="muted">Les sujets sont repris automatiquement. La valeur est sauvegardée quand vous quittez la cellule.</span></div><span class="analysis-legend"><i class="green"></i> Référence <i class="yellow"></i> Vigilance <i class="red"></i> Écart <i class="grey"></i> En attente</span></div><nav class="family-tabs">${families.map(f=>`<button class="family-tab ${activeAnalysisFamily===f?'active':''}" data-analysis-family="${f}">${f}</button>`).join('')}</nav><div class="table-wrap analysis-table-wrap"><table class="analysis-table family-matrix"><colgroup><col style="width:${subjectWidth}px"><col style="width:${categoryWidth}px">${params.map(()=>`<col style="width:${valueWidth}px">`).join('')}<col style="width:${commentWidth}px"></colgroup><thead><tr><th class="sticky-col">Sujet</th><th class="sticky-col-2">Catégorie</th>${params.map(p=>`<th>${escapeHtml(p.short)}</th>`).join('')}<th class="comment-head">Commentaire / observation</th></tr></thead><tbody>${visit.subjects.map(subject=>`<tr data-analysis-subject-row="${subject.id}" class="${focusedAnalysisSubjectId===subject.id?'focused-subject-row':''}"><td class="sticky-col"><strong>${escapeHtml(subject.tag||'Sujet')}</strong><br><small>${escapeHtml(subject.location||'')}</small></td><td class="sticky-col-2"><span class="badge ${subject.category&&subject.category!=='Non classé'?'complete':'unclassified'}">${escapeHtml(subject.category||'Non classé')}</span></td>${params.map(p=>analysisCell(subject,p)).join('')}<td class="matrix-comment-cell"><textarea class="matrix-comment" data-family-comment data-subject-id="${subject.id}" data-family="${activeAnalysisFamily}" placeholder="Commentaire libre…">${escapeHtml(subject.measurements.comments?.[activeAnalysisFamily]||'')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
+  const minWidth = 150 + 170 + (params.length * 125) + 290;
+  const rows = visit.subjects.map(subject => `<tr data-analysis-subject-row="${subject.id}" class="${focusedAnalysisSubjectId===subject.id?'focused-subject-row':''}">
+    <td class="sticky-col" style="min-width:150px"><strong>${escapeHtml(subject.tag||'Sujet')}</strong><br><small>${escapeHtml(subject.location||'')}</small></td>
+    <td class="sticky-col-2" style="min-width:170px"><span class="badge ${subject.category&&subject.category!=='Non classé'?'complete':'unclassified'}">${escapeHtml(subject.category||'Non classé')}</span></td>
+    ${params.map(p=>analysisCell(subject,p)).join('')}
+    <td class="matrix-comment-cell" style="min-width:280px"><textarea class="matrix-comment" data-family-comment data-subject-id="${subject.id}" data-family="${activeAnalysisFamily}" placeholder="Commentaire libre…">${escapeHtml(subject.measurements.comments?.[activeAnalysisFamily]||'')}</textarea></td>
+  </tr>`).join('');
+  return `<section class="card"><div class="section-title"><div><h3>Mesures numériques par famille</h3><span class="muted">Les sujets sont repris automatiquement. La valeur est sauvegardée quand vous quittez la cellule.</span></div><span class="analysis-legend"><i class="green"></i> Référence <i class="yellow"></i> Vigilance <i class="red"></i> Écart <i class="grey"></i> En attente</span></div>
+  <nav class="family-tabs">${families.map(f=>`<button class="family-tab ${activeAnalysisFamily===f?'active':''}" data-analysis-family="${f}">${f}</button>`).join('')}</nav>
+  ${params.length ? `<div class="table-wrap analysis-table-wrap"><table class="analysis-table matrix-table" style="min-width:${minWidth}px;width:${minWidth}px"><thead><tr><th class="sticky-col" style="min-width:150px">Sujet</th><th class="sticky-col-2" style="min-width:170px">Catégorie</th>${params.map(p=>`<th style="min-width:125px">${escapeHtml(p.short)}</th>`).join('')}<th class="comment-head" style="min-width:280px">Commentaire / observation</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="notice warning"><strong>Aucun paramètre configuré pour ${escapeHtml(activeAnalysisFamily)}.</strong></div>`}
+  </section>`;
 }
 
 function obsControl(subject,field) { const data=subject.measurements.observations||{}; const current=data[field.key]; if(field.type==='number')return `<input data-observation data-subject-id="${subject.id}" data-key="${field.key}" type="number" step="${field.step||'1'}" value="${escapeHtml(current??'')}"/>`; if(field.type==='text')return `<input data-observation data-subject-id="${subject.id}" data-key="${field.key}" value="${escapeHtml(current??'')}"/>`; if(field.type==='single')return `<select data-observation data-subject-id="${subject.id}" data-key="${field.key}"><option value="">—</option>${field.options.map(o=>`<option ${current===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`; const selected=Array.isArray(current)?current:[]; return `<div class="chip-options">${field.options.map(o=>`<label class="choice-chip ${selected.includes(o)?'selected':''}"><input type="checkbox" data-observation-multi data-subject-id="${subject.id}" data-key="${field.key}" value="${escapeHtml(o)}" ${selected.includes(o)?'checked':''}/>${escapeHtml(o)}</label>`).join('')}</div>`; }
@@ -624,10 +628,14 @@ function renderGeneralSection(visit) { return `<div class="general-measure-group
 function suggestedActions(visit) { const out=[]; categoryAnalysis(visit).forEach(g=>interpretationItems(g).filter(i=>i.level!=='good').forEach(i=>out.push({category:g.category,...i}))); return out; }
 function renderSynthesisSection(visit) { const suggestions=suggestedActions(visit); return `<div id="analysis-summary">${renderAnalysisSummary(visit)}</div><section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Plan d’action</h3><span class="muted">Propositions issues des écarts. Le technicien valide et reformule.</span></div><button class="btn" id="add-custom-action">Ajouter une action libre</button></div><div class="action-suggestions">${suggestions.length?suggestions.map((a,i)=>`<div class="action-line"><span class="badge ${a.level==='danger'?'in-progress':'archived'}">${a.level==='danger'?'Priorité haute':'À surveiller'}</span><div><strong>${escapeHtml(a.category)} — ${escapeHtml(a.theme)}</strong><br><span>${escapeHtml(a.action)}</span></div><button class="btn small" data-accept-action="${i}">Ajouter</button></div>`).join(''):'<div class="empty">Aucune action automatique proposée à ce stade.</div>'}</div><div class="action-list">${visit.analysisActions.length?visit.analysisActions.map(a=>`<div class="action-edit"><select data-action-field="status" data-action-id="${a.id}"><option ${a.status==='À faire'?'selected':''}>À faire</option><option ${a.status==='En cours'?'selected':''}>En cours</option><option ${a.status==='Réalisé'?'selected':''}>Réalisé</option></select><input data-action-field="text" data-action-id="${a.id}" value="${escapeHtml(a.text||'')}"/><input data-action-field="responsible" data-action-id="${a.id}" placeholder="Responsable" value="${escapeHtml(a.responsible||'')}"/><button class="btn small danger" data-remove-action="${a.id}">×</button></div>`).join(''):''}</div></section>`; }
 function renderAnalysis() {
-  const visits=db.visits.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); if(!activeAnalysisVisitId&&visits.length)activeAnalysisVisitId=visits[0].id; const visit=db.visits.find(v=>v.id===activeAnalysisVisitId); if(visit)ensureAnalysisVisit(visit);
+  const visits=db.visits.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!activeVisitId&&visits.length)setActiveVisit(visits[0].id);
+  const visit=activeVisit();
+  if(visit)ensureAnalysisVisit(visit);
   const tabs=[['numeric','Matrices par famille'],['observations','Observations'],['general','Tamis · Silos · Sol · Plantes'],['reasoning','Raisonnement'],['summary','Statistiques & actions']];
-  app.innerHTML=`<div class="section-title"><div><h2>Analyse complète</h2><div class="muted">Mesures, observations, relevés généraux et synthèse croisée. Aide à l’interprétation, sans valeur diagnostique.</div></div><span class="badge autosave">Sauvegarde automatique</span></div><section class="card analysis-toolbar"><div class="field no-margin"><label>Visite analysée</label><select id="analysis-visit-select"><option value="">Sélectionner…</option>${visits.map(v=>`<option value="${v.id}" ${v.id===activeAnalysisVisitId?'selected':''}>${escapeHtml(visitLabel(v))}</option>`).join('')}</select></div>${visit?`<div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div>`:''}</section>${!visit?'<div class="empty" style="margin-top:16px">Créez ou sélectionnez une visite.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):renderSynthesisSection(visit)}</section>`}`;
-  document.getElementById('analysis-visit-select')?.addEventListener('change',e=>{activeAnalysisVisitId=e.target.value;localStorage.setItem('audit-bovin-active-analysis-visit',activeAnalysisVisitId);renderAnalysis();});
+  app.innerHTML=`<div class="section-title"><div><h2>Analyse complète</h2><div class="muted">Mesures, observations, relevés généraux et synthèse croisée. Aide à l’interprétation, sans valeur diagnostique.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+  ${activeVisitBanner(visit)}
+  ${!visit?'<div class="empty" style="margin-top:16px">Choisissez une visite dans l’onglet Visites.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<section class="card analysis-utilities"><div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div></section><nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):renderSynthesisSection(visit)}</section>`}`;
   app.querySelectorAll('[data-analysis-section]').forEach(b=>b.onclick=()=>{activeAnalysisSection=b.dataset.analysisSection;localStorage.setItem('audit-bovin-active-analysis-section',activeAnalysisSection);renderAnalysis();});
   app.querySelectorAll('[data-analysis-family]').forEach(b=>b.onclick=()=>{activeAnalysisFamily=b.dataset.analysisFamily;localStorage.setItem('audit-bovin-active-analysis-family',activeAnalysisFamily);renderAnalysis();});
   bindAnalysisEvents(visit);
@@ -636,9 +644,12 @@ function renderAnalysis() {
       const row = app.querySelector(`[data-analysis-subject-row="${focusedAnalysisSubjectId}"]`);
       row?.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
       row?.querySelector('input')?.focus({ preventScroll:true });
-    }, 50);
+      focusedAnalysisSubjectId='';
+      localStorage.removeItem('audit-bovin-focused-analysis-subject');
+    }, 80);
   }
 }
+
 function bindAnalysisEvents(visit) {
   if(!visit)return;
   app.querySelectorAll('.analysis-input').forEach(input=>{const persist=()=>{const s=visit.subjects.find(x=>x.id===input.dataset.subjectId);if(!s)return;s.measurements.analysis[input.dataset.param]=input.value;s.updatedAt=new Date().toISOString();visit.updatedAt=new Date().toISOString();saveDatabase(db);const result=s.category&&s.category!=='Non classé'?classifyValue(input.value,thresholdFor(s,input.dataset.param)):(input.value===''?{status:'empty',label:'Non mesuré'}:{status:'unclassified',label:'Classer le sujet'});const cell=input.closest('.analysis-value-cell');cell.className=`analysis-value-cell ${result.status}`;cell.querySelector('small').textContent=result.label;};input.onchange=persist;input.onblur=persist;});
@@ -670,7 +681,7 @@ function renderBackup() {
   document.getElementById('export-db').onclick = () => downloadJson(`audit-bovin-sauvegarde-${new Date().toISOString().slice(0,10)}.json`, db);
   document.getElementById('import-db').onclick = () => fileInput.click();
   document.getElementById('reset-db').onclick = () => {
-    if (confirm('Effacer définitivement toutes les données de cet appareil ?')) { db = replaceDatabase({ farms: [], visits: [] }); clearDraft(); activeAnimalVisitId = ''; showToast('Base locale effacée.'); renderBackup(); }
+    if (confirm('Effacer définitivement toutes les données de cet appareil ?')) { db = replaceDatabase({ farms: [], visits: [] }); clearDraft(); setActiveVisit(''); showToast('Base locale effacée.'); renderBackup(); }
   };
 }
 
@@ -686,6 +697,7 @@ fileInput.addEventListener('change', async () => {
       if (!existingFarm) db.farms.push({ ...farm, id: farmId });
       db.visits = db.visits.filter(v => v.id !== parsed.visit.id);
       db.visits.push({ ...parsed.visit, farmId, subjects: Array.isArray(parsed.visit.subjects) ? parsed.visit.subjects : [] });
+      setActiveVisit(parsed.visit.id);
       saveDatabase(db);
       showToast('Visite importée.');
     } else if (Array.isArray(parsed.farms) && Array.isArray(parsed.visits)) {

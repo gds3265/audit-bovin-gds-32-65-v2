@@ -174,3 +174,11 @@ th { background: #f0f5f2; font-size: .88rem; }
 .measure-chip { border:1px solid var(--border); cursor:pointer; font:inherit; text-align:left; }
 .measure-chip:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
 .focused-subject-row td { outline:2px solid #2f855a; outline-offset:-2px; background-color:#effaf3 !important; }
+
+/* V10.8 — visite active verrouillée et matrices robustes */
+.active-visit-banner{display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:center;margin-bottom:16px;border-left:5px solid var(--primary)}
+.active-visit-banner strong{display:block;font-size:1.05rem;margin-top:3px}.active-visit-banner .small-text{grid-column:1/-1}
+.matrix-table{table-layout:auto!important}.matrix-table th,.matrix-table td{box-sizing:border-box}.matrix-table .analysis-value-cell{min-width:125px}.matrix-table .matrix-comment-cell{min-width:280px}
+.focused-subject-row td{outline:2px solid rgba(31,111,67,.25);outline-offset:-2px;background-color:#f0fdf4}
+.analysis-utilities{margin:12px 0}
+@media(max-width:700px){.active-visit-banner{grid-template-columns:1fr}.active-visit-banner .badge{justify-self:start}.matrix-table{min-width:1100px!important}}

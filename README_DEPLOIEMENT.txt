@@ -1,10 +1,4 @@
-AUDIT BOVIN GDS 32-65 — V10.7
-
-Évolutions :
-- colonnes des matrices ajustées ;
-- colonne Commentaire / observation dans chaque famille ;
-- sauvegarde automatique des commentaires ;
-- médiane retirée des statistiques ;
-- min, moyenne et max conservés.
-
-Diffusion : importer tous les fichiers à la racine du même dépôt GitHub, puis ouvrir avec ?v=10.7.
+Audit Bovin GDS 32-65 — V10.8
+Importez tous les fichiers à la racine du dépôt GitHub.
+Ouvrez ensuite le site avec ?v=10.8.
+La visite active est choisie uniquement dans l'onglet Visites et reste verrouillée dans Animaux et Analyse.
