@@ -195,3 +195,6 @@ th { background: #f0f5f2; font-size: .88rem; }
 
 /* V10.12 — objets intelligents du plan */
 .plan-toolbar-groups{align-items:flex-end;gap:10px}.plan-tool-group{display:flex;flex-wrap:wrap;gap:6px;padding:7px;border:1px solid #dbe7df;border-radius:10px;background:#f8fbf9}.plan-tool-group strong{width:100%;font-size:.78rem;color:#486257}.plan-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:12px}.plan-inspector{border:1px solid #dbe7df;border-radius:12px;padding:12px;background:#f8fbf9;min-height:180px}.plan-inspector h4{margin-top:0}.plan-linked-summary{margin:10px 0;padding:10px;border-radius:9px;background:#fff;border:1px solid #dbe7df;line-height:1.5}.plan-inspector .btn{width:100%;margin-top:8px}@media(max-width:850px){.plan-layout{grid-template-columns:1fr}.plan-inspector{min-height:auto}.plan-toolbar-groups{display:block}.plan-tool-group{margin-bottom:8px}}
+
+/* V10.13 — zones et objets linéaires */
+.plan-inspector .grid.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.plan-inspector textarea{width:100%;min-height:70px;border:1px solid #cbd5cf;border-radius:8px;padding:8px;resize:vertical}.plan-inspector select,.plan-inspector input{width:100%;border:1px solid #cbd5cf;border-radius:8px;padding:8px}.actions.compact{display:flex;gap:6px;margin:8px 0}.actions.compact .btn{width:auto;flex:1}
