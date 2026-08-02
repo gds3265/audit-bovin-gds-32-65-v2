@@ -36,6 +36,114 @@ const buildingQuestionGroups = [
   ['Veaux et mise bas', ['Cases de vêlage propres', 'Zone veaux adaptée', 'Séparation des malades possible', 'Nettoyage et désinfection organisés', 'Matériel de soins disponible']],
   ['Hygiène et biosécurité', ['Gestion des nuisibles', 'Stockage des aliments protégé', 'Nettoyage du matériel', 'Gestion des cadavres', 'Accès visiteurs maîtrisé']]
 ];
+
+
+const auditGlobalSections = [
+  { id:'sanitaire', title:'Sanitaire et gestion du troupeau', icon:'🩺', questions:[
+    'Principaux problèmes sanitaires rencontrés sur les 12 derniers mois',
+    'Plan de vaccination formalisé et adapté aux risques',
+    'Protocoles de vermifugation fondés sur les coprologies ou le risque',
+    'Analyses coprologiques réalisées et résultats conservés',
+    'Gestion des traitements et respect des délais d’attente',
+    'Registre sanitaire tenu à jour',
+    'Gestion des animaux malades et possibilité d’isolement',
+    'Gestion des introductions et quarantaine',
+    'Statut sanitaire des animaux achetés vérifié',
+    'Gestion des cadavres et des déchets de soins',
+    'Plan de lutte contre les nuisibles',
+    'Relation et suivi avec le vétérinaire sanitaire'
+  ]},
+  { id:'reproduction', title:'Reproduction et renouvellement', icon:'🐄', questions:[
+    'Organisation de la mise à la reproduction',
+    'Choix des taureaux ou semences cohérent avec les objectifs',
+    'Suivi des chaleurs et des retours',
+    'Diagnostics de gestation réalisés',
+    'Gestion des vaches vides',
+    'Préparation des animaux à la mise bas',
+    'Surveillance des vêlages',
+    'Gestion des délivrances et complications post-partum',
+    'Âge au premier vêlage suivi',
+    'Intervalle vêlage-vêlage suivi',
+    'Nombre de génisses de renouvellement adapté',
+    'Critères de sélection des génisses formalisés'
+  ]},
+  { id:'jeunes', title:'Soins aux jeunes et conduite des veaux', icon:'🐮', questions:[
+    'Prise en charge du veau immédiatement après la naissance',
+    'Désinfection du nombril',
+    'Distribution du colostrum dans les délais',
+    'Qualité du colostrum contrôlée',
+    'Quantité de colostrum distribuée adaptée',
+    'Traçabilité du colostrum et des soins',
+    'Conditions de logement des veaux adaptées',
+    'Nettoyage et désinfection entre lots',
+    'Accès à l’eau et à l’aliment solide',
+    'Gestion du sevrage',
+    'Suivi de la croissance',
+    'Gestion des diarrhées et troubles respiratoires'
+  ]},
+  { id:'pratiques', title:'Pratiques d’élevage et conduite des lots', icon:'📋', questions:[
+    'Allotement cohérent avec les besoins des animaux',
+    'Sortie des animaux et accès au pâturage organisés',
+    'Gestion de l’estive',
+    'Transitions alimentaires anticipées',
+    'Tarissement organisé et durée adaptée',
+    'Préparation des mises bas',
+    'Gestion des animaux à risque ou fragiles',
+    'Observation quotidienne du troupeau',
+    'Manipulations et contention sécurisées',
+    'Parage préventif et suivi des aplombs',
+    'Gestion des réformes anticipée',
+    'Formation et répartition des tâches dans l’élevage'
+  ]},
+  { id:'fourrages', title:'Fourrages et cultures', icon:'🌾', questions:[
+    'Type de sol identifié pour les principales parcelles',
+    'Fertilisation et amendements adaptés',
+    'Choix des espèces et variétés',
+    'Date et conditions de semis',
+    'Stade de récolte suivi',
+    'Hauteur de coupe adaptée',
+    'Foin : qualité visuelle satisfaisante',
+    'Foin : matière sèche adaptée',
+    'Foin : espèces semées et stade de récolte connus',
+    'Foin : méthode de réalisation documentée',
+    'Ensilage : qualité du tassement et du bâchage',
+    'Ensilage : conditions de récolte et conservation',
+    'Enrubannage : matière sèche et nombre de couches adaptés',
+    'Stockage des fourrages protégé',
+    'Analyses de fourrages disponibles',
+    'Distribution et gestion du front d’attaque adaptées'
+  ]},
+  { id:'economie', title:'Technico-économique, débouchés et renouvellement', icon:'💶', questions:[
+    'Débouchés de l’exploitation clairement identifiés',
+    'Prix de vente et volumes suivis',
+    'Coût alimentaire suivi',
+    'Achats de fourrages et concentrés suivis',
+    'Charges sanitaires suivies',
+    'Mortalité et pertes économiques suivies',
+    'Nombre annuel de réformes connu',
+    'Motifs de réforme analysés',
+    'Nombre de génisses de renouvellement connu',
+    'Taux de renouvellement suivi',
+    'Autonomie fourragère estimée',
+    'Objectifs technico-économiques formalisés'
+  ]},
+  { id:'organisation', title:'Organisation, travail et suivi', icon:'👥', questions:[
+    'Objectifs de l’éleveur clairement définis',
+    'Temps de travail et astreintes compatibles avec l’organisation',
+    'Procédures écrites pour les tâches sensibles',
+    'Transmission des informations entre intervenants',
+    'Suivi des actions décidées lors des visites précédentes',
+    'Indicateurs techniques consultés régulièrement',
+    'Documents et analyses facilement accessibles',
+    'Plan d’urgence et contacts disponibles'
+  ]}
+];
+
+const outletTypes = [
+  'Vente de fourrage','Vente de grain','Vente de reproducteurs','Broutards',
+  'Veaux sous la mère','Animaux engraissés','Vente directe de viande','Vaches de réforme','Autre'
+];
+const reformReasons = ['Problème de reproduction','Aplombs / boiterie','Âge','Sanitaire','Production insuffisante','Accident','Tempérament','Autre'];
 const measurementFamilies = [
   ['urine', 'Urines', '🟡'], ['blood', 'Sang', '🔴'], ['feces', 'Bouses', '🟤'],
   ['physical', 'Observations physiques', '🟢'], ['milk', 'Lait', '🔵'], ['colostrum', 'Colostrum', '🟣']
@@ -77,6 +185,11 @@ function migrateDatabase() {
     visit.feeding.settings = visit.feeding.settings && typeof visit.feeding.settings === 'object' ? visit.feeding.settings : {};
     visit.feeding.history = Array.isArray(visit.feeding.history) ? visit.feeding.history : [];
     visit.buildingAudits = visit.buildingAudits && typeof visit.buildingAudits === 'object' ? visit.buildingAudits : {};
+    visit.auditGlobal = visit.auditGlobal && typeof visit.auditGlobal === 'object' ? visit.auditGlobal : { answers:{}, outlets:[], reforms:{}, renewal:{}, notes:'' };
+    visit.auditGlobal.answers = visit.auditGlobal.answers && typeof visit.auditGlobal.answers === 'object' ? visit.auditGlobal.answers : {};
+    visit.auditGlobal.outlets = Array.isArray(visit.auditGlobal.outlets) ? visit.auditGlobal.outlets : [];
+    visit.auditGlobal.reforms = visit.auditGlobal.reforms && typeof visit.auditGlobal.reforms === 'object' ? visit.auditGlobal.reforms : {};
+    visit.auditGlobal.renewal = visit.auditGlobal.renewal && typeof visit.auditGlobal.renewal === 'object' ? visit.auditGlobal.renewal : {};
   });
   db.farms.forEach(farm => {
     farm.buildings = Array.isArray(farm.buildings) ? farm.buildings : [];
@@ -134,7 +247,7 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -1016,6 +1129,66 @@ function renderBuildingQuestionnaire(panel,{visit,audit}){
   panel.innerHTML=`<div class="section-title"><div><h3>Questionnaire bâtiment</h3><div class="muted">Les thèmes sont repliés. Ouvrez-les au fur et à mesure.</div></div></div><div class="question-groups">${buildingQuestionGroups.map(([group,questions],gi)=>`<details class="card question-group"><summary><strong>${escapeHtml(group)}</strong><span class="muted">${questions.filter(q=>audit.questionnaire[q]?.status).length}/${questions.length} renseigné(s)</span></summary><div class="question-list">${questions.map(q=>{const item=audit.questionnaire[q]||{};return `<div class="question-row"><div><strong>${escapeHtml(q)}</strong><input class="question-comment" data-qcomment="${escapeHtml(q)}" value="${escapeHtml(item.comment||'')}" placeholder="Commentaire"></div><select data-qstatus="${escapeHtml(q)}"><option value="">Non renseigné</option>${['Satisfaisant','À surveiller','À corriger','Non concerné'].map(v=>`<option ${item.status===v?'selected':''}>${v}</option>`).join('')}</select></div>`}).join('')}</div></details>`).join('')}</div>`;
   panel.querySelectorAll('[data-qstatus]').forEach(el=>el.addEventListener('change',()=>{const q=el.dataset.qstatus;audit.questionnaire[q]=audit.questionnaire[q]||{};audit.questionnaire[q].status=el.value;saveBuildingAudit(visit);renderBuildingQuestionnaire(panel,currentBuildingContext())}));
   panel.querySelectorAll('[data-qcomment]').forEach(el=>{const save=()=>{const q=el.dataset.qcomment;audit.questionnaire[q]=audit.questionnaire[q]||{};audit.questionnaire[q].comment=el.value;saveBuildingAudit(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
+}
+
+function ensureAuditGlobal(visit) {
+  visit.auditGlobal = visit.auditGlobal && typeof visit.auditGlobal === 'object' ? visit.auditGlobal : {};
+  visit.auditGlobal.answers = visit.auditGlobal.answers && typeof visit.auditGlobal.answers === 'object' ? visit.auditGlobal.answers : {};
+  visit.auditGlobal.outlets = Array.isArray(visit.auditGlobal.outlets) ? visit.auditGlobal.outlets : [];
+  visit.auditGlobal.reforms = visit.auditGlobal.reforms && typeof visit.auditGlobal.reforms === 'object' ? visit.auditGlobal.reforms : {};
+  visit.auditGlobal.renewal = visit.auditGlobal.renewal && typeof visit.auditGlobal.renewal === 'object' ? visit.auditGlobal.renewal : {};
+  return visit.auditGlobal;
+}
+function auditCompletion(audit) {
+  const all = auditGlobalSections.flatMap(s => s.questions);
+  const done = all.filter(q => audit.answers[q]?.status || audit.answers[q]?.answer || audit.answers[q]?.comment).length;
+  return { done, total: all.length, pct: all.length ? Math.round(done / all.length * 100) : 0 };
+}
+function saveAuditGlobal(visit) { visit.updatedAt = new Date().toISOString(); saveDatabase(db); }
+function auditQuestionRow(q, audit) {
+  const item = audit.answers[q] || {};
+  return `<div class="audit-question-row">
+    <div class="audit-question-main"><strong>${escapeHtml(q)}</strong><input data-audit-answer="${escapeHtml(q)}" value="${escapeHtml(item.answer||'')}" placeholder="Réponse / donnée factuelle"></div>
+    <select data-audit-status="${escapeHtml(q)}"><option value="">Non évalué</option>${['Satisfaisant','À surveiller','À corriger','Non concerné'].map(v=>`<option ${item.status===v?'selected':''}>${v}</option>`).join('')}</select>
+    <textarea data-audit-comment="${escapeHtml(q)}" placeholder="Commentaire, précision, action à envisager">${escapeHtml(item.comment||'')}</textarea>
+  </div>`;
+}
+function renderAuditGlobal() {
+  const visit = activeVisit();
+  if (!visit) { app.innerHTML = `<div class="section-title"><h2>Audit global</h2></div>${activeVisitBanner(null)}`; return; }
+  const audit = ensureAuditGlobal(visit);
+  const comp = auditCompletion(audit);
+  app.innerHTML = `<div class="section-title"><div><h2>Audit global</h2><div class="muted">Toutes les rubriques sont repliées au départ. Ouvrez uniquement le thème à compléter.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+  ${activeVisitBanner(visit)}
+  <section class="card audit-progress-card"><div><strong>Avancement de l’audit</strong><span>${comp.done}/${comp.total} questions renseignées</span></div><div class="progress-track large"><div style="width:${comp.pct}%"></div></div><strong>${comp.pct}%</strong></section>
+  <div class="audit-toolbar"><button class="btn secondary" id="print-blank-audit">Imprimer le guide vierge</button><button class="btn secondary" id="print-filled-audit">Imprimer l’audit renseigné</button><button class="btn" id="open-all-audit">Tout ouvrir</button><button class="btn" id="close-all-audit">Tout fermer</button></div>
+  <div class="audit-sections">${auditGlobalSections.map(section=>{const done=section.questions.filter(q=>{const i=audit.answers[q]||{};return i.status||i.answer||i.comment}).length;return `<details class="card audit-section" data-audit-section="${section.id}"><summary><span><span class="audit-icon">${section.icon}</span><strong>${escapeHtml(section.title)}</strong></span><span class="audit-count">${done}/${section.questions.length}</span></summary><div class="audit-question-list">${section.questions.map(q=>auditQuestionRow(q,audit)).join('')}</div></details>`}).join('')}</div>
+  <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Débouchés</h3><div class="muted">Une ligne par débouché. Quantité, prix et chiffre d’affaires peuvent rester estimatifs.</div></div><button class="btn primary" id="add-outlet">Ajouter un débouché</button></div>${audit.outlets.length?`<div class="table-wrap"><table class="audit-table"><thead><tr><th>Débouché</th><th>Produit / précision</th><th>Quantité</th><th>Unité</th><th>Tarif unitaire</th><th>Chiffre d’affaires</th><th>Commentaire</th><th></th></tr></thead><tbody>${audit.outlets.map((r,i)=>`<tr><td><select data-outlet-field="type" data-id="${r.id}">${outletTypes.map(v=>`<option ${r.type===v?'selected':''}>${v}</option>`).join('')}</select></td><td><input data-outlet-field="product" data-id="${r.id}" value="${escapeHtml(r.product||'')}"></td><td><input type="number" step="any" data-outlet-field="quantity" data-id="${r.id}" value="${escapeHtml(r.quantity||'')}"></td><td><input data-outlet-field="unit" data-id="${r.id}" value="${escapeHtml(r.unit||'')}"></td><td><input type="number" step="any" data-outlet-field="unitPrice" data-id="${r.id}" value="${escapeHtml(r.unitPrice||'')}"></td><td><input type="number" step="any" data-outlet-field="turnover" data-id="${r.id}" value="${escapeHtml(r.turnover||'')}"></td><td><textarea data-outlet-field="comment" data-id="${r.id}">${escapeHtml(r.comment||'')}</textarea></td><td><button class="btn small danger" data-delete-outlet="${r.id}">Suppr.</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucun débouché renseigné.</div>'}</section>
+  <section class="grid cols-2" style="margin-top:16px"><article class="card"><h3>Réformes annuelles</h3><div class="field"><label>Nombre annuel de réformes</label><input type="number" min="0" data-reform-field="annualCount" value="${escapeHtml(audit.reforms.annualCount||'')}"></div><div class="field"><label>Âge moyen à la réforme</label><input data-reform-field="averageAge" value="${escapeHtml(audit.reforms.averageAge||'')}"></div><h4>Motifs</h4>${reformReasons.map(reason=>`<div class="audit-reason-row"><label>${escapeHtml(reason)}</label><input type="number" min="0" step="1" data-reform-reason="${escapeHtml(reason)}" value="${escapeHtml(audit.reforms.reasons?.[reason]||'')}"></div>`).join('')}<div class="field"><label>Commentaire</label><textarea data-reform-field="comment">${escapeHtml(audit.reforms.comment||'')}</textarea></div></article>
+  <article class="card"><h3>Renouvellement</h3>${[['femaleBirths','Naissances femelles annuelles'],['heifersKept','Génisses gardées'],['heifersSold','Génisses vendues'],['heifersBought','Génisses achetées'],['replacementHeifers','Génisses de renouvellement présentes']].map(([k,l])=>`<div class="field"><label>${l}</label><input type="number" min="0" step="1" data-renewal-field="${k}" value="${escapeHtml(audit.renewal[k]||'')}"></div>`).join('')}<div class="field"><label>Objectif de renouvellement / commentaire</label><textarea data-renewal-field="comment">${escapeHtml(audit.renewal.comment||'')}</textarea></div></article></section>
+  <section class="card" style="margin-top:16px"><h3>Conclusion libre de l’audit global</h3><textarea id="audit-global-notes" class="audit-global-notes" placeholder="Points forts, points de vigilance, priorités…">${escapeHtml(audit.notes||'')}</textarea></section>`;
+
+  const saveAnswer=(q,field,value)=>{audit.answers[q]=audit.answers[q]||{};audit.answers[q][field]=value;saveAuditGlobal(visit)};
+  app.querySelectorAll('[data-audit-answer]').forEach(el=>{const save=()=>saveAnswer(el.dataset.auditAnswer,'answer',el.value);el.addEventListener('input',save);el.addEventListener('blur',save)});
+  app.querySelectorAll('[data-audit-status]').forEach(el=>el.addEventListener('change',()=>{saveAnswer(el.dataset.auditStatus,'status',el.value);renderAuditGlobal()}));
+  app.querySelectorAll('[data-audit-comment]').forEach(el=>{const save=()=>saveAnswer(el.dataset.auditComment,'comment',el.value);el.addEventListener('input',save);el.addEventListener('blur',save)});
+  document.getElementById('open-all-audit').onclick=()=>app.querySelectorAll('.audit-section').forEach(d=>d.open=true);
+  document.getElementById('close-all-audit').onclick=()=>app.querySelectorAll('.audit-section').forEach(d=>d.open=false);
+  document.getElementById('add-outlet').onclick=()=>{audit.outlets.push({id:uid('outlet'),type:'Broutards'});saveAuditGlobal(visit);renderAuditGlobal()};
+  app.querySelectorAll('[data-outlet-field]').forEach(el=>{const save=()=>{const r=audit.outlets.find(x=>x.id===el.dataset.id);if(r){r[el.dataset.outletField]=el.value;saveAuditGlobal(visit)}};el.addEventListener('input',save);el.addEventListener('change',save);el.addEventListener('blur',save)});
+  app.querySelectorAll('[data-delete-outlet]').forEach(el=>el.onclick=()=>{audit.outlets=audit.outlets.filter(x=>x.id!==el.dataset.deleteOutlet);saveAuditGlobal(visit);renderAuditGlobal()});
+  app.querySelectorAll('[data-reform-field]').forEach(el=>{const save=()=>{audit.reforms[el.dataset.reformField]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
+  audit.reforms.reasons=audit.reforms.reasons||{};app.querySelectorAll('[data-reform-reason]').forEach(el=>{const save=()=>{audit.reforms.reasons[el.dataset.reformReason]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
+  app.querySelectorAll('[data-renewal-field]').forEach(el=>{const save=()=>{audit.renewal[el.dataset.renewalField]=el.value;saveAuditGlobal(visit)};el.addEventListener('input',save);el.addEventListener('blur',save)});
+  const notes=document.getElementById('audit-global-notes');notes.addEventListener('input',()=>{audit.notes=notes.value;saveAuditGlobal(visit)});
+  document.getElementById('print-blank-audit').onclick=()=>printAuditGuide(visit,false);
+  document.getElementById('print-filled-audit').onclick=()=>printAuditGuide(visit,true);
+}
+function printAuditGuide(visit, filled) {
+  const audit=ensureAuditGlobal(visit);
+  const rows=auditGlobalSections.map(section=>`<h2>${section.icon} ${escapeHtml(section.title)}</h2><table><thead><tr><th>Question</th><th>Réponse / donnée</th><th>Évaluation</th><th>Commentaire</th></tr></thead><tbody>${section.questions.map(q=>{const i=filled?(audit.answers[q]||{}):{};return `<tr><td>${escapeHtml(q)}</td><td>${escapeHtml(i.answer||'')}</td><td>${escapeHtml(i.status||'')}</td><td>${escapeHtml(i.comment||'')}</td></tr>`}).join('')}</tbody></table>`).join('');
+  const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes pour imprimer le guide.');return}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Guide audit - ${escapeHtml(farmName(visit.farmId))}</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:20px}h1{color:#1f6f43}h2{margin-top:26px;color:#265c42}table{width:100%;border-collapse:collapse;margin-bottom:20px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #aab5ad;padding:7px;vertical-align:top;font-size:10.5pt}th{background:#e9f4ed}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.box{border:1px solid #aab5ad;padding:10px;min-height:35px}@media print{button{display:none}h2{page-break-after:avoid}}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — ${filled?'Audit renseigné':'Guide vierge'}</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${escapeHtml(visit.technician||'')}</div></div>${rows}</body></html>`);w.document.close();
 }
 
 function renderBackup() {
