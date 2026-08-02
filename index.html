@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f6f43" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Audit Bovin" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Audit Bovin GDS 32-65</title>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-wrap">
+      <img src="icon-192.png" class="brand-icon" alt="" />
+      <div>
+        <h1>Audit Bovin GDS 32-65</h1>
+        <p>Noyau de gestion des exploitations et des visites</p>
+      </div>
+    </div>
+    <span class="version">v10.1</span>
+  </header>
+
+  <nav class="top-nav" aria-label="Navigation principale">
+    <button class="nav-btn active" data-view="dashboard">Accueil</button>
+    <button class="nav-btn" data-view="farms">Exploitations</button>
+    <button class="nav-btn" data-view="visits">Visites</button>
+    <button class="nav-btn" data-view="backup">Sauvegarde</button>
+  </nav>
+
+  <main id="app" class="app-main" tabindex="-1"></main>
+
+  <template id="toast-template">
+    <div class="toast" role="status"></div>
+  </template>
+
+  <input id="json-file-input" type="file" accept="application/json,.json" hidden />
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
