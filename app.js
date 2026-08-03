@@ -271,13 +271,19 @@ function setActiveVisit(id) {
   else localStorage.removeItem('audit-bovin-active-visit');
 }
 function activeVisit() { return db.visits.find(v => v.id === activeVisitId) || null; }
+function renderNoActiveVisit(moduleName = 'ce module') {
+  app.innerHTML = `<section class="card notice warning"><strong>Aucune visite active.</strong><br><span class="muted">${escapeHtml(moduleName)} doit être rattaché à une visite. Sur un nouvel appareil, créez une visite ou importez votre sauvegarde, puis ouvrez-la depuis l’onglet Visites.</span><div class="actions" style="margin-top:12px"><button class="btn primary" id="go-to-visits">Aller aux visites</button><button class="btn secondary" id="go-to-backup">Importer une sauvegarde</button></div></section>`;
+  document.getElementById('go-to-visits')?.addEventListener('click', () => setView('visits'));
+  document.getElementById('go-to-backup')?.addEventListener('click', () => setView('backup'));
+}
+
 function activeVisitBanner(visit) {
   if (!visit) return `<section class="card notice warning"><strong>Aucune visite active.</strong><br><span class="muted">Choisissez une visite dans l’onglet Visites.</span></section>`;
   return `<section class="card active-visit-banner"><div><span class="muted">Visite active — verrouillée pour la saisie</span><strong>${escapeHtml(visitLabel(visit))}</strong></div><span class="badge complete">${visit.subjects?.length || 0} sujet(s)</span><span class="muted small-text">La visite ne peut être changée que depuis l’onglet Visites.</span></section>`;
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, followup: renderFollowup, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -1459,6 +1465,63 @@ async function photoFileToDataUrl(file){
 }
 function photoSubjectLabel(visit,subjectId){const s=(visit.subjects||[]).find(x=>x.id===subjectId);return s?(s.identifier||s.name||s.category||'Sujet'):'Photo générale';}
 function photoCardHtml(visit,photo){return `<article class="photo-card"><button class="photo-open" data-open-photo="${photo.id}" aria-label="Ouvrir la photo"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.comment||'Photo de visite')}"></button><div class="photo-card-body"><div class="photo-meta"><strong>${escapeHtml(photoSubjectLabel(visit,photo.subjectId))}</strong><span>${formatDateTime(photo.createdAt)}</span></div><textarea data-photo-comment="${photo.id}" rows="2" placeholder="Commentaire de la photo">${escapeHtml(photo.comment||'')}</textarea><div class="actions"><button class="btn small" data-annotate-photo="${photo.id}">✏️ Annoter</button><button class="btn small danger" data-delete-photo="${photo.id}">Supprimer</button></div></div></article>`;}
+
+
+// V11.9 — Suivi longitudinal et comparaison de plusieurs visites
+function farmVisitsChronological(farmId){
+  return db.visits.filter(v=>v.farmId===farmId).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+}
+function avgForVisit(visit,key,category=''){
+  const values=(visit.subjects||[]).filter(s=>!category||s.category===category).map(s=>numericValue(s.measurements?.analysis?.[key])).filter(v=>v!==null);
+  return values.length?{avg:values.reduce((a,b)=>a+b,0)/values.length,n:values.length,min:Math.min(...values),max:Math.max(...values)}:null;
+}
+function followupFmt(v,key){if(v===null||v===undefined)return '—';const p=['urineDensity','urineRedox','fecesRedox','colostrumDensity'].includes(key)?0:2;return Number(v).toLocaleString('fr-FR',{maximumFractionDigits:p});}
+function followupTrend(first,last){
+  if(first===null||last===null)return {icon:'—',label:'Non comparable',cls:'neutral'};
+  const d=last-first, tolerance=Math.max(Math.abs(first)*0.03,0.02);
+  if(Math.abs(d)<=tolerance)return {icon:'→',label:'Stable',cls:'stable'};
+  return d>0?{icon:'↗',label:'En hausse',cls:'up'}:{icon:'↘',label:'En baisse',cls:'down'};
+}
+function sparklineSvg(points){
+  const vals=points.filter(v=>v!==null);if(vals.length<2)return '<span class="muted">Données insuffisantes</span>';
+  const min=Math.min(...vals),max=Math.max(...vals),span=max-min||1,w=160,h=42,p=5;
+  const coords=points.map((v,i)=>v===null?null:[p+i*(w-2*p)/Math.max(1,points.length-1),h-p-(v-min)*(h-2*p)/span]);
+  const segments=[];let current=[];coords.forEach(pt=>{if(pt)current.push(pt);else if(current.length){segments.push(current);current=[]}});if(current.length)segments.push(current);
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" role="img" aria-label="Courbe d’évolution">${segments.map(seg=>`<polyline points="${seg.map(x=>x.join(',')).join(' ')}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${coords.filter(Boolean).map(pt=>`<circle cx="${pt[0]}" cy="${pt[1]}" r="2.6" fill="currentColor"/>`).join('')}</svg>`;
+}
+function normalizedTag(tag){return String(tag||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function individualFollowupRows(visits,key){
+  const map=new Map();visits.forEach(v=>(v.subjects||[]).forEach(s=>{const tag=normalizedTag(s.tag);const val=numericValue(s.measurements?.analysis?.[key]);if(!tag||val===null)return;if(!map.has(tag))map.set(tag,{tag:s.tag||tag,values:new Array(visits.length).fill(null)});map.get(tag).values[visits.indexOf(v)]=val;}));
+  return [...map.values()].filter(x=>x.values.filter(v=>v!==null).length>=2);
+}
+function renderFollowup(){
+  const defaultFarm=activeVisit()?.farmId||db.farms[0]?.id||'';
+  const farmId=localStorage.getItem('audit-bovin-followup-farm')||defaultFarm;
+  const visits=farmVisitsChronological(farmId);
+  const selectedStored=JSON.parse(localStorage.getItem('audit-bovin-followup-visits')||'[]');
+  const selectedIds=selectedStored.filter(id=>visits.some(v=>v.id===id));
+  const selected=visits.filter(v=>selectedIds.length?selectedIds.includes(v.id):true);
+  const category=localStorage.getItem('audit-bovin-followup-category')||'';
+  const individualKey=localStorage.getItem('audit-bovin-followup-individual-key')||'glucose';
+  const availableCats=[...new Set(visits.flatMap(v=>(v.subjects||[]).map(s=>s.category).filter(c=>c&&c!=='Non classé')))].sort();
+  const rows=analysisParameters.map(param=>{
+    const stats=selected.map(v=>avgForVisit(v,param.key,category));const vals=stats.map(x=>x?.avg??null);const present=vals.filter(v=>v!==null);if(!present.length)return '';
+    const t=followupTrend(present[0],present[present.length-1]);
+    return `<tr><td><strong>${escapeHtml(param.label)}</strong><br><small>${escapeHtml(param.group)}</small></td>${stats.map(x=>`<td>${x?`<strong>${followupFmt(x.avg,param.key)}</strong><br><small>n=${x.n} · ${followupFmt(x.min,param.key)}–${followupFmt(x.max,param.key)}</small>`:'—'}</td>`).join('')}<td>${sparklineSvg(vals)}</td><td><span class="trend-badge ${t.cls}">${t.icon} ${t.label}</span></td></tr>`;
+  }).join('');
+  const individualRows=individualFollowupRows(selected,individualKey);
+  app.innerHTML=`<div class="section-title"><div><h2>Suivi dans le temps</h2><div class="muted">Comparer les mesures de plusieurs visites d’une même exploitation.</div></div><span class="badge autosave">v11.9</span></div>
+  <section class="card followup-filters"><div class="grid cols-3"><div class="field"><label>Exploitation</label><select id="followup-farm">${db.farms.map(f=>`<option value="${f.id}" ${f.id===farmId?'selected':''}>${escapeHtml(f.name)}</option>`).join('')}</select></div><div class="field"><label>Catégorie comparée</label><select id="followup-category"><option value="">Toutes les catégories</option>${availableCats.map(c=>`<option ${c===category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select></div><div class="field"><label>Suivi individuel</label><select id="followup-individual-key">${analysisParameters.map(p=>`<option value="${p.key}" ${p.key===individualKey?'selected':''}>${escapeHtml(p.label)}</option>`).join('')}</select></div></div>
+  <div class="followup-visit-picker"><strong>Visites incluses</strong>${visits.length?visits.map(v=>`<label><input type="checkbox" data-followup-visit value="${v.id}" ${selectedIds.length?(selectedIds.includes(v.id)?'checked':''):'checked'}><span>${formatDate(v.date)} · ${escapeHtml(v.type||'Visite')} · ${(v.subjects||[]).length} sujet(s)</span></label>`).join(''):'<div class="empty">Cette exploitation ne possède aucune visite.</div>'}</div></section>
+  ${selected.length<2?'<section class="card notice warning"><strong>Deux visites au minimum sont nécessaires.</strong><br><span class="muted">Créez une nouvelle visite pour cette exploitation ou sélectionnez au moins deux visites.</span></section>':`<section class="card"><div class="section-title"><div><h3>Comparaison des moyennes</h3><div class="muted">Comparaison par groupes équivalents${category?' : '+escapeHtml(category):''}. Une hausse ou une baisse n’est pas automatiquement favorable : elle doit être interprétée selon les normes de la catégorie.</div></div><button class="btn secondary" id="print-followup">Imprimer / PDF</button></div><div class="table-wrap"><table class="followup-table"><thead><tr><th>Mesure</th>${selected.map(v=>`<th>${formatDate(v.date)}</th>`).join('')}<th>Évolution</th><th>Tendance</th></tr></thead><tbody>${rows||'<tr><td colspan="99">Aucune mesure comparable.</td></tr>'}</tbody></table></div></section>
+  <section class="card"><h3>Suivi des mêmes animaux</h3><p class="muted">Rapprochement automatique par numéro de boucle identique pour la mesure sélectionnée.</p>${individualRows.length?`<div class="table-wrap"><table class="followup-table"><thead><tr><th>Animal</th>${selected.map(v=>`<th>${formatDate(v.date)}</th>`).join('')}<th>Évolution</th></tr></thead><tbody>${individualRows.map(r=>`<tr><td><strong>${escapeHtml(r.tag)}</strong></td>${r.values.map(v=>`<td>${followupFmt(v,individualKey)}</td>`).join('')}<td>${sparklineSvg(r.values)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Aucun même numéro de boucle mesuré sur au moins deux visites.</div>'}</section>`}`;
+  document.getElementById('followup-farm')?.addEventListener('change',e=>{localStorage.setItem('audit-bovin-followup-farm',e.target.value);localStorage.removeItem('audit-bovin-followup-visits');renderFollowup()});
+  document.getElementById('followup-category')?.addEventListener('change',e=>{localStorage.setItem('audit-bovin-followup-category',e.target.value);renderFollowup()});
+  document.getElementById('followup-individual-key')?.addEventListener('change',e=>{localStorage.setItem('audit-bovin-followup-individual-key',e.target.value);renderFollowup()});
+  app.querySelectorAll('[data-followup-visit]').forEach(e=>e.onchange=()=>{localStorage.setItem('audit-bovin-followup-visits',JSON.stringify([...app.querySelectorAll('[data-followup-visit]:checked')].map(x=>x.value)));renderFollowup()});
+  document.getElementById('print-followup')?.addEventListener('click',()=>window.print());
+}
+
 function renderPhotos(){
   const visit=activeVisit();if(!visit){renderNoActiveVisit('Photos');return;}visit.photos=Array.isArray(visit.photos)?visit.photos:[];
   const subjectOptions=(visit.subjects||[]).map(s=>`<option value="${s.id}">${escapeHtml(s.identifier||s.name||s.category||'Sujet')}</option>`).join('');
