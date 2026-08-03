@@ -265,6 +265,60 @@ function visitLabel(visit) {
   return `${farmName(visit.farmId)} — ${formatDate(visit.date)} — ${visit.type || 'Visite'}`;
 }
 
+function previousVisitFor(farmId, date, excludeId='') {
+  return db.visits
+    .filter(v => v.farmId === farmId && v.id !== excludeId && (v.date || '') < (date || '9999-12-31'))
+    .sort((a,b) => (b.date || '').localeCompare(a.date || ''))[0] || null;
+}
+function followupSourceItems(previousVisit) {
+  if (!previousVisit) return [];
+  const c = previousVisit.visitConclusion || null;
+  const items = [];
+  (c?.priorities || []).filter(a => String(a.text || '').trim() && a.decision !== 'Refusée').forEach((a, i) => items.push({
+    id: uid('review'), kind: 'priority', label: String(a.text).trim(), source: a.source || `Action ${i+1}`,
+    previousDecision: a.decision || '', previousComment: a.comment || '', status: 'À vérifier', comment: '', completedDate: ''
+  }));
+  splitUsefulLines(c?.next || '').forEach(text => items.push({
+    id: uid('review'), kind: 'check', label: text, source: 'À vérifier lors de la prochaine visite',
+    previousDecision: '', previousComment: '', status: 'À vérifier', comment: '', completedDate: ''
+  }));
+  return uniqueText(items.map(x => x.label)).map(label => items.find(x => x.label === label));
+}
+function ensurePreviousVisitReview(visit) {
+  if (visit.previousVisitReview) return visit.previousVisitReview;
+  const previous = previousVisitFor(visit.farmId, visit.date, visit.id);
+  visit.previousVisitReview = {
+    previousVisitId: previous?.id || '', previousVisitDate: previous?.date || '',
+    items: followupSourceItems(previous), generalComment: '', completedAt: '', updatedAt: new Date().toISOString()
+  };
+  return visit.previousVisitReview;
+}
+function renderPreviousVisitReview(visit) {
+  const review = ensurePreviousVisitReview(visit);
+  const previous = db.visits.find(v => v.id === review.previousVisitId);
+  if (!previous) return `<section class="card notice" style="margin-top:16px"><strong>Première visite enregistrée pour cette exploitation.</strong><br><span class="muted">Aucune priorité antérieure à contrôler.</span></section>`;
+  const done = review.items.filter(i => i.status === 'Réalisée').length;
+  const partial = review.items.filter(i => i.status === 'Partiellement réalisée').length;
+  const pending = review.items.filter(i => ['Non réalisée','À vérifier'].includes(i.status)).length;
+  return `<section class="card previous-review-card" style="margin-top:16px">
+    <div class="section-title"><div><h3>✅ Démarrage de la visite : suivi de la visite précédente</h3><span class="muted">Visite du ${formatDate(previous.date)} · vérifiez avec l’éleveur ce qui a réellement été mis en place.</span></div><span class="badge ${pending ? 'in-progress' : 'complete'}">${done}/${review.items.length} réalisée(s)</span></div>
+    ${review.items.length ? `<div class="previous-review-list">${review.items.map((item,i)=>`<article class="previous-review-item"><div class="review-number">${i+1}</div><div class="review-main"><strong>${escapeHtml(item.label)}</strong>${item.source?`<small>${escapeHtml(item.source)}</small>`:''}${item.previousComment?`<div class="muted small-text">Commentaire précédent : ${escapeHtml(item.previousComment)}</div>`:''}<div class="row"><div class="field"><label>État constaté</label><select data-review-field="status" data-review-id="${item.id}">${['À vérifier','Réalisée','Partiellement réalisée','Non réalisée','Abandonnée / devenue inutile'].map(v=>`<option ${item.status===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>Date de réalisation</label><input type="date" data-review-field="completedDate" data-review-id="${item.id}" value="${escapeHtml(item.completedDate||'')}"></div></div><div class="field"><label>Commentaire / changement observé</label><textarea rows="2" data-review-field="comment" data-review-id="${item.id}">${escapeHtml(item.comment||'')}</textarea></div></div></article>`).join('')}</div>` : '<div class="empty">Aucune action ou vérification n’avait été enregistrée dans la visite précédente.</div>'}
+    <div class="grid cols-2 review-summary"><article class="notice positive"><strong>${done} réalisée(s)</strong><br><span class="muted">${partial} partiellement réalisée(s)</span></article><article class="notice warning"><strong>${pending} restant à vérifier ou non réalisée(s)</strong><br><span class="muted">Les éléments inachevés peuvent être repris dans le nouveau plan d’action.</span></article></div>
+    <div class="field"><label>Bilan général depuis la visite précédente</label><textarea rows="4" id="previous-review-general">${escapeHtml(review.generalComment||'')}</textarea></div>
+    <div class="actions"><button class="btn primary" id="validate-previous-review">Valider le point de départ</button><button class="btn secondary" id="carry-unfinished-actions">Reprendre les actions inachevées dans la conclusion</button></div>
+  </section>`;
+}
+function bindPreviousVisitReview(visit) {
+  const review = ensurePreviousVisitReview(visit);
+  app.querySelectorAll('[data-review-field]').forEach(el => {
+    const save = () => { const item=review.items.find(i=>i.id===el.dataset.reviewId); if(!item)return; item[el.dataset.reviewField]=el.value; review.updatedAt=new Date().toISOString(); visit.updatedAt=review.updatedAt; saveDatabase(db); };
+    el.onchange=save; el.oninput=save;
+  });
+  const general=document.getElementById('previous-review-general'); if(general)general.oninput=()=>{review.generalComment=general.value;review.updatedAt=new Date().toISOString();saveDatabase(db);};
+  const validate=document.getElementById('validate-previous-review'); if(validate)validate.onclick=()=>{review.completedAt=new Date().toISOString();addJournal(visit,'Suivi des actions de la visite précédente vérifié.');saveDatabase(db);showToast('Suivi de la visite précédente enregistré.');renderVisits();};
+  const carry=document.getElementById('carry-unfinished-actions'); if(carry)carry.onclick=()=>{const unfinished=review.items.filter(i=>['À vérifier','Partiellement réalisée','Non réalisée'].includes(i.status));const c=ensureVisitConclusion(visit);unfinished.forEach(item=>{if(!c.priorities.some(a=>String(a.text||'').trim().toLowerCase()===item.label.toLowerCase()))c.priorities.push({text:item.label,source:'Reprise de la visite précédente',decision:'À étudier',comment:item.comment||''});});c.priorities=c.priorities.filter(a=>a.text).slice(0,6);while(c.priorities.length<3)c.priorities.push({text:'',source:'',decision:'À étudier',comment:''});saveDatabase(db);showToast(`${unfinished.length} action(s) reprise(s) dans la conclusion.`);};
+}
+
 function setActiveVisit(id) {
   activeVisitId = id || '';
   if (activeVisitId) localStorage.setItem('audit-bovin-active-visit', activeVisitId);
@@ -382,6 +436,7 @@ function renderVisits() {
         ${db.visits.length ? `<div class="table-wrap"><table><thead><tr><th>Exploitation</th><th>Date</th><th>Type</th><th>Sujets</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${db.visits.slice().sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(v => `<tr><td><strong>${escapeHtml(farmName(v.farmId))}</strong><br><span class="muted">${escapeHtml(v.technician || '')}</span></td><td>${formatDate(v.date)}</td><td>${escapeHtml(v.type || '—')}</td><td>${v.subjects?.length || 0}</td><td><span class="badge ${v.status==='complete'?'complete':'in-progress'}">${v.status==='complete'?'Terminée':'En cours'}</span></td><td><div class="actions"><button class="btn small" data-edit-visit="${v.id}">Ouvrir</button><button class="btn small" data-open-animals="${v.id}">Animaux</button><button class="btn small" data-export-visit="${v.id}">JSON</button><button class="btn small danger" data-delete-visit="${v.id}">Supprimer</button></div></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Aucune visite.</div>'}
       </section>
     </section>
+    ${editVisit ? renderPreviousVisitReview(editVisit) : ''}
     ${editVisit ? `<section class="card" style="margin-top:16px"><h3>Journal de la visite</h3>${editVisit.journal?.length ? `<ul class="journal">${editVisit.journal.map(j => `<li><strong>${formatDateTime(j.at)}</strong><br>${escapeHtml(j.message)}</li>`).join('')}</ul>` : '<div class="empty">Aucune modification enregistrée.</div>'}</section>` : ''}`;
 
   const form = document.getElementById('visit-form');
@@ -398,10 +453,12 @@ function renderVisits() {
       const visit = { id: uid('visit'), ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), journal: [], subjects: [] };
       addJournal(visit, 'Visite créée.');
       db.visits.push(visit);
+      ensurePreviousVisitReview(visit);
       setActiveVisit(visit.id);
-      showToast('Visite créée.');
+      editingVisitId = visit.id;
+      showToast(visit.previousVisitReview?.previousVisitId ? 'Visite créée : commencez par contrôler les actions précédentes.' : 'Visite créée.');
     }
-    saveDatabase(db); clearDraft(); editingVisitId = null; renderVisits();
+    saveDatabase(db); clearDraft(); if (editVisit) editingVisitId = null; renderVisits();
   });
   document.getElementById('cancel-edit')?.addEventListener('click', () => { editingVisitId = null; clearDraft(); renderVisits(); });
   app.querySelectorAll('[data-edit-visit]').forEach(button => button.onclick = () => { setActiveVisit(button.dataset.editVisit); editingVisitId = button.dataset.editVisit; clearDraft(); renderVisits(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
@@ -420,6 +477,7 @@ function renderVisits() {
       saveDatabase(db); renderVisits();
     }
   });
+  if (editVisit) bindPreviousVisitReview(editVisit);
 }
 
 function classificationCompleteness(subject) {
