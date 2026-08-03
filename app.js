@@ -189,6 +189,7 @@ function migrateDatabase() {
   const legacyKeys = ['nec','urineColor','urinePH','urineRedox','urineBrix','urineDensity','glucose','boh','bloodPH','urea','fecesPH','fecesRedox','milkPH','milkBrix','colostrumBrix','colostrumDensity','colostrumPH'];
   db.farms = Array.isArray(db.farms) ? db.farms : [];
   db.visits = Array.isArray(db.visits) ? db.visits : [];
+  db.herdImports = Array.isArray(db.herdImports) ? db.herdImports : [];
   db.visits.forEach(visit => {
     visit.subjects = Array.isArray(visit.subjects) ? visit.subjects : [];
     visit.subjects.forEach(subject => {
@@ -337,7 +338,7 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, followup: renderFollowup, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
@@ -1673,6 +1674,103 @@ function renderReports(){
   app.querySelectorAll('[data-report-pdf]').forEach(b=>b.onclick=()=>{const type=b.dataset.reportPdf;openReportWindow(visit,type,reportOptionsFromUi());visit.generatedReports.unshift({id:uid('report'),type,format:'PDF / impression',createdAt:new Date().toISOString()});saveDatabase(db);});
   app.querySelectorAll('[data-report-word]').forEach(b=>b.onclick=()=>downloadWordReport(visit,b.dataset.reportWord,reportOptionsFromUi()));
   document.getElementById('print-action-report').onclick=()=>{const c=ensureVisitConclusion(visit),w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return;}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><style>${fullReportStyles()}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button>${reportHeader(visit,'Plan d’action','Synthèse sur une page')}<section class="report-section"><h2>Actions décidées</h2><table><thead><tr><th>Action</th><th>Décision</th><th>Commentaire</th><th>Réalisée</th></tr></thead><tbody>${(c.priorities||[]).filter(a=>a.text).map(a=>`<tr><td>${escapeHtml(a.text)}</td><td>${escapeHtml(a.decision||'')}</td><td>${escapeHtml(a.comment||'')}</td><td>☐</td></tr>`).join('')}</tbody></table><h2>À vérifier lors de la prochaine visite</h2>${reportList(c.next)}</section></body></html>`);w.document.close();};
+}
+
+
+// V11.10 — import des données techniques issues d'autres logiciels
+let herdImportPreview = null;
+
+function normalizeCsvHeader(value='') {
+  return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9]+/g,' ').trim();
+}
+function parseFrenchNumber(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const n = Number(String(value).replace(/\s/g,'').replace(',','.'));
+  return Number.isFinite(n) ? n : null;
+}
+function parseCsvText(text) {
+  const clean = text.replace(/^\uFEFF/,'');
+  const firstLine = clean.split(/\r?\n/,1)[0] || '';
+  const delimiter = (firstLine.match(/;/g)||[]).length >= (firstLine.match(/,/g)||[]).length ? ';' : ',';
+  const rows=[]; let row=[], cell='', quoted=false;
+  for(let i=0;i<clean.length;i++){
+    const ch=clean[i], next=clean[i+1];
+    if(ch==='"' && quoted && next==='"'){cell+='"';i++;continue;}
+    if(ch==='"'){quoted=!quoted;continue;}
+    if(ch===delimiter && !quoted){row.push(cell);cell='';continue;}
+    if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&next==='\n')i++;row.push(cell);cell='';if(row.some(v=>v!==''))rows.push(row);row=[];continue;}
+    cell+=ch;
+  }
+  if(cell!==''||row.length){row.push(cell);if(row.some(v=>v!==''))rows.push(row);}
+  const headers=(rows.shift()||[]).map(h=>h.trim());
+  return rows.map(values=>Object.fromEntries(headers.map((h,i)=>[h,(values[i]||'').trim()])));
+}
+function rowLookup(row) {
+  const entries=Object.entries(row); const normalized=new Map(entries.map(([k,v])=>[normalizeCsvHeader(k),v]));
+  return {
+    exact:(...names)=>{for(const name of names){const v=normalized.get(normalizeCsvHeader(name));if(v!==undefined&&v!=='')return v;}return '';},
+    includes:(tokens, period='')=>{const wanted=tokens.map(normalizeCsvHeader);const per=normalizeCsvHeader(period);for(const [k,v] of normalized){if(v!==''&&wanted.every(t=>k.includes(t))&&(!per||k.includes(per)))return v;}return '';},
+    entries
+  };
+}
+function periodValue(lookup, labelTokens, period) {
+  const p=normalizeCsvHeader(period);
+  for(const [key,value] of lookup.entries){const n=normalizeCsvHeader(key);if(value!==''&&labelTokens.every(t=>n.includes(normalizeCsvHeader(t)))&&n.endsWith(`periode ${p}`))return parseFrenchNumber(value);}
+  return null;
+}
+function extractHerdRow(row, fileName='') {
+  const l=rowLookup(row); const periods=['N-2','N-1','N'];
+  const monthly=(kind,period)=>Array.from({length:12},(_,i)=>periodValue(l,['nombre','mouvements',kind,'mois',String(i+1)],period));
+  const result={
+    id:uid('herdimport'), sourceFile:fileName, importedAt:new Date().toISOString(), rawHeaderCount:Object.keys(row).length,
+    identity:{
+      holder:l.exact('Nom du détenteur','Nom détenteur','Eleveur','Éleveur'), farmNumber:l.exact("Numéro d'exploitation","N° exploitation",'Numero exploitation'), holderNumber:l.exact('Numéro de détenteur','N° détenteur','Numero detenteur'), siret:l.exact('N° SIRET','SIRET'), commune:l.exact('Commune'), postalCode:l.exact('Code postal'), phone:l.exact('Numéro portable','Telephone portable','Téléphone'), email:l.exact('Adresse mail','Email'), production:l.exact('Production bovine')
+    },
+    period:{start:l.exact('Date de début de période','Debut periode'),end:l.exact('Date de fin de période','Fin periode'),generated:l.exact("Date de génération du fichier = date d'impression sur le document",'Date de génération du fichier','Date generation')},
+    years:{}, raw:row
+  };
+  periods.forEach(period=>{
+    result.years[period]={
+      births:periodValue(l,['nombre total','mouvements','naissance'],period), purchases:periodValue(l,['nombre total','mouvements','achat'],period), deaths:periodValue(l,['nombre total','mouvements','mort'],period),
+      monthly:{births:monthly('naissance',period),purchases:monthly('achat',period),deaths:monthly('mort',period)},
+      mortality:{h0_48:periodValue(l,['mortalite','0','48 heures'],period),d2_7:periodValue(l,['mortalite','48 heures','7 jours'],period),d8_30:periodValue(l,['mortalite','7 jours','1 mois'],period),m1_6:periodValue(l,['mortalite','1 mois','6 mois'],period),m6_12:periodValue(l,['mortalite','6 mois','12 mois'],period),m12_24:periodValue(l,['mortalite','12 mois','24 mois'],period),over24:periodValue(l,['mortalite','24 mois'],period),total:periodValue(l,['mortalite totale'],period),youngRate:periodValue(l,['taux','mortalite','jeunes','12 mois'],period)},
+      reproduction:{firstCalvingAge:periodValue(l,['age','premier velage'],period),ivv:periodValue(l,['intervalle','velage','velage','moyen'],period),ivv390:periodValue(l,['nombre','vaches','ivv','390'],period),ivv420:periodValue(l,['nombre','vaches','ivv','420'],period),abortions:periodValue(l,['nombre','avortements'],period),productivity:periodValue(l,['productivite','numerique','nette'],period)}
+    };
+  });
+  result.current={unproductiveFemales:parseFrenchNumber(l.includes(['femelles','improductives']))};
+  // Effectifs : conserver tous les champs contenant « effectif » afin de rester compatible avec d'autres exports.
+  result.effectives=l.entries.filter(([k,v])=>normalizeCsvHeader(k).includes('effectif')&&v!=='').map(([label,value])=>({label,value:parseFrenchNumber(value)??value}));
+  return result;
+}
+function herdImportLabel(item){return `${item.identity.holder||item.identity.farmNumber||'Élevage'} — ${item.period.start||'?'} au ${item.period.end||'?'}`;}
+function findFarmForImport(item){const num=String(item.identity.farmNumber||'').replace(/\D/g,'');const holder=normalizeCsvHeader(item.identity.holder||'');return db.farms.find(f=>(num&&String(f.farmNumber||'').replace(/\D/g,'')===num)||(holder&&normalizeCsvHeader(f.farmer||f.name||'')===holder));}
+function metricCell(value,suffix=''){return value===null||value===undefined?'<span class="muted">—</span>':`<strong>${escapeHtml(String(value).replace('.',','))}${suffix}</strong>`;}
+function miniBars(values){const nums=values.map(v=>Number(v)||0),max=Math.max(1,...nums);return `<div class="herd-mini-bars">${nums.map((v,i)=>`<i title="Mois ${i+1} : ${v}" style="height:${Math.max(3,Math.round(v/max*44))}px"></i>`).join('')}</div>`;}
+function renderHerdImportDetail(item){
+  const periods=['N-2','N-1','N'];
+  return `<section class="card herd-detail"><div class="section-title"><div><h3>${escapeHtml(herdImportLabel(item))}</h3><span class="muted">Importé le ${formatDateTime(item.importedAt)} · ${item.rawHeaderCount} colonnes reconnues</span></div><button class="btn small danger" data-delete-herd-import="${item.id}">Supprimer</button></div>
+  <div class="herd-identity"><span><b>N° exploitation</b>${escapeHtml(item.identity.farmNumber||'—')}</span><span><b>Détenteur</b>${escapeHtml(item.identity.holder||'—')}</span><span><b>Commune</b>${escapeHtml(item.identity.commune||'—')}</span><span><b>Fichier source</b>${escapeHtml(item.sourceFile||'—')}</span></div>
+  <h4>Activité et mouvements</h4><div class="table-wrap"><table class="herd-table"><thead><tr><th>Indicateur</th>${periods.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody>
+  <tr><td>Naissances</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.births)}${miniBars(item.years[p]?.monthly?.births||[])}</td>`).join('')}</tr>
+  <tr><td>Achats</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.purchases)}${miniBars(item.years[p]?.monthly?.purchases||[])}</td>`).join('')}</tr>
+  <tr><td>Mortalités</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.deaths)}${miniBars(item.years[p]?.monthly?.deaths||[])}</td>`).join('')}</tr></tbody></table></div>
+  <h4>Mortalité</h4><div class="table-wrap"><table class="herd-table"><thead><tr><th>Indicateur</th>${periods.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody>
+  <tr><td>Mortalité totale</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.mortality?.total)}</td>`).join('')}</tr><tr><td>Taux jeunes &lt; 12 mois</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.mortality?.youngRate,' %')}</td>`).join('')}</tr><tr><td>0–48 h</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.mortality?.h0_48)}</td>`).join('')}</tr><tr><td>1–6 mois</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.mortality?.m1_6)}</td>`).join('')}</tr></tbody></table></div>
+  <h4>Reproduction</h4><div class="table-wrap"><table class="herd-table"><thead><tr><th>Indicateur</th>${periods.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody>
+  <tr><td>Âge au premier vêlage</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.firstCalvingAge)}</td>`).join('')}</tr><tr><td>IVV moyen</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.ivv,' j')}</td>`).join('')}</tr><tr><td>Vaches avec IVV &gt; 390 j</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.ivv390)}</td>`).join('')}</tr><tr><td>Vaches avec IVV &gt; 420 j</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.ivv420)}</td>`).join('')}</tr><tr><td>Avortements déclarés</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.abortions)}</td>`).join('')}</tr><tr><td>Productivité numérique nette</td>${periods.map(p=>`<td>${metricCell(item.years[p]?.reproduction?.productivity)}</td>`).join('')}</tr></tbody></table></div>
+  ${item.current.unproductiveFemales!==null?`<div class="notice warning"><strong>Femelles improductives :</strong> ${item.current.unproductiveFemales}</div>`:''}
+  ${item.effectives.length?`<details><summary><strong>Effectifs importés (${item.effectives.length} indicateurs)</strong></summary><div class="table-wrap"><table><tbody>${item.effectives.map(e=>`<tr><td>${escapeHtml(e.label)}</td><td>${metricCell(e.value)}</td></tr>`).join('')}</tbody></table></div></details>`:''}</section>`;
+}
+function renderHerdData(){
+  db.herdImports=Array.isArray(db.herdImports)?db.herdImports:[];
+  const byDate=db.herdImports.slice().sort((a,b)=>(b.importedAt||'').localeCompare(a.importedAt||''));
+  app.innerHTML=`<div class="section-title"><div><h2>Données élevage importées</h2><span class="muted">Effectifs, mouvements, mortalité et reproduction depuis un export CSV.</span></div><span class="badge autosave">v11.10</span></div>
+  <section class="card"><h3>Importer un fichier d’un autre logiciel</h3><p class="muted">Le fichier n’est jamais envoyé sur internet. Il est lu et enregistré localement dans cette application.</p><div class="row"><div class="field"><label>Exploitation de destination</label><select id="herd-farm-select"><option value="">Détection automatique / créer si nécessaire</option>${db.farms.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')}</select></div><div class="field"><label>Fichier CSV</label><input id="herd-csv-input" type="file" accept=".csv,text/csv" /></div></div><div id="herd-preview">${herdImportPreview?`<div class="notice"><strong>${herdImportPreview.items.length} ligne(s) prête(s) à importer.</strong><br>${herdImportPreview.items.map(herdImportLabel).map(escapeHtml).join('<br>')}<div class="actions" style="margin-top:10px"><button class="btn primary" id="confirm-herd-import">Valider l’import</button><button class="btn secondary" id="cancel-herd-import">Annuler</button></div></div>`:'<div class="empty">Sélectionnez un CSV pour afficher un aperçu avant validation.</div>'}</div></section>
+  ${byDate.length?byDate.map(renderHerdImportDetail).join(''):'<section class="empty">Aucune donnée d’élevage importée.</section>'}`;
+  document.getElementById('herd-csv-input')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const rows=parseCsvText(await file.text());if(!rows.length)throw new Error('Aucune ligne');herdImportPreview={fileName:file.name,items:rows.map(r=>extractHerdRow(r,file.name))};renderHerdData();}catch(err){console.error(err);alert('Impossible de lire ce CSV. Vérifiez qu’il contient une ligne d’en-têtes et des données séparées par des points-virgules ou des virgules.');}});
+  document.getElementById('cancel-herd-import')?.addEventListener('click',()=>{herdImportPreview=null;renderHerdData();});
+  document.getElementById('confirm-herd-import')?.addEventListener('click',()=>{const chosen=document.getElementById('herd-farm-select')?.value||'';herdImportPreview.items.forEach(item=>{let farm=db.farms.find(f=>f.id===chosen)||findFarmForImport(item);if(!farm){farm={id:uid('farm'),name:item.identity.holder||`Exploitation ${item.identity.farmNumber||''}`.trim(),farmer:item.identity.holder||'',commune:item.identity.commune||'',phone:item.identity.phone||'',email:item.identity.email||'',farmNumber:item.identity.farmNumber||'',holderNumber:item.identity.holderNumber||'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),buildings:[]};db.farms.push(farm);}else{farm.farmNumber=farm.farmNumber||item.identity.farmNumber||'';farm.holderNumber=farm.holderNumber||item.identity.holderNumber||'';farm.commune=farm.commune||item.identity.commune||'';farm.phone=farm.phone||item.identity.phone||'';farm.email=farm.email||item.identity.email||'';}item.farmId=farm.id;const same=db.herdImports.findIndex(x=>x.farmId===farm.id&&x.period?.start===item.period.start&&x.period?.end===item.period.end);if(same>=0)db.herdImports.splice(same,1,item);else db.herdImports.push(item);});saveDatabase(db);herdImportPreview=null;showToast('Données élevage importées.');renderHerdData();});
+  app.querySelectorAll('[data-delete-herd-import]').forEach(b=>b.onclick=()=>{if(confirm('Supprimer cet import ?')){db.herdImports=db.herdImports.filter(x=>x.id!==b.dataset.deleteHerdImport);saveDatabase(db);renderHerdData();}});
 }
 
 function renderBackup() {

@@ -6,3 +6,5 @@ Ajout : conclusion courte automatique et modifiable (points forts, points à rev
 Importer tous les fichiers à la racine du dépôt GitHub, puis ouvrir avec ?v=11.6.
 
 V11.9 : module Suivi, comparaison multi-visites, courbes de tendance et suivi individuel par boucle.
+
+VERSION 11.10 : import CSV des données élevage (effectifs, naissances, achats, mortalités et reproduction).
