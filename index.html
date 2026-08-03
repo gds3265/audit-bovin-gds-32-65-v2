@@ -7,21 +7,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Audit Bovin" />
-  <link rel="manifest" href="manifest.webmanifest?v=11.10.7" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=11.10.7" />
-  <link rel="stylesheet" href="styles.css?v=11.10.7" />
+  <link rel="manifest" href="manifest.webmanifest?v=11.11.0" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=11.11.0" />
+  <link rel="stylesheet" href="styles.css?v=11.11.0" />
   <title>Audit Bovin GDS 32-65</title>
 </head>
 <body>
   <header class="app-header">
     <div class="brand-wrap">
-      <img src="icon-192.png?v=11.10.7" class="brand-icon" alt="" />
+      <img src="icon-192.png?v=11.11.0" class="brand-icon" alt="" />
       <div>
         <h1>Audit Bovin GDS 32-65</h1>
         <p>Gestion des exploitations, visites, sujets et raisonnement transparent</p>
       </div>
     </div>
-    <span class="version">v11.10.7 liaison EDE corrigée</span>
+    <span class="version">v11.11.0 export partenaire Excel</span>
   </header>
 
   <nav class="top-nav" aria-label="Navigation principale">
@@ -49,6 +49,7 @@
 
   <input id="json-file-input" type="file" accept="application/json,.json" hidden />
 
-  <script type="module" src="app.js?v=11.10.7"></script>
+  <script src="jszip.min.js?v=11.11.0"></script>
+  <script type="module" src="app.js?v=11.11.0"></script>
 </body>
 </html>

@@ -1,15 +1,12 @@
-AUDIT BOVIN GDS 32-65 — VERSION 11.8 MODULE PHOTO
+AUDIT BOVIN GDS 32-65 — v11.11.0
 
-Audit Bovin GDS 32-65 — V11.6
+Nouveauté : export automatique du fichier partenaire PASSAGE au format Excel.
 
-Ajout : conclusion courte automatique et modifiable (points forts, points à revoir, trois actions, prochaine visite et impression).
-Importer tous les fichiers à la racine du dépôt GitHub, puis ouvrir avec ?v=11.6.
+Déploiement GitHub Pages :
+1. Remplacer TOUS les fichiers du dépôt par ceux de ce ZIP.
+2. Conserver notamment jszip.min.js et modele-partenaires-passage-bv.xlsx à la racine.
+3. Attendre la fin du déploiement GitHub Pages.
+4. Ouvrir une première fois le site avec ?v=11.11.0.
+5. Fermer puis rouvrir l’application installée sur téléphone.
 
-V11.9 : module Suivi, comparaison multi-visites, courbes de tendance et suivi individuel par boucle.
-
-VERSION 11.10 : import CSV des données élevage (effectifs, naissances, achats, mortalités et reproduction).
-
-NOUVEAU : dans Données élevage, choisir une visite puis cliquer sur « Compléter l’audit avec ces données ».
-
-
-Version 11.10.6 : correctif de cache et de déploiement. Remplacer tous les fichiers à la racine du dépôt.
+Le fichier Excel se génère depuis l’onglet Rapports, section « Fichier partenaire PASSAGE ».

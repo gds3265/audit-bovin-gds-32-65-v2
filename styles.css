@@ -361,3 +361,5 @@ th { background: #f0f5f2; font-size: .88rem; }
 .imported-mortality-recap{border-left:5px solid #347a50}.imported-mortality-recap .calculated-box{min-height:66px}@media(max-width:700px){.herd-chart-grid{max-width:100%}.herd-chart-card{min-height:auto;padding:12px}.herd-svg-chart{max-height:240px}}
 
 .herd-relink{display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:12px;align-items:end;padding:12px;border:1px dashed #91b8a0;border-radius:12px;background:#f8fbf9;margin:12px 0}.herd-relink .field{margin:0}@media(max-width:800px){.herd-relink{grid-template-columns:1fr}.herd-relink .btn{width:100%}}
+
+.partner-export-card{border-left:5px solid #1f6f43}.partner-export-action{display:flex;flex-direction:column;justify-content:flex-end}.partner-export-action .btn{min-height:44px}@media(max-width:700px){.partner-export-action .btn{width:100%}}
