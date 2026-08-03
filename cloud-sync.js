@@ -1,0 +1,144 @@
+const CONFIG_KEY = 'audit-bovin-supabase-config';
+const SESSION_KEY = 'audit-bovin-supabase-session';
+const DB_KEY = 'audit-bovin-v10-core';
+const STATE_ID = 'main';
+let config = loadJson(CONFIG_KEY, null);
+let session = loadJson(SESSION_KEY, null);
+let syncTimer = null;
+let pollTimer = null;
+let syncing = false;
+let lastUploadedAt = '';
+let lastRemoteVersion = 0;
+
+function loadJson(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
+  catch { return fallback; }
+}
+function saveJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+function localDb() { return loadJson(DB_KEY, { farms: [], visits: [], updatedAt: '' }); }
+function normalizeUrl(url='') { return url.trim().replace(/\/+$/, ''); }
+function configured() { return !!(config?.url && config?.key); }
+function signedIn() { return !!(session?.access_token && session?.user?.email); }
+function nowIso() { return new Date().toISOString(); }
+function statusLabel() {
+  if (!configured()) return 'Cloud à configurer';
+  if (!signedIn()) return 'Connexion technicien';
+  if (!navigator.onLine) return 'Hors ligne';
+  if (syncing) return 'Synchronisation…';
+  return `Synchronisé · ${session.user.email}`;
+}
+function toast(message) {
+  const el=document.createElement('div');el.className='cloud-toast';el.textContent=message;document.body.appendChild(el);setTimeout(()=>el.remove(),3200);
+}
+function renderStatus() {
+  let btn=document.getElementById('cloud-status-btn');
+  if(!btn){
+    btn=document.createElement('button');btn.id='cloud-status-btn';btn.className='cloud-status-btn';btn.type='button';btn.onclick=openCloudPanel;
+    document.querySelector('.app-header')?.appendChild(btn);
+  }
+  btn.textContent=statusLabel();
+  btn.dataset.state=!configured()?'setup':!signedIn()?'login':navigator.onLine?'online':'offline';
+}
+async function request(path,{method='GET',body,auth=true,headers={}}={}){
+  if(!configured()) throw new Error('Configuration Supabase absente.');
+  const h={'apikey':config.key,'Content-Type':'application/json',...headers};
+  if(auth && session?.access_token) h.Authorization=`Bearer ${session.access_token}`;
+  const res=await fetch(`${config.url}${path}`,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+  if(res.status===401 && auth && session?.refresh_token){
+    const ok=await refreshSession();if(ok)return request(path,{method,body,auth,headers});
+  }
+  const text=await res.text();let data=null;try{data=text?JSON.parse(text):null;}catch{data=text;}
+  if(!res.ok) throw new Error(data?.message||data?.error_description||data?.hint||data?.details||String(data)||`Erreur ${res.status}`);
+  return data;
+}
+async function refreshSession(){
+  try{
+    const data=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',auth:false,body:{refresh_token:session.refresh_token}});
+    session=data;saveJson(SESSION_KEY,session);renderStatus();return true;
+  }catch(e){console.warn(e);session=null;localStorage.removeItem(SESSION_KEY);renderStatus();return false;}
+}
+async function signIn(email,password){
+  const data=await request('/auth/v1/token?grant_type=password',{method:'POST',auth:false,body:{email,password}});
+  session=data;saveJson(SESSION_KEY,session);renderStatus();startPolling();await initialSync();
+}
+function signOut(){session=null;localStorage.removeItem(SESSION_KEY);stopPolling();renderStatus();}
+async function fetchRemoteState(){
+  const rows=await request(`/rest/v1/shared_state?id=eq.${encodeURIComponent(STATE_ID)}&select=id,payload,version,updated_at,updated_by`);
+  return Array.isArray(rows)?rows[0]||null:null;
+}
+async function uploadState({silent=false}={}){
+  if(!signedIn()||!navigator.onLine||syncing)return;
+  const db=localDb();if(!db?.updatedAt)return;
+  syncing=true;renderStatus();
+  try{
+    const version=Date.now();
+    await request('/rest/v1/shared_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{id:STATE_ID,payload:db,version,updated_at:nowIso(),updated_by:session.user.email}});
+    lastUploadedAt=db.updatedAt;lastRemoteVersion=version;
+    await createDailyBackup(db);
+    if(!silent)toast('Toutes les visites sont sauvegardées dans le cloud.');
+  }catch(e){console.error(e);if(!silent)toast(`Synchronisation impossible : ${e.message}`);}
+  finally{syncing=false;renderStatus();}
+}
+async function createDailyBackup(db){
+  const date=new Date().toISOString().slice(0,10);
+  await request('/rest/v1/backup_snapshots?on_conflict=backup_date',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{backup_date:date,payload:db,updated_at:nowIso(),created_by:session.user.email}});
+}
+async function initialSync(){
+  if(!signedIn()||!navigator.onLine)return;
+  syncing=true;renderStatus();
+  try{
+    const remote=await fetchRemoteState();const local=localDb();
+    if(!remote){syncing=false;await uploadState({silent:true});toast('Base locale envoyée dans le cloud.');return;}
+    lastRemoteVersion=Number(remote.version)||0;
+    const remoteTime=Date.parse(remote.payload?.updatedAt||remote.updated_at||0)||0;
+    const localTime=Date.parse(local?.updatedAt||0)||0;
+    if(remoteTime>localTime){
+      localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));
+      toast('Base commune téléchargée. Actualisation…');setTimeout(()=>location.reload(),900);
+    }else if(localTime>remoteTime){
+      syncing=false;await uploadState({silent:true});toast('Modifications locales envoyées dans le cloud.');
+    }else{toast('Base commune à jour.');}
+  }catch(e){console.error(e);toast(`Connexion cloud : ${e.message}`);}
+  finally{syncing=false;renderStatus();}
+}
+async function pollRemote(){
+  if(!signedIn()||!navigator.onLine||syncing)return;
+  try{
+    const remote=await fetchRemoteState();if(!remote)return;
+    const remoteVersion=Number(remote.version)||0;if(remoteVersion<=lastRemoteVersion)return;
+    const local=localDb();const localDirty=local.updatedAt && local.updatedAt!==lastUploadedAt;
+    if(localDirty){await uploadState({silent:true});return;}
+    lastRemoteVersion=remoteVersion;localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));toast(`Mise à jour de ${remote.updated_by||'un collègue'} reçue.`);setTimeout(()=>location.reload(),900);
+  }catch(e){console.warn('Vérification cloud',e);}
+}
+function scheduleUpload(){
+  if(!signedIn())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>uploadState({silent:true}),2200);
+}
+function startPolling(){stopPolling();if(signedIn())pollTimer=setInterval(pollRemote,30000);}
+function stopPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=null;}
+function closePanel(){document.getElementById('cloud-overlay')?.remove();}
+function openCloudPanel(){
+  closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
+  const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v12 pilote</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
+  bindPanel(overlay);
+}
+function setupHtml(){return `<p>Renseigne les deux informations publiques de ton projet Supabase. Ne mets jamais la clé <b>service_role</b>.</p><label>URL du projet<input id="cloud-url" placeholder="https://xxxx.supabase.co"></label><label>Clé publique / publishable key<textarea id="cloud-key" rows="4" placeholder="sb_publishable_… ou clé anon publique"></textarea></label><button class="btn primary" id="cloud-save-config">Enregistrer la configuration</button><details><summary>Où trouver ces informations ?</summary><p>Supabase → Project Settings → API. Copie l’URL du projet et la clé publique.</p></details>`;}
+function loginHtml(){return `<p>Connexion réservée aux techniciens. Les éleveurs n’ont aucun accès.</p><label>Adresse e-mail<input id="cloud-email" type="email" autocomplete="username"></label><label>Mot de passe<input id="cloud-password" type="password" autocomplete="current-password"></label><button class="btn primary" id="cloud-login">Se connecter</button><button class="btn secondary" id="cloud-change-config">Modifier la configuration Supabase</button>`;}
+function accountHtml(){return `<div class="cloud-account"><p><b>Technicien connecté :</b><br>${escapeHtml(session.user.email)}</p><p><b>Sauvegarde automatique :</b><br>chaque modification est enregistrée localement puis envoyée dans la base commune. Une copie complète quotidienne est également conservée.</p><div class="cloud-actions"><button class="btn primary" id="cloud-sync-now">Synchroniser maintenant</button><button class="btn secondary" id="cloud-download">Télécharger la base commune</button><button class="btn secondary" id="cloud-upload">Envoyer cette base locale</button><button class="btn danger" id="cloud-logout">Se déconnecter</button></div></div>`;}
+function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function bindPanel(root){
+  root.querySelector('#cloud-save-config')?.addEventListener('click',()=>{const url=normalizeUrl(root.querySelector('#cloud-url').value),key=root.querySelector('#cloud-key').value.trim();if(!url||!key)return toast('URL et clé publique obligatoires.');config={url,key};saveJson(CONFIG_KEY,config);closePanel();renderStatus();openCloudPanel();});
+  root.querySelector('#cloud-change-config')?.addEventListener('click',()=>{config=null;localStorage.removeItem(CONFIG_KEY);closePanel();renderStatus();openCloudPanel();});
+  root.querySelector('#cloud-login')?.addEventListener('click',async()=>{const email=root.querySelector('#cloud-email').value.trim(),password=root.querySelector('#cloud-password').value;try{root.querySelector('#cloud-login').disabled=true;await signIn(email,password);closePanel();}catch(e){toast(`Connexion refusée : ${e.message}`);root.querySelector('#cloud-login').disabled=false;}});
+  root.querySelector('#cloud-sync-now')?.addEventListener('click',async()=>{await initialSync();closePanel();});
+  root.querySelector('#cloud-upload')?.addEventListener('click',async()=>{if(confirm('Envoyer la base de cet appareil et remplacer la base commune actuelle ?')){await uploadState();closePanel();}});
+  root.querySelector('#cloud-download')?.addEventListener('click',async()=>{if(!confirm('Télécharger la base commune et remplacer la base locale de cet appareil ?'))return;try{const remote=await fetchRemoteState();if(!remote)throw new Error('Aucune base commune');localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));location.reload();}catch(e){toast(e.message);}});
+  root.querySelector('#cloud-logout')?.addEventListener('click',()=>{signOut();closePanel();});
+}
+window.addEventListener('audit-bovin-db-saved',scheduleUpload);
+window.addEventListener('online',()=>{renderStatus();initialSync();});
+window.addEventListener('offline',renderStatus);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pollRemote();});
+window.addEventListener('DOMContentLoaded',()=>{renderStatus();if(signedIn()){startPolling();setTimeout(initialSync,800);}});

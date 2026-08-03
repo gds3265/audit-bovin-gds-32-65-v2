@@ -1,0 +1,26 @@
+AUDIT BOVIN GDS 32-65 — V12 PILOTE MULTI-TECHNICIENS
+
+1. Créer un projet sur Supabase.
+2. Dans SQL Editor, exécuter le fichier SUPABASE_INSTALLATION.sql.
+3. Dans Authentication > Providers > Email, conserver la connexion par e-mail/mot de passe.
+4. Désactiver les inscriptions publiques si seuls les techniciens doivent avoir accès.
+5. Créer/inviter chaque technicien dans Authentication > Users.
+6. Déployer tous les fichiers de ce ZIP sur GitHub Pages.
+7. Ouvrir l’application puis toucher « Cloud à configurer ».
+8. Renseigner :
+   - Project URL
+   - publishable key / anon public key
+   Ne jamais utiliser la clé service_role.
+9. Se connecter avec le compte technicien.
+
+SAUVEGARDE AUTOMATIQUE
+- Chaque saisie est d’abord enregistrée localement sur l’appareil.
+- Après environ 2 secondes, la base complète est synchronisée vers Supabase si internet est disponible.
+- Une copie complète par jour est conservée dans backup_snapshots.
+- En cas de coupure, les saisies restent locales et repartent lors du retour du réseau.
+- L’export JSON reste disponible comme sauvegarde manuelle supplémentaire.
+
+LIMITES DU PILOTE
+- La synchronisation fonctionne avec une règle « dernière modification enregistrée ».
+- Éviter que deux techniciens modifient exactement la même visite au même moment.
+- Les photos sont encore contenues dans la base JSON ; un futur module pourra les déplacer dans Supabase Storage pour alléger les synchronisations.

@@ -20,6 +20,7 @@ export function loadDatabase() {
 export function saveDatabase(db) {
   db.updatedAt = new Date().toISOString();
   localStorage.setItem(DB_KEY, JSON.stringify(db));
+  window.dispatchEvent(new CustomEvent('audit-bovin-db-saved', { detail: { updatedAt: db.updatedAt } }));
 }
 
 export function loadDraft() {
@@ -38,5 +39,6 @@ export function clearDraft() {
 export function replaceDatabase(nextDb) {
   const normalized = { ...createEmptyDatabase(), ...nextDb, updatedAt: new Date().toISOString() };
   localStorage.setItem(DB_KEY, JSON.stringify(normalized));
+  window.dispatchEvent(new CustomEvent('audit-bovin-db-saved', { detail: { updatedAt: normalized.updatedAt } }));
   return normalized;
 }
