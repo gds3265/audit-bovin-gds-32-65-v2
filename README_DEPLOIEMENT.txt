@@ -10,7 +10,3 @@ V11.9 : module Suivi, comparaison multi-visites, courbes de tendance et suivi in
 VERSION 11.10 : import CSV des données élevage (effectifs, naissances, achats, mortalités et reproduction).
 
 NOUVEAU : dans Données élevage, choisir une visite puis cliquer sur « Compléter l’audit avec ces données ».
-
-
-CORRECTIF 11.10.2 : cache mobile renforcé, numéro de version visible corrigé et chargement forcé des nouveaux fichiers.
-Après mise en ligne, ouvrir une fois l'adresse avec ?v=11.10.2.
