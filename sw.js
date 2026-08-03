@@ -1,5 +1,5 @@
-const CACHE = 'audit-bovin-v11.10.5';
-const ASSETS = ['./','./index.html','./styles.css','./app.js','./analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./planches-visuelles.png'];
+const CACHE = 'audit-bovin-v11.10.6';
+const ASSETS = ['./?v=11.10.6','./index.html?v=11.10.6','./styles.css?v=11.10.6','./app.js?v=11.10.6','./analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=11.10.6','./icon-192.png?v=11.10.6','./icon-512.png?v=11.10.6','./planches-visuelles.png'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
