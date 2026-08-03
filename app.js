@@ -1886,5 +1886,5 @@ window.addEventListener('error', event => {
   app.prepend(errorBox);
 });
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=11.10.2').then(reg => reg.update()).catch(console.error);
 render();
