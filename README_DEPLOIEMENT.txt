@@ -10,3 +10,5 @@ Déploiement GitHub Pages :
 5. Fermer puis rouvrir l’application installée sur téléphone.
 
 Le fichier Excel se génère depuis l’onglet Rapports, section « Fichier partenaire PASSAGE ».
+
+Version 12.1.0 : authentification obligatoire et thème rose. Déployer tous les fichiers puis ouvrir avec ?v=12.1.0.

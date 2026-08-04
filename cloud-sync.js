@@ -27,6 +27,35 @@ function statusLabel() {
   if (syncing) return 'Synchronisation…';
   return `Synchronisé · ${session.user.email}`;
 }
+
+function setAppAccess(allowed){
+  document.body.classList.toggle('auth-authorized',!!allowed);
+  document.body.classList.toggle('auth-locked',!allowed);
+  document.querySelector('.top-nav')?.setAttribute('aria-hidden',allowed?'false':'true');
+  document.getElementById('app')?.setAttribute('aria-hidden',allowed?'false':'true');
+  if(allowed) document.getElementById('secure-auth-gate')?.remove();
+}
+function secureGateBody(){
+  if(!configured()) return `<p class="secure-gate-intro">Cette application est réservée aux techniciens autorisés du GDS 32-65.</p>${setupHtml()}`;
+  if(!signedIn()) return `<p class="secure-gate-intro">Connexion obligatoire. Aucun accès local n’est possible sans compte technicien autorisé.</p>${loginHtml()}`;
+  return `<p class="secure-gate-intro">Vérification de la session technicien…</p><div class="secure-loader" aria-label="Chargement"></div>`;
+}
+function renderSecureGate(){
+  if(signedIn() && (document.body.classList.contains('auth-authorized'))) return;
+  let gate=document.getElementById('secure-auth-gate');
+  if(!gate){gate=document.createElement('div');gate.id='secure-auth-gate';gate.className='secure-auth-gate';document.body.appendChild(gate);}
+  gate.innerHTML=`<div class="secure-auth-card"><div class="secure-auth-brand"><img src="icon-192.png?v=12.1.0" alt=""><div><strong>Audit Bovin GDS 32-65</strong><span>Accès sécurisé techniciens</span></div></div><div class="secure-auth-badge">🔒 Application protégée</div>${secureGateBody()}<p class="secure-auth-note">Aucun accès n’est prévu pour les éleveurs ni pour les utilisateurs non autorisés.</p></div>`;
+  bindPanel(gate);
+}
+async function validateStoredSession(){
+  if(!signedIn()) return false;
+  if(!navigator.onLine) return true;
+  try{
+    const user=await request('/auth/v1/user');
+    if(user?.email){session.user=user;saveJson(SESSION_KEY,session);return true;}
+    return false;
+  }catch(e){console.warn('Session invalide',e);return false;}
+}
 function toast(message) {
   const el=document.createElement('div');el.className='cloud-toast';el.textContent=message;document.body.appendChild(el);setTimeout(()=>el.remove(),3200);
 }
@@ -55,13 +84,13 @@ async function refreshSession(){
   try{
     const data=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',auth:false,body:{refresh_token:session.refresh_token}});
     session=data;saveJson(SESSION_KEY,session);renderStatus();return true;
-  }catch(e){console.warn(e);session=null;localStorage.removeItem(SESSION_KEY);renderStatus();return false;}
+  }catch(e){console.warn(e);session=null;localStorage.removeItem(SESSION_KEY);setAppAccess(false);renderStatus();renderSecureGate();return false;}
 }
 async function signIn(email,password){
   const data=await request('/auth/v1/token?grant_type=password',{method:'POST',auth:false,body:{email,password}});
-  session=data;saveJson(SESSION_KEY,session);renderStatus();startPolling();await initialSync();
+  session=data;saveJson(SESSION_KEY,session);setAppAccess(true);renderStatus();startPolling();await initialSync();
 }
-function signOut(){session=null;localStorage.removeItem(SESSION_KEY);stopPolling();renderStatus();}
+function signOut(){session=null;localStorage.removeItem(SESSION_KEY);stopPolling();setAppAccess(false);renderStatus();renderSecureGate();}
 async function fetchRemoteState(){
   const rows=await request(`/rest/v1/shared_state?id=eq.${encodeURIComponent(STATE_ID)}&select=id,payload,version,updated_at,updated_by`);
   return Array.isArray(rows)?rows[0]||null:null;
@@ -120,7 +149,7 @@ function closePanel(){document.getElementById('cloud-overlay')?.remove();}
 function openCloudPanel(){
   closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
   const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
-  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v12 pilote</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v12.1 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
   document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
   bindPanel(overlay);
 }
@@ -129,8 +158,8 @@ function loginHtml(){return `<p>Connexion réservée aux techniciens. Les éleve
 function accountHtml(){return `<div class="cloud-account"><p><b>Technicien connecté :</b><br>${escapeHtml(session.user.email)}</p><p><b>Sauvegarde automatique :</b><br>chaque modification est enregistrée localement puis envoyée dans la base commune. Une copie complète quotidienne est également conservée.</p><div class="cloud-actions"><button class="btn primary" id="cloud-sync-now">Synchroniser maintenant</button><button class="btn secondary" id="cloud-download">Télécharger la base commune</button><button class="btn secondary" id="cloud-upload">Envoyer cette base locale</button><button class="btn danger" id="cloud-logout">Se déconnecter</button></div></div>`;}
 function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function bindPanel(root){
-  root.querySelector('#cloud-save-config')?.addEventListener('click',()=>{const url=normalizeUrl(root.querySelector('#cloud-url').value),key=root.querySelector('#cloud-key').value.trim();if(!url||!key)return toast('URL et clé publique obligatoires.');config={url,key};saveJson(CONFIG_KEY,config);closePanel();renderStatus();openCloudPanel();});
-  root.querySelector('#cloud-change-config')?.addEventListener('click',()=>{config=null;localStorage.removeItem(CONFIG_KEY);closePanel();renderStatus();openCloudPanel();});
+  root.querySelector('#cloud-save-config')?.addEventListener('click',()=>{const url=normalizeUrl(root.querySelector('#cloud-url').value),key=root.querySelector('#cloud-key').value.trim();if(!url||!key)return toast('URL et clé publique obligatoires.');config={url,key};saveJson(CONFIG_KEY,config);closePanel();renderStatus();if(document.body.classList.contains('auth-locked'))renderSecureGate();else openCloudPanel();});
+  root.querySelector('#cloud-change-config')?.addEventListener('click',()=>{config=null;localStorage.removeItem(CONFIG_KEY);closePanel();setAppAccess(false);renderStatus();renderSecureGate();});
   root.querySelector('#cloud-login')?.addEventListener('click',async()=>{const email=root.querySelector('#cloud-email').value.trim(),password=root.querySelector('#cloud-password').value;try{root.querySelector('#cloud-login').disabled=true;await signIn(email,password);closePanel();}catch(e){toast(`Connexion refusée : ${e.message}`);root.querySelector('#cloud-login').disabled=false;}});
   root.querySelector('#cloud-sync-now')?.addEventListener('click',async()=>{await initialSync();closePanel();});
   root.querySelector('#cloud-upload')?.addEventListener('click',async()=>{if(confirm('Envoyer la base de cet appareil et remplacer la base commune actuelle ?')){await uploadState();closePanel();}});
@@ -138,7 +167,15 @@ function bindPanel(root){
   root.querySelector('#cloud-logout')?.addEventListener('click',()=>{signOut();closePanel();});
 }
 window.addEventListener('audit-bovin-db-saved',scheduleUpload);
-window.addEventListener('online',()=>{renderStatus();initialSync();});
+window.addEventListener('online',async()=>{renderStatus();if(!signedIn()){setAppAccess(false);renderSecureGate();return;}const valid=await validateStoredSession();if(valid){setAppAccess(true);initialSync();}else{signOut();}});
 window.addEventListener('offline',renderStatus);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pollRemote();});
-window.addEventListener('DOMContentLoaded',()=>{renderStatus();if(signedIn()){startPolling();setTimeout(initialSync,800);}});
+window.addEventListener('DOMContentLoaded',async()=>{
+  setAppAccess(false);renderStatus();
+  if(!signedIn()){renderSecureGate();return;}
+  if(!navigator.onLine){setAppAccess(true);startPolling();toast('Mode hors ligne autorisé sur cet appareil déjà authentifié.');return;}
+  renderSecureGate();
+  const valid=await validateStoredSession();
+  if(!valid){session=null;localStorage.removeItem(SESSION_KEY);setAppAccess(false);renderStatus();renderSecureGate();return;}
+  setAppAccess(true);renderStatus();startPolling();setTimeout(initialSync,500);
+});

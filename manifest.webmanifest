@@ -1,11 +1,11 @@
 {
   "name": "Audit Bovin GDS 32-65",
   "short_name": "Audit Bovin",
-  "start_url": "./?v=11.10.6",
+  "start_url": "./?v=12.1.0",
   "display": "standalone",
-  "background_color": "#f4f7f5",
-  "theme_color": "#1f6f43",
-  "description": "Liaison automatique des données élevage avec l’audit, graphiques compacts IVV / mortalité / mouvements et report automatique renforcé dans l’audit, suivi des actions précédentes, gestion des exploitations, visites, sujets, analyses, mesures générales, alimentation, bâtiment et raisonnement 5mVet transparent, rapports professionnels et photos annotées.",
+  "background_color": "#fff6fa",
+  "theme_color": "#b53670",
+  "description": "Application sécurisée réservée aux techniciens autorisés du GDS 32-65, avec authentification obligatoire, fonctionnement hors ligne sur appareil déjà authentifié, synchronisation Supabase, sauvegardes automatiques et thème rose.",
   "icons": [
     {
       "src": "icon-192.png",

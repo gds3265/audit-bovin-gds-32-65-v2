@@ -24,3 +24,13 @@ LIMITES DU PILOTE
 - La synchronisation fonctionne avec une règle « dernière modification enregistrée ».
 - Éviter que deux techniciens modifient exactement la même visite au même moment.
 - Les photos sont encore contenues dans la base JSON ; un futur module pourra les déplacer dans Supabase Storage pour alléger les synchronisations.
+
+
+SECURISATION V12.1
+------------------
+1. Dans Supabase : Authentication > Providers > Email.
+2. Désactiver la création libre de comptes / Allow new users to sign up.
+3. Créer ou inviter uniquement les techniciens autorisés depuis Authentication > Users.
+4. L'application est désormais bloquée tant qu'aucun compte technicien autorisé n'est connecté.
+5. Le travail hors ligne reste possible uniquement sur un appareil déjà authentifié auparavant.
+6. En cas de déconnexion volontaire, l'application redevient inaccessible jusqu'à une nouvelle connexion.
