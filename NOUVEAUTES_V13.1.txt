@@ -1,0 +1,25 @@
+AUDIT BOVIN GDS 32-65 — v13.1.0 PROFESSIONAL
+
+HARMONISATION METIER
+- Analyse devient Mesures.
+- Assistant GDS devient Analyse & interprétation.
+- Audit global devient Audit de l’exploitation.
+- Données élevage devient Données technico-économiques.
+- Suivi devient Historique & évolution.
+- Planches devient Bibliothèque technique.
+- Rapports devient Restitution.
+- Photos devient Photothèque.
+
+ERGONOMIE
+- Navigation libre conservée, sans parcours imposé.
+- Icônes homogènes dans le menu.
+- Couleurs des boutons harmonisées : rose ajout/création, vert validation, bleu export, orange duplication/archivage, rouge suppression.
+
+RECHERCHE UNIVERSELLE
+- Recherche par exploitation, numéro EDE, commune, visite, technicien, numéro d’animal, commentaire, photo et thème technique.
+- Bouton Rechercher dans l’en-tête.
+- Raccourci clavier Ctrl+K / Cmd+K.
+
+SECURITE ET CLOUD
+- Authentification obligatoire et synchronisation Supabase conservées.
+- Mode Terrain/Bureau et fonctionnement hors ligne autorisé conservés.
