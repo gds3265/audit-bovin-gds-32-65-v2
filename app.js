@@ -351,7 +351,7 @@ function harmonizeActionButtons(root=document){
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
   harmonizeActionButtons(app);
@@ -387,7 +387,8 @@ function professionalAttentionItems(visit){
   if(s.anomalies>0)items.push({level:'danger',icon:'⚠️',text:`${s.anomalies} valeur(s) hors référence à relire`,view:'analysis'});
   if(s.auditPct<70)items.push({level:'warning',icon:'📋',text:`Audit global complété à ${s.auditPct} %`,view:'audit'});
   if(!visit.visitConclusion?.general)items.push({level:'warning',icon:'✍️',text:'Conclusion de visite à valider',view:'analysis'});
-  const pending=(visit.analysisActions||[]).filter(a=>a.status!=='Réalisé').length;if(pending)items.push({level:'info',icon:'🎯',text:`${pending} action(s) encore ouvertes`,view:'analysis'});
+  const pending=(visit.analysisActions||[]).filter(a=>a.status!=='Réalisé').length;if(pending)items.push({level:'info',icon:'🎯',text:`${pending} action(s) encore ouvertes`,view:'pilotage'});
+  const today=new Date().toISOString().slice(0,10),overdue=(visit.analysisActions||[]).filter(a=>a.status!=='Réalisé'&&a.dueDate&&a.dueDate<today).length;if(overdue)items.unshift({level:'danger',icon:'⏰',text:`${overdue} action(s) en retard`,view:'pilotage'});
   if(!(visit.generatedReports||[]).length)items.push({level:'info',icon:'📄',text:'Aucun rapport généré',view:'reports'});
   return items;
 }
@@ -410,7 +411,7 @@ function renderProfessionalIndicators(visit){return `<div class="professional-sc
 function renderAssistantGDS(){
   const visit=activeVisit();if(!visit){renderNoActiveVisit('Assistant GDS');return;}
   const stats=visitProfessionalStats(visit),auto=autoVisitConclusion(visit),attention=professionalAttentionItems(visit);
-  app.innerHTML=`<div class="section-title"><div><h2>Analyse & interprétation</h2><div class="muted">Synthèse professionnelle des données de la visite active.</div></div><span class="badge autosave">v13.1 Professional</span></div>${activeVisitBanner(visit)}
+  app.innerHTML=`<div class="section-title"><div><h2>Analyse & interprétation</h2><div class="muted">Synthèse professionnelle des données de la visite active.</div></div><span class="badge autosave">v14.0 Professional</span></div>${activeVisitBanner(visit)}
   <section class="assistant-hero"><div><span class="assistant-kicker">SYNTHESE AUTOMATIQUE</span><h3>${escapeHtml(farmName(visit.farmId))}</h3><p>Les éléments ci-dessous sont construits à partir des données saisies et restent soumis à la validation du technicien.</p></div><div class="assistant-completion"><strong>${stats.completion}%</strong><span>visite structurée</span></div></section>
   <section class="grid cols-4 professional-kpis"><article class="card"><span>Anomalies</span><strong>${stats.anomalies}</strong></article><article class="card"><span>Sujets mesurés</span><strong>${stats.measured}</strong></article><article class="card"><span>Photos</span><strong>${stats.photos}</strong></article><article class="card"><span>Actions réalisées</span><strong>${stats.actionsDone}/${stats.actions}</strong></article></section>
   <section class="card"><div class="section-title"><div><h3>Indicateurs par domaine</h3><div class="muted">Repères de suivi calculés à partir de la complétude et des vigilances détectées.</div></div></div>${renderProfessionalIndicators(visit)}</section>
@@ -1048,116 +1049,38 @@ function renderGeneralSection(visit) {
   </section>`;
 }
 function suggestedActions(visit) { const out=[]; categoryAnalysis(visit).forEach(g=>interpretationItems(g).filter(i=>i.level!=='good').forEach(i=>out.push({category:g.category,...i}))); return out; }
-function renderSynthesisSection(visit) { const suggestions=suggestedActions(visit); return `<div id="analysis-summary">${renderAnalysisSummary(visit)}</div><section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Plan d’action</h3><span class="muted">Propositions issues des écarts. Le technicien valide et reformule.</span></div><button class="btn" id="add-custom-action">Ajouter une action libre</button></div><div class="action-suggestions">${suggestions.length?suggestions.map((a,i)=>`<div class="action-line"><span class="badge ${a.level==='danger'?'in-progress':'archived'}">${a.level==='danger'?'Priorité haute':'À surveiller'}</span><div><strong>${escapeHtml(a.category)} — ${escapeHtml(a.theme)}</strong><br><span>${escapeHtml(a.action)}</span></div><button class="btn small" data-accept-action="${i}">Ajouter</button></div>`).join(''):'<div class="empty">Aucune action automatique proposée à ce stade.</div>'}</div><div class="action-list">${visit.analysisActions.length?visit.analysisActions.map(a=>`<div class="action-edit"><select data-action-field="status" data-action-id="${a.id}"><option ${a.status==='À faire'?'selected':''}>À faire</option><option ${a.status==='En cours'?'selected':''}>En cours</option><option ${a.status==='Réalisé'?'selected':''}>Réalisé</option></select><input data-action-field="text" data-action-id="${a.id}" value="${escapeHtml(a.text||'')}"/><input data-action-field="responsible" data-action-id="${a.id}" placeholder="Responsable" value="${escapeHtml(a.responsible||'')}"/><button class="btn small danger" data-remove-action="${a.id}">×</button></div>`).join(''):''}</div></section>`; }
-
-function splitUsefulLines(value){
-  return String(value||'').split(/\n|•|;/).map(x=>x.trim()).filter(Boolean);
+function ensureActionFields(action){
+  action.priority=action.priority||'Moyenne';
+  action.status=action.status||'À faire';
+  action.responsible=action.responsible||'';
+  action.dueDate=action.dueDate||'';
+  action.progressNote=action.progressNote||'';
+  action.createdAt=action.createdAt||new Date().toISOString();
+  return action;
 }
-function uniqueText(items){
-  const seen=new Set();
-  return items.filter(item=>{const key=String(item||'').trim().toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
-}
-function autoVisitConclusion(visit){
-  const groups=categoryAnalysis(visit);
-  const all=[];
-  groups.forEach(group=>buildKnowledgePistes(visit,group).forEach(p=>{
-    const state=reasoningState(visit,`${group.category}:${p.id}`);
-    if(state.status!=='dismissed')all.push({...p,category:group.category,reviewStatus:state.status});
-  }));
-  const rank={high:3,medium:2,low:1};
-  all.sort((a,b)=>(rank[b.confidence.className]||0)-(rank[a.confidence.className]||0)||b.evidence.length-a.evidence.length);
-
-  const strengths=[];
-  Object.values(visit.auditGlobal?.chapterSummaries||{}).forEach(ch=>strengths.push(...splitUsefulLines(ch?.strengths)));
-  groups.forEach(group=>{
-    if(group.parameterResults.length){
-      const measured=group.parameterResults.reduce((n,r)=>n+r.measured.length,0);
-      const outside=group.parameterResults.reduce((n,r)=>n+r.outOfRange,0);
-      if(measured>=3&&outside===0)strengths.push(`${group.category} : les paramètres mesurés sont globalement dans les repères renseignés.`);
-      else if(measured>=5&&outside/measured<=0.15)strengths.push(`${group.category} : la majorité des valeurs mesurées se situe dans les repères.`);
-    }
-  });
-  const build=buildingRecords(visit);
-  if(build.drinkers.length&&build.drinkers.every(d=>numericValue(d.flow)===null||numericValue(d.flow)>=10))strengths.push('Les débits d’abreuvement renseignés ne font pas ressortir de limitation majeure.');
-  if(build.litters.length&&!build.litters.some(l=>(numericValue(l.humidity)||0)>=60||(numericValue(l.temperature)||0)>=35))strengths.push('Les relevés de litière renseignés ne mettent pas en évidence d’anomalie majeure.');
-  if(!strengths.length&&groups.length)strengths.push('La visite dispose de données exploitables permettant de structurer plusieurs axes de suivi.');
-
-  const reviews={high:[],medium:[],low:[]};
-  all.forEach(p=>{
-    const level=p.confidence.className==='high'?'high':p.confidence.className==='medium'?'medium':'low';
-    reviews[level].push(`${p.category} — ${p.title}`);
-  });
-  Object.keys(reviews).forEach(k=>reviews[k]=uniqueText(reviews[k]));
-  const priorities=all.slice(0,3).map(p=>({
-    text:(p.checks&&p.checks[0])||`Approfondir la piste « ${p.title} » sur le lot ${p.category}.`,
-    source:`${p.category} — ${p.title}`,
-    decision:'À étudier',comment:''
-  }));
-  while(priorities.length<3)priorities.push({text:'',source:'',decision:'À étudier',comment:''});
-  const next=uniqueText(all.flatMap(p=>(p.checks||[]).slice(0,2))).slice(0,5);
-  const main=all[0];
-  const general=main
-    ? `Cette visite fait ressortir plusieurs points favorables ainsi que des éléments à approfondir. La piste actuellement la plus étayée concerne « ${main.title.toLowerCase()} » pour le lot ${main.category}. Cette proposition repose sur ${main.evidence.length} élément(s) concordant(s) provenant de ${main.sourceCount} source(s). Elle doit rester confrontée au contexte de l’élevage et validée par le technicien.`
-    : `Les éléments recueillis ne font pas ressortir de piste suffisamment étayée pour construire une conclusion automatique. La synthèse peut être complétée manuellement par le technicien.`;
-  return {strengths:uniqueText(strengths).slice(0,8),reviews,priorities,next,general};
-}
-function ensureVisitConclusion(visit,force=false){
-  if(!force&&visit.visitConclusion&&visit.visitConclusion.version===1)return visit.visitConclusion;
-  const auto=autoVisitConclusion(visit);
-  visit.visitConclusion={version:1,
-    strengths:auto.strengths.join('\n'),
-    high:auto.reviews.high.join('\n'),medium:auto.reviews.medium.join('\n'),low:auto.reviews.low.join('\n'),
-    priorities:auto.priorities,next:auto.next.join('\n'),general:auto.general,
-    technicianNote:'',updatedAt:new Date().toISOString()};
-  saveDatabase(db);return visit.visitConclusion;
-}
-function renderConclusionSection(visit){
-  const c=ensureVisitConclusion(visit);
-  const block=(title,icon,key,cls)=>`<article class="conclusion-card ${cls}"><h3>${icon} ${title}</h3><textarea data-conclusion-field="${key}" rows="6">${escapeHtml(c[key]||'')}</textarea></article>`;
-  return `<div class="notice"><strong>Synthèse courte :</strong> générée à partir des données et des pistes non écartées. Tous les textes restent modifiables par le technicien.</div>
-  <div class="section-title conclusion-title"><div><h2>Conclusion de visite</h2><span class="muted">Points forts, points à revoir et actions retenues avec l’éleveur.</span></div><div class="actions"><button class="btn secondary" id="regenerate-conclusion">Régénérer depuis les données</button><button class="btn" id="print-conclusion">Imprimer la conclusion</button></div></div>
-  <section class="conclusion-grid">${block('Points forts','✅','strengths','positive')}${block('À revoir en priorité','🔴','high','danger')}${block('À programmer','🟠','medium','warning')}${block('À surveiller','🟡','low','watch')}</section>
-  <section class="card"><h3>🎯 Trois actions principales</h3><div class="conclusion-actions">${c.priorities.map((a,i)=>`<div class="conclusion-action"><span class="action-number">${i+1}</span><div class="field"><label>Action proposée</label><textarea rows="2" data-conclusion-priority="${i}" data-priority-field="text">${escapeHtml(a.text||'')}</textarea>${a.source?`<small>Issue de : ${escapeHtml(a.source)}</small>`:''}</div><div class="field"><label>Décision</label><select data-conclusion-priority="${i}" data-priority-field="decision"><option ${a.decision==='Acceptée'?'selected':''}>Acceptée</option><option ${a.decision==='À étudier'?'selected':''}>À étudier</option><option ${a.decision==='Refusée'?'selected':''}>Refusée</option></select></div><div class="field"><label>Commentaire / décision prise</label><textarea rows="2" data-conclusion-priority="${i}" data-priority-field="comment">${escapeHtml(a.comment||'')}</textarea></div></div>`).join('')}</div></section>
-  <section class="grid cols-2"><article class="card"><h3>📅 À vérifier lors de la prochaine visite</h3><textarea rows="8" data-conclusion-field="next">${escapeHtml(c.next||'')}</textarea></article><article class="card"><h3>⭐ Conclusion générale</h3><textarea rows="8" data-conclusion-field="general">${escapeHtml(c.general||'')}</textarea></article></section>
-  <section class="card"><h3>✍️ Note complémentaire du technicien</h3><textarea rows="5" data-conclusion-field="technicianNote">${escapeHtml(c.technicianNote||'')}</textarea></section>`;
-}
-function bindConclusionEvents(visit){
-  const c=ensureVisitConclusion(visit);
-  app.querySelectorAll('[data-conclusion-field]').forEach(el=>el.oninput=()=>{c[el.dataset.conclusionField]=el.value;c.updatedAt=new Date().toISOString();saveDatabase(db);});
-  app.querySelectorAll('[data-conclusion-priority]').forEach(el=>{const save=()=>{const i=Number(el.dataset.conclusionPriority);c.priorities[i]=c.priorities[i]||{};c.priorities[i][el.dataset.priorityField]=el.value;c.updatedAt=new Date().toISOString();saveDatabase(db);};el.addEventListener('input',save);el.addEventListener('change',save);});
-  const regen=document.getElementById('regenerate-conclusion');if(regen)regen.onclick=()=>{if(confirm('Régénérer la synthèse à partir des données actuelles ? Les modifications manuelles seront remplacées.')){ensureVisitConclusion(visit,true);renderAnalysis();showToast('Synthèse régénérée.');}};
-  const print=document.getElementById('print-conclusion');if(print)print.onclick=()=>printVisitConclusion(visit);
-}
-function printVisitConclusion(visit){
-  const c=ensureVisitConclusion(visit),lines=v=>escapeHtml(v||'').replace(/\n/g,'<br>');
-  const w=window.open('','_blank');if(!w){showToast('Autorisez les fenêtres surgissantes.');return;}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Conclusion de visite</title><style>${printBaseStyles()} body{font-family:Arial,sans-serif}.section{border:1px solid #ccd8d0;border-radius:10px;padding:12px;margin:12px 0}.actions{display:grid;gap:10px}.action{border-left:5px solid #b53670;padding:8px 12px;background:#f5f8f6}</style></head><body><button onclick="window.print()">Imprimer / Enregistrer en PDF</button><h1>Audit Bovin GDS 32-65 — Conclusion de visite</h1><div class="meta"><div class="box"><b>Exploitation</b><br>${escapeHtml(farmName(visit.farmId))}</div><div class="box"><b>Date</b><br>${escapeHtml(formatDate(visit.date))}</div><div class="box"><b>Technicien</b><br>${escapeHtml(visit.technician||'')}</div></div><div class="section"><h2>✅ Points forts</h2>${lines(c.strengths)}</div><div class="section"><h2>⚠️ Points à revoir</h2><h3>Priorité</h3>${lines(c.high)}<h3>À programmer</h3>${lines(c.medium)}<h3>À surveiller</h3>${lines(c.low)}</div><div class="section"><h2>🎯 Actions principales</h2><div class="actions">${c.priorities.filter(a=>a.text).map((a,i)=>`<div class="action"><b>${i+1}. ${escapeHtml(a.text)}</b><br>Décision : ${escapeHtml(a.decision||'')}<br>${lines(a.comment)}</div>`).join('')}</div></div><div class="section"><h2>📅 Prochaine visite</h2>${lines(c.next)}</div><div class="section"><h2>Conclusion générale</h2>${lines(c.general)}</div>${c.technicianNote?`<div class="section"><h2>Note du technicien</h2>${lines(c.technicianNote)}</div>`:''}</body></html>`);w.document.close();
+function actionPriorityClass(priority){return priority==='Haute'?'danger':priority==='Basse'?'archived':'in-progress';}
+function renderSynthesisSection(visit) {
+  const suggestions=suggestedActions(visit);visit.analysisActions=Array.isArray(visit.analysisActions)?visit.analysisActions:[];visit.analysisActions.forEach(ensureActionFields);
+  return `<div id="analysis-summary">${renderAnalysisSummary(visit)}</div><section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Plan d’action vivant</h3><span class="muted">Priorité, responsable, échéance et état d’avancement.</span></div><button class="btn" id="add-custom-action">Ajouter une action libre</button></div><div class="action-suggestions">${suggestions.length?suggestions.map((a,i)=>`<div class="action-line"><span class="badge ${a.level==='danger'?'in-progress':'archived'}">${a.level==='danger'?'Priorité haute':'À surveiller'}</span><div><strong>${escapeHtml(a.category)} — ${escapeHtml(a.theme)}</strong><br><span>${escapeHtml(a.action)}</span></div><button class="btn small" data-accept-action="${i}">Ajouter</button></div>`).join(''):'<div class="empty">Aucune action automatique proposée à ce stade.</div>'}</div><div class="action-list enriched">${visit.analysisActions.length?visit.analysisActions.map(a=>`<article class="action-edit enriched"><div class="action-edit-head"><select data-action-field="priority" data-action-id="${a.id}" class="priority-${escapeHtml(a.priority.toLowerCase())}"><option ${a.priority==='Haute'?'selected':''}>Haute</option><option ${a.priority==='Moyenne'?'selected':''}>Moyenne</option><option ${a.priority==='Basse'?'selected':''}>Basse</option></select><select data-action-field="status" data-action-id="${a.id}"><option ${a.status==='À faire'?'selected':''}>À faire</option><option ${a.status==='En cours'?'selected':''}>En cours</option><option ${a.status==='Réalisé'?'selected':''}>Réalisé</option><option ${a.status==='Abandonné'?'selected':''}>Abandonné</option></select><button class="btn small danger" data-remove-action="${a.id}">Supprimer</button></div><div class="field"><label>Action</label><input data-action-field="text" data-action-id="${a.id}" value="${escapeHtml(a.text||'')}"/></div><div class="row"><div class="field"><label>Responsable</label><input data-action-field="responsible" data-action-id="${a.id}" placeholder="Éleveur, technicien…" value="${escapeHtml(a.responsible||'')}"/></div><div class="field"><label>Échéance</label><input type="date" data-action-field="dueDate" data-action-id="${a.id}" value="${escapeHtml(a.dueDate||'')}"/></div></div><div class="field"><label>Point d’avancement</label><textarea data-action-field="progressNote" data-action-id="${a.id}" placeholder="Ce qui a été fait, difficultés, prochaine étape…">${escapeHtml(a.progressNote||'')}</textarea></div></article>`).join(''):''}</div></section>`;
 }
 
-function renderAnalysis() {
-  const visits=db.visits.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  if(!activeVisitId&&visits.length)setActiveVisit(visits[0].id);
-  const visit=activeVisit();
-  if(visit)ensureAnalysisVisit(visit);
-  const tabs=[['numeric','Matrices par famille'],['observations','Observations'],['general','Tamis · Silos · Sol · Plantes'],['reasoning','Raisonnement'],['summary','Statistiques & actions'],['conclusion','Conclusion de visite']];
-  app.innerHTML=`<div class="section-title"><div><h2>Analyse complète</h2><div class="muted">Mesures, observations, relevés généraux et synthèse croisée. Aide à l’interprétation, sans valeur diagnostique.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
-  ${activeVisitBanner(visit)}
-  ${!visit?'<div class="empty" style="margin-top:16px">Choisissez une visite dans l’onglet Visites.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<section class="card analysis-utilities"><div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div></section><nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):activeAnalysisSection==='summary'?renderSynthesisSection(visit):renderConclusionSection(visit)}</section>`}`;
-  app.querySelectorAll('[data-analysis-section]').forEach(b=>b.onclick=()=>{activeAnalysisSection=b.dataset.analysisSection;localStorage.setItem('audit-bovin-active-analysis-section',activeAnalysisSection);renderAnalysis();});
-  app.querySelectorAll('[data-analysis-family]').forEach(b=>b.onclick=()=>{activeAnalysisFamily=b.dataset.analysisFamily;localStorage.setItem('audit-bovin-active-analysis-family',activeAnalysisFamily);renderAnalysis();});
-  app.querySelectorAll('[data-general-kind]').forEach(b=>b.onclick=()=>{activeGeneralKind=b.dataset.generalKind;localStorage.setItem('audit-bovin-active-general-kind',activeGeneralKind);renderAnalysis();});
-  app.querySelectorAll('[data-open-library-theme]').forEach(b=>b.onclick=()=>openLibraryTheme(b.dataset.openLibraryTheme));
-  bindAnalysisEvents(visit);
-  if(activeAnalysisSection==='conclusion')bindConclusionEvents(visit);
-  if (focusedAnalysisSubjectId && activeAnalysisSection === 'numeric') {
-    setTimeout(() => {
-      const row = app.querySelector(`[data-analysis-subject-row="${focusedAnalysisSubjectId}"]`);
-      row?.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
-      row?.querySelector('input')?.focus({ preventScroll:true });
-      focusedAnalysisSubjectId='';
-      localStorage.removeItem('audit-bovin-focused-analysis-subject');
-    }, 80);
-  }
+function allPilotageActions(){
+  const rows=[];db.visits.forEach(v=>(v.analysisActions||[]).forEach(a=>{ensureActionFields(a);rows.push({action:a,visit:v,farm:db.farms.find(f=>f.id===v.farmId)});}));return rows;
+}
+function renderPilotageActions(){
+  const today=new Date().toISOString().slice(0,10),all=allPilotageActions();
+  const open=all.filter(x=>!['Réalisé','Abandonné'].includes(x.action.status));
+  const overdue=open.filter(x=>x.action.dueDate&&x.action.dueDate<today);
+  const dueSoon=open.filter(x=>x.action.dueDate&&x.action.dueDate>=today&&x.action.dueDate<=new Date(Date.now()+30*86400000).toISOString().slice(0,10));
+  const completed=all.filter(x=>x.action.status==='Réalisé');
+  const farmsWithOpen=new Set(open.map(x=>x.visit.farmId)).size;
+  const rows=all.slice().sort((a,b)=>{const pa={Haute:0,Moyenne:1,Basse:2}[a.action.priority]??3,pb={Haute:0,Moyenne:1,Basse:2}[b.action.priority]??3;return pa-pb||(a.action.dueDate||'9999').localeCompare(b.action.dueDate||'9999');});
+  app.innerHTML=`<div class="section-title"><div><h2>🎯 Pilotage des actions</h2><div class="muted">Vue commune de toutes les actions décidées lors des visites.</div></div><span class="badge autosave">v14.0</span></div>
+  <section class="grid cols-4 professional-kpis"><article class="card"><span>Actions ouvertes</span><strong>${open.length}</strong></article><article class="card"><span>En retard</span><strong>${overdue.length}</strong></article><article class="card"><span>Échéance sous 30 j</span><strong>${dueSoon.length}</strong></article><article class="card"><span>Exploitations concernées</span><strong>${farmsWithOpen}</strong></article></section>
+  <section class="card pilotage-toolbar"><div class="field"><label>Filtrer</label><select id="pilotage-filter"><option value="all">Toutes les actions</option><option value="open">Ouvertes</option><option value="overdue">En retard</option><option value="high">Priorité haute</option><option value="done">Réalisées</option></select></div><div class="field"><label>Recherche</label><input id="pilotage-search" placeholder="Exploitation, action, responsable…"></div></section>
+  <section class="card"><div id="pilotage-list" class="pilotage-list"></div></section>`;
+  const renderList=()=>{const f=document.getElementById('pilotage-filter').value,q=normalizeSearchText(document.getElementById('pilotage-search').value);let list=rows.filter(x=>{if(f==='open'&&['Réalisé','Abandonné'].includes(x.action.status))return false;if(f==='overdue'&&!(x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status)))return false;if(f==='high'&&x.action.priority!=='Haute')return false;if(f==='done'&&x.action.status!=='Réalisé')return false;const hay=normalizeSearchText([x.farm?.name,x.farm?.farmNumber,x.action.text,x.action.responsible,x.action.progressNote].join(' '));return !q||hay.includes(q);});document.getElementById('pilotage-list').innerHTML=list.length?list.map(x=>{const late=x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status);return `<article class="pilotage-action ${late?'overdue':''}"><div class="pilotage-action-main"><span class="badge ${actionPriorityClass(x.action.priority)}">${escapeHtml(x.action.priority)}</span><div><strong>${escapeHtml(x.action.text||'Action sans intitulé')}</strong><small>${escapeHtml(x.farm?.name||'Exploitation')} · visite du ${formatDate(x.visit.date)}</small></div></div><div class="pilotage-action-meta"><span>${escapeHtml(x.action.responsible||'Responsable non défini')}</span><span>${x.action.dueDate?`${late?'⚠️ ':''}${formatDate(x.action.dueDate)}`:'Sans échéance'}</span><select data-pilotage-status="${x.action.id}" data-visit-id="${x.visit.id}"><option ${x.action.status==='À faire'?'selected':''}>À faire</option><option ${x.action.status==='En cours'?'selected':''}>En cours</option><option ${x.action.status==='Réalisé'?'selected':''}>Réalisé</option><option ${x.action.status==='Abandonné'?'selected':''}>Abandonné</option></select><button class="btn small" data-open-pilotage-visit="${x.visit.id}">Ouvrir la visite</button></div>${x.action.progressNote?`<p>${escapeHtml(x.action.progressNote)}</p>`:''}</article>`;}).join(''):'<div class="empty">Aucune action correspondant au filtre.</div>';document.querySelectorAll('[data-pilotage-status]').forEach(el=>el.onchange=()=>{const v=db.visits.find(v=>v.id===el.dataset.visitId),a=v?.analysisActions?.find(a=>a.id===el.dataset.pilotageStatus);if(a){a.status=el.value;a.updatedAt=new Date().toISOString();saveDatabase(db);renderPilotageActions();}});document.querySelectorAll('[data-open-pilotage-visit]').forEach(b=>b.onclick=()=>{setActiveVisit(b.dataset.openPilotageVisit);setView('analysis');});};
+  document.getElementById('pilotage-filter').onchange=renderList;document.getElementById('pilotage-search').oninput=renderList;renderList();
 }
 
 function bindAnalysisEvents(visit) {
@@ -1171,8 +1094,8 @@ function bindAnalysisEvents(visit) {
   app.querySelectorAll('[data-general-field]').forEach(el=>{const save=()=>{const r=visit.analysisGeneral[el.dataset.kind].find(x=>x.id===el.dataset.id);if(!r)return;r[el.dataset.key]=el.value;visit.updatedAt=new Date().toISOString();saveDatabase(db);if(el.dataset.kind==='tamis'&&['total','t1','t2'].includes(el.dataset.key)){const box=el.closest('.general-record')?.querySelector('.calculated-box');if(box){const total=numericValue(r.total),t1=numericValue(r.t1),t2=numericValue(r.t2),spans=box.querySelectorAll('span');if(spans[0])spans[0].textContent=`Tamis 1 : ${total>0&&t1!==null?(100*t1/total).toFixed(1):'—'} %`;if(spans[1])spans[1].textContent=`Tamis 2 : ${total>0&&t2!==null?(100*t2/total).toFixed(1):'—'} %`;}}};el.oninput=save;el.onchange=save;el.onblur=save;});
   app.querySelectorAll('[data-general-multi]').forEach(el=>el.onchange=()=>{const r=visit.analysisGeneral[el.dataset.kind].find(x=>x.id===el.dataset.id);r[el.dataset.key]=[...app.querySelectorAll(`[data-general-multi][data-kind="${el.dataset.kind}"][data-id="${el.dataset.id}"][data-key="${el.dataset.key}"]:checked`)].map(x=>x.value);saveDatabase(db);el.closest('.choice-chip')?.classList.toggle('selected',el.checked);});
   app.querySelectorAll('[data-analysis-conclusion]').forEach(el=>el.oninput=()=>{visit.analysisConclusions[el.dataset.analysisConclusion]=el.value;saveDatabase(db);});
-  const suggestions=suggestedActions(visit); app.querySelectorAll('[data-accept-action]').forEach(b=>b.onclick=()=>{const s=suggestions[Number(b.dataset.acceptAction)];visit.analysisActions.push({id:uid('action'),text:`${s.category} — ${s.action}`,responsible:'',status:'À faire'});saveDatabase(db);renderAnalysis();});
-  document.getElementById('add-custom-action')?.addEventListener('click',()=>{visit.analysisActions.push({id:uid('action'),text:'',responsible:'',status:'À faire'});saveDatabase(db);renderAnalysis();});
+  const suggestions=suggestedActions(visit); app.querySelectorAll('[data-accept-action]').forEach(b=>b.onclick=()=>{const s=suggestions[Number(b.dataset.acceptAction)];visit.analysisActions.push({id:uid('action'),text:`${s.category} — ${s.action}`,responsible:'',status:'À faire',priority:s.level==='danger'?'Haute':'Moyenne',dueDate:'',progressNote:'',createdAt:new Date().toISOString()});saveDatabase(db);renderAnalysis();});
+  document.getElementById('add-custom-action')?.addEventListener('click',()=>{visit.analysisActions.push({id:uid('action'),text:'',responsible:'',status:'À faire',priority:'Moyenne',dueDate:'',progressNote:'',createdAt:new Date().toISOString()});saveDatabase(db);renderAnalysis();});
   app.querySelectorAll('[data-action-field]').forEach(el=>{const save=()=>{const a=visit.analysisActions.find(x=>x.id===el.dataset.actionId);a[el.dataset.actionField]=el.value;saveDatabase(db);};el.oninput=save;el.onchange=save;});
   app.querySelectorAll('[data-remove-action]').forEach(b=>b.onclick=()=>{visit.analysisActions=visit.analysisActions.filter(a=>a.id!==b.dataset.removeAction);saveDatabase(db);renderAnalysis();});
   app.querySelectorAll('[data-reason-status]').forEach(el=>el.onchange=()=>{visit.reasoningReview=visit.reasoningReview||{};const cur=visit.reasoningReview[el.dataset.reasonStatus]||{};visit.reasoningReview[el.dataset.reasonStatus]={...cur,status:el.value};saveDatabase(db);renderAnalysis();});
@@ -2174,5 +2097,5 @@ function applyWorkMode(mode){document.body.classList.toggle('terrain-mode',mode=
 function initWorkMode(){const current=localStorage.getItem('audit-bovin-work-mode')||'bureau';applyWorkMode(current);document.getElementById('work-mode-toggle')?.addEventListener('click',()=>applyWorkMode(document.body.classList.contains('terrain-mode')?'bureau':'terrain'));}
 initWorkMode();
 initGlobalSearch();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=13.1.0',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.0.0',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();

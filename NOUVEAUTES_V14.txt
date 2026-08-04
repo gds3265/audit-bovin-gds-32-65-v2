@@ -1,0 +1,12 @@
+AUDIT BOVIN GDS 32-65 - V14.0.0
+
+Nouveautés :
+- Plan d’action vivant : priorité, responsable, échéance, statut et note d’avancement.
+- Nouvel onglet Pilotage des actions.
+- Vue globale de toutes les exploitations et visites.
+- Filtres : ouvertes, en retard, priorité haute, réalisées.
+- Recherche par exploitation, EDE, responsable ou action.
+- Alerte des actions en retard dans le centre d’attention.
+- Navigation toujours libre, sans parcours imposé.
+
+La sécurité Supabase, le thème rose et toutes les fonctions de la v13.1 sont conservés.
