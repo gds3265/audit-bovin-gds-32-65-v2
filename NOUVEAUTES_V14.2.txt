@@ -1,10 +1,10 @@
-AUDIT BOVIN GDS 32-65 — V14.2
+AUDIT BOVIN GDS 32-65 — V14.2.1
 
 CORRECTIONS PRINCIPALES
 - Harmonisation complète des versions et du cache GitHub Pages.
 - Restitution PDF/impression fiabilisée avec téléchargement de secours si les fenêtres sont bloquées.
 - Ouverture des documents externes via Blob, plus fiable sur iPhone.
-- Export partenaire PASSAGE corrigé : modèle v14.2, second chemin de secours, contrôle des feuilles obligatoires et historique d’export.
+- Export partenaire PASSAGE corrigé : modèle v14.2.1, second chemin de secours, contrôle des feuilles obligatoires et historique d’export.
 - Pilotage des actions : modification directe de la priorité, du responsable, de l’échéance et du statut.
 - Ajout des exports CSV et impression/PDF du pilotage global.
 - Versions affichées corrigées dans les écrans.

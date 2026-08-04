@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — V14.2.1 CORRECTIF RESTITUTION
+
+Corrections :
+- restauration de normalizeSearchText pour Documents exploitation et Pilotage ;
+- restauration et sécurisation de ensureVisitConclusion ;
+- restauration de autoVisitConclusion pour Analyse & interprétation ;
+- correction des rapports PDF/Word dépendant de la conclusion ;
+- correction de l'export partenaire PASSAGE dépendant de la conclusion ;
+- nouvelle version de cache 14.2.1 pour forcer GitHub Pages à charger les fichiers corrigés.
+
+Déploiement : envoyer tous les fichiers du ZIP à la racine du dépôt GitHub en remplaçant les fichiers de même nom.
