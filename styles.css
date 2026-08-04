@@ -453,3 +453,12 @@ body.terrain-mode .top-nav .nav-btn[data-view="farms"],body.terrain-mode .top-na
 
 /* v14.1.1 - dossier documentaire exploitation */
 .farm-documents-list{display:grid;gap:12px;margin-top:14px}.farm-document-card{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px;border:1px solid #ead2de;border-radius:14px;background:#fff}.farm-document-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#f9eaf1;font-size:1.5rem}.farm-document-card h4{margin:6px 0 3px}.farm-document-card p{margin:7px 0 0;color:#5f4b55}.document-category-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.document-category-summary span{background:#f8edf2;border:1px solid #ead2de;border-radius:999px;padding:6px 10px;font-size:.85rem}.document-category-summary b{color:#a72f65;margin-left:4px}@media(max-width:760px){.farm-document-card{grid-template-columns:44px 1fr}.farm-document-card>.actions{grid-column:1/-1}.farm-document-card>.actions .btn{flex:1}}
+
+/* V14.3 — Analyse nutritionnelle */
+.nutrition-analysis-card{border:1px solid var(--border,#ddd);border-radius:14px;padding:14px;margin-top:14px;background:var(--surface,#fff)}
+.nutrition-analysis-card h4{margin:0}
+.nutrition-fields{align-items:end}
+.nutrition-fields .field{min-width:0}
+.nutrition-fields input,.nutrition-fields select{width:100%}
+@media(max-width:900px){.nutrition-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){.nutrition-fields{grid-template-columns:1fr!important}}

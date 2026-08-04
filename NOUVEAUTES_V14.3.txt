@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — V14.3 NUTRITION
+
+- Bibliothèque Nutrition : énergie, protéines, équilibre énergie/protéines et BACA.
+- Nouveau module Analyse nutritionnelle.
+- Saisie et interprétation indicative des analyses de fourrage.
+- Calcul indicatif de la BACA d’un fourrage lorsque Na, K, Cl et S sont renseignés.
+- Lecture de la ration complète : couverture UFL/PDI, MAT, NDF, amidon, sucres, Ca/P et BACA.
+- Sauvegarde automatique dans la visite active.
+- Fonctionnement hors connexion.
+
+Les interprétations sont des aides générales et ne remplacent pas un calcul de ration validé.
