@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — v14.1.0
+
+- Journal permanent par exploitation : appels, messages, événements sanitaires, problèmes, changements et retours vétérinaires.
+- Liaison d’une nouvelle avec une visite ou une action.
+- Mise à jour automatique du statut d’une action depuis le journal.
+- Points de vigilance indépendants des actions, à retrouver lors du prochain contact.
+- Statut d’action « Bloquée » et ajout rapide d’une nouvelle depuis le pilotage.
+- Bibliothèque enrichie : BOH, glycémie, énergie, azote/urée, colostrum, protéines sériques.
+- Schéma simplifié de mesure électrique AC/DC.
+- Protocoles terrain : eau, électricité, colostrum/veaux, alimentation et reproduction.
+- Toutes les données sont incluses dans la sauvegarde locale, JSON et la synchronisation cloud de la base.

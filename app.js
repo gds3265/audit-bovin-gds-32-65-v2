@@ -63,10 +63,13 @@ const auditGlobalSections = [
 
 const plancheGroups = [
   { id:'animaux', icon:'🐄', title:'Animaux', subtitle:'NEC, remplissage du rumen, bouses, urines et aplombs.' },
+  { id:'sang', icon:'🩸', title:'Sang & énergie', subtitle:'BOH, glycémie, urée et facteurs influençant énergie/azote.' },
+  { id:'colostrum', icon:'🍼', title:'Colostrum & veaux', subtitle:'Brix colostral, protéines sériques et conduite à tenir.' },
   { id:'eau', icon:'💧', title:'Eau', subtitle:'Débit, pH, redox, conductivité, nitrates et température.' },
   { id:'fourrages', icon:'🌾', title:'Fourrages', subtitle:'Tamis à bouses, fibres et repères de conservation.' },
   { id:'sol-plantes', icon:'🌱', title:'Sol et plantes', subtitle:'pH, redox, Brix, conductivité et repères de prélèvement.' },
-  { id:'courants', icon:'⚡', title:'Courants parasites', subtitle:'Points de mesure, unités et conduite du contrôle.' },
+  { id:'courants', icon:'⚡', title:'Électricité AC/DC', subtitle:'Schéma de mesure, sécurité, points de contrôle et erreurs.' },
+  { id:'protocoles', icon:'📑', title:'Protocoles terrain', subtitle:'Check-lists eau, électricité, veaux, colostrum et alimentation.' },
   { id:'appareils', icon:'🔬', title:'Appareils', subtitle:'Rappels très courts pour les appareils de terrain.' }
 ];
 
@@ -91,6 +94,28 @@ function plancheContent(id) {
       <p class="muted">Planche synthétique : remplissage du rumen, aplombs, types de bouses et couleurs des urines.</p>
       <img class="planche-image" src="planches-visuelles.png" alt="Repères visuels animaux : rumen, aplombs, bouses et urines">
       <div class="planche-note"><strong>Lecture :</strong> toujours rattacher l’observation à la catégorie et au stade physiologique du sujet, puis la confronter aux autres mesures.</div>
+    </section>`;
+  if (id === 'sang') return `
+    <section class="card planche-main"><h3>🩸 Sang, énergie et azote</h3>
+      <div class="planche-grid">
+        <article><h4>BOH / BHB</h4><p><strong>À retenir :</strong> corps cétonique qui augmente lorsque l'animal mobilise ses réserves graisseuses.</p><ul><li>Toujours croiser avec glycémie, NEC, ingestion, stade physiologique et remplissage ruminal.</li><li>Une valeur isolée ne suffit pas à conclure.</li><li>Noter l'heure, le délai depuis le repas et le contexte clinique.</li></ul></article>
+        <article><h4>Ce qui influence l'énergie</h4><ul><li>Ingestion réelle et accès à l'auge.</li><li>Densité énergétique et digestibilité.</li><li>Transition alimentaire et tri.</li><li>Lactation, gestation, croissance, froid/chaleur.</li><li>Douleur, inflammation, parasitisme, stress.</li><li>Accès à l'eau.</li></ul></article>
+        <article><h4>Ce qui influence l'azote / urée</h4><ul><li>Quantité et dégradabilité des protéines.</li><li>Synchronisation avec l'énergie fermentescible.</li><li>Ingestion, transit, hydratation.</li><li>Qualité des fourrages et stade physiologique.</li><li>Fonction rénale et état sanitaire.</li></ul></article>
+      </div>
+      <div class="planche-warning">Ne pas résumer « urée haute = trop de protéines » : vérifier l'énergie disponible, l'ingestion, l'eau et le contexte.</div>
+    </section>`;
+  if (id === 'colostrum') return `
+    <section class="card planche-main"><h3>🍼 Colostrum et transfert d'immunité</h3>
+      ${plancheTable(['Mesure','Lecture pratique','Conseil terrain'],[
+        ['Brix colostrum ≥ 22 %','Bonne qualité pour le premier repas','Distribuer rapidement et tracer quantité/heure.'],
+        ['Brix 18 à 21,9 %','Qualité intermédiaire','Compléter avec un colostrum de meilleure qualité ou un produit adapté.'],
+        ['Brix < 18 %','Qualité faible','Ne pas utiliser seul pour le premier repas.'],
+        ['Protéines sériques ≥ 6,2 g/dL','Transfert excellent à l’échelle du lot','Maintenir le protocole et contrôler plusieurs veaux.'],
+        ['5,8 à 6,1 g/dL','Bon','Poursuivre la surveillance.'],
+        ['5,1 à 5,7 g/dL','Intermédiaire','Revoir délai, quantité, qualité et hygiène.'],
+        ['< 5,1 g/dL','Transfert faible / risque accru','Auditer rapidement la conduite colostrale ; ce n’est pas une preuve d’infection.']
+      ])}
+      <div class="planche-grid"><article><h4>Premier repas</h4><ul><li>Le plus tôt possible après la naissance.</li><li>Mesurer la qualité avant distribution.</li><li>Noter heure et quantité réellement bues.</li><li>Prévoir une banque de colostrum congelé identifié.</li></ul></article><article><h4>Complément</h4><ul><li>Un sachet n'apporte pas toujours la même quantité d'IgG.</li><li>Lire l'étiquette : supplément ou substitut complet.</li><li>Calculer selon la teneur en IgG et le poids du veau.</li></ul></article></div>
     </section>`;
   if (id === 'eau') return `
     <section class="card planche-main"><h3>💧 Eau et abreuvement</h3>
@@ -126,12 +151,22 @@ function plancheContent(id) {
     </section>`;
   if (id === 'courants') return `
     <section class="card planche-main"><h3>⚡ Mesure des courants parasites</h3>
+      <div class="electric-schema"><svg viewBox="0 0 760 230" role="img" aria-label="Schéma simplifié mesure électrique abreuvoir sol"><rect x="35" y="55" width="220" height="95" rx="16" fill="#dbeef5" stroke="#39748c" stroke-width="3"/><text x="145" y="105" text-anchor="middle" font-size="22" fill="#244d60">Abreuvoir / métal</text><circle cx="300" cy="102" r="10" fill="#d43e58"/><line x1="255" y1="102" x2="300" y2="102" stroke="#d43e58" stroke-width="5"/><rect x="325" y="45" width="150" height="115" rx="14" fill="#fff" stroke="#b53670" stroke-width="4"/><text x="400" y="85" text-anchor="middle" font-size="20">Multimètre</text><text x="400" y="118" text-anchor="middle" font-size="24" font-weight="700" fill="#b53670">mV AC</text><circle cx="500" cy="102" r="10" fill="#222"/><line x1="475" y1="102" x2="620" y2="180" stroke="#222" stroke-width="5"/><line x1="40" y1="190" x2="720" y2="190" stroke="#7b6758" stroke-width="8"/><line x1="620" y1="180" x2="620" y2="200" stroke="#222" stroke-width="8"/><text x="635" y="220" font-size="18">Sol humide / référence</text><text x="280" y="35" font-size="16" fill="#d43e58">Pointe rouge</text><text x="500" y="35" font-size="16">Pointe noire</text></svg></div>
+      <div class="planche-note"><strong>AC :</strong> courant alternatif, à tester en premier pour une recherche liée au réseau. <strong>DC :</strong> courant continu, à utiliser si le contexte le justifie (batterie, alimentation électronique, installation spécifique).</div>
       <div class="planche-grid">
         <article><h4>Où mesurer ?</h4><ul><li>Abreuvoirs.</li><li>Cornadis et barrières.</li><li>Équipements métalliques accessibles aux animaux.</li><li>Points signalés sur le plan du bâtiment.</li></ul></article>
         <article><h4>Comment noter ?</h4><ul><li>Emplacement exact.</li><li>AC ou DC.</li><li>Unité affichée par l’appareil.</li><li>Conditions de mesure et correction éventuelle.</li></ul></article>
         <article><h4>Après correction</h4><ul><li>Refaire la mesure au même point.</li><li>Conserver la valeur avant / après.</li><li>Relier la mesure à l’objet du plan.</li></ul></article>
       </div>
       <div class="planche-warning">Ne jamais improviser une intervention électrique : la recherche de cause et les travaux relèvent d’un professionnel compétent.</div>
+    </section>`;
+  if (id === 'protocoles') return `
+    <section class="card planche-main"><h3>📑 Protocoles GDS – check-lists terrain</h3>
+      <details open><summary><strong>💧 Audit eau</strong></summary><ol><li>Recenser origine et réseau.</li><li>Compter les points d'eau et observer la concurrence.</li><li>Mesurer réellement le débit.</li><li>Contrôler propreté, hauteur et accessibilité.</li><li>Noter température, pH/redox et analyses disponibles.</li><li>Photographier les anomalies et prévoir le recontrôle.</li></ol></details>
+      <details><summary><strong>⚡ Audit électrique</strong></summary><ol><li>Sécuriser la zone et identifier le point de référence.</li><li>Commencer en mV AC.</li><li>Mesurer eau/métal vers sol humide ou référence adaptée.</li><li>Répéter appareils en marche puis arrêtés.</li><li>Noter emplacement, unité, AC/DC et conditions.</li><li>Faire intervenir un professionnel pour la recherche de cause/travaux.</li></ol></details>
+      <details><summary><strong>🍼 Audit colostrum / veaux</strong></summary><ol><li>Mesurer le Brix du colostrum avant distribution.</li><li>Tracer heure et quantité.</li><li>Contrôler hygiène du matériel et stockage.</li><li>Échantillonner plusieurs veaux pour le transfert passif.</li><li>Croiser avec diarrhées, mortalité, logement et ventilation.</li></ol></details>
+      <details><summary><strong>🍽️ Audit alimentation</strong></summary><ol><li>Décrire la ration réellement distribuée.</li><li>Observer mélange, tri, refus et accès à l'auge.</li><li>Contrôler transition, eau, sel et minéral.</li><li>Réaliser tamis/observations bouses si pertinent.</li><li>Croiser avec NEC, rumen, BOH, glycémie et urée.</li></ol></details>
+      <details><summary><strong>🐄 Audit reproduction</strong></summary><ol><li>IVV et âge au premier vêlage.</li><li>Vaches vides et délai de décision.</li><li>Suivi chaleurs, diagnostics et périodes de reproduction.</li><li>Renouvellement et motifs de réforme.</li><li>Croiser avec NEC, énergie, sanitaire et conduite des lots.</li></ol></details>
     </section>`;
   return `
     <section class="card planche-main"><h3>🔬 Appareils de terrain</h3>
@@ -149,7 +184,7 @@ function plancheContent(id) {
 
 function renderPlanches() {
   const selected = plancheGroups.find(x=>x.id===activePlanche) || plancheGroups[0];
-  app.innerHTML = `<div class="section-title"><div><h2>Bibliothèque technique</h2><div class="muted">Quelques repères visuels utiles, intégrés à l’application et disponibles hors ligne.</div></div><span class="badge autosave">v11.3</span></div>
+  app.innerHTML = `<div class="section-title"><div><h2>Bibliothèque technique</h2><div class="muted">Quelques repères visuels utiles, intégrés à l’application et disponibles hors ligne.</div></div><span class="badge autosave">v14.1.1</span></div>
     <div class="planche-layout">
       <nav class="planche-menu">${plancheGroups.map(g=>`<button class="planche-menu-btn ${g.id===selected.id?'active':''}" data-planche="${g.id}"><span>${g.icon}</span><span><strong>${escapeHtml(g.title)}</strong><small>${escapeHtml(g.subtitle)}</small></span></button>`).join('')}</nav>
       <div class="planche-content">${plancheContent(selected.id)}</div>
@@ -224,6 +259,7 @@ function migrateDatabase() {
   });
   db.farms.forEach(farm => {
     farm.buildings = Array.isArray(farm.buildings) ? farm.buildings : [];
+    farm.documents = Array.isArray(farm.documents) ? farm.documents : [];
     farm.buildings.forEach(building => {
       building.plan = building.plan && typeof building.plan === 'object' ? building.plan : { shapes: [] };
       building.plan.shapes = Array.isArray(building.plan.shapes) ? building.plan.shapes : [];
@@ -351,7 +387,7 @@ function harmonizeActionButtons(root=document){
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, journal: renderJournalSuivi, documents: renderFarmDocuments, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
   harmonizeActionButtons(app);
@@ -411,7 +447,7 @@ function renderProfessionalIndicators(visit){return `<div class="professional-sc
 function renderAssistantGDS(){
   const visit=activeVisit();if(!visit){renderNoActiveVisit('Assistant GDS');return;}
   const stats=visitProfessionalStats(visit),auto=autoVisitConclusion(visit),attention=professionalAttentionItems(visit);
-  app.innerHTML=`<div class="section-title"><div><h2>Analyse & interprétation</h2><div class="muted">Synthèse professionnelle des données de la visite active.</div></div><span class="badge autosave">v14.0 Professional</span></div>${activeVisitBanner(visit)}
+  app.innerHTML=`<div class="section-title"><div><h2>Analyse & interprétation</h2><div class="muted">Synthèse professionnelle des données de la visite active.</div></div><span class="badge autosave">v14.1.1 Professional</span></div>${activeVisitBanner(visit)}
   <section class="assistant-hero"><div><span class="assistant-kicker">SYNTHESE AUTOMATIQUE</span><h3>${escapeHtml(farmName(visit.farmId))}</h3><p>Les éléments ci-dessous sont construits à partir des données saisies et restent soumis à la validation du technicien.</p></div><div class="assistant-completion"><strong>${stats.completion}%</strong><span>visite structurée</span></div></section>
   <section class="grid cols-4 professional-kpis"><article class="card"><span>Anomalies</span><strong>${stats.anomalies}</strong></article><article class="card"><span>Sujets mesurés</span><strong>${stats.measured}</strong></article><article class="card"><span>Photos</span><strong>${stats.photos}</strong></article><article class="card"><span>Actions réalisées</span><strong>${stats.actionsDone}/${stats.actions}</strong></article></section>
   <section class="card"><div class="section-title"><div><h3>Indicateurs par domaine</h3><div class="muted">Repères de suivi calculés à partir de la complétude et des vigilances détectées.</div></div></div>${renderProfessionalIndicators(visit)}</section>
@@ -457,7 +493,7 @@ function renderFarms() {
       </form>
       <section class="card">
         <h3>Liste des exploitations</h3>
-        ${db.farms.length ? `<div class="table-wrap"><table><thead><tr><th>Exploitation</th><th>Commune</th><th>Visites</th><th></th></tr></thead><tbody>${db.farms.map(f => `<tr><td><strong>${escapeHtml(f.name)}</strong><br><span class="muted">${escapeHtml(f.farmer || '')}${f.farmNumber?` · EDE ${escapeHtml(f.farmNumber)}`:''}</span></td><td>${escapeHtml(f.commune || '—')}</td><td>${db.visits.filter(v => v.farmId === f.id).length}</td><td><div class="actions"><button class="btn small" data-set-farm-number="${f.id}">N° EDE</button><button class="btn small danger" data-delete-farm="${f.id}">Supprimer</button></div></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Aucune exploitation.</div>'}
+        ${db.farms.length ? `<div class="table-wrap"><table><thead><tr><th>Exploitation</th><th>Commune</th><th>Visites</th><th></th></tr></thead><tbody>${db.farms.map(f => `<tr><td><strong>${escapeHtml(f.name)}</strong><br><span class="muted">${escapeHtml(f.farmer || '')}${f.farmNumber?` · EDE ${escapeHtml(f.farmNumber)}`:''}</span></td><td>${escapeHtml(f.commune || '—')}</td><td>${db.visits.filter(v => v.farmId === f.id).length}</td><td><div class="actions"><button class="btn small" data-open-farm-journal="${f.id}">Journal</button><button class="btn small" data-open-farm-documents="${f.id}">Documents</button><button class="btn small" data-set-farm-number="${f.id}">N° EDE</button><button class="btn small danger" data-delete-farm="${f.id}">Supprimer</button></div></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Aucune exploitation.</div>'}
       </section>
     </section>`;
   const form = document.getElementById('farm-form');
@@ -466,15 +502,61 @@ function renderFarms() {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form));
     if (!data.name.trim()) return;
-    db.farms.push({ id: uid('farm'), ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+    db.farms.push({ id: uid('farm'), ...data, buildings:[], documents:[], journal:[], vigilances:[], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
     saveDatabase(db); clearDraft(); showToast('Exploitation ajoutée.'); renderFarms();
   });
+  app.querySelectorAll('[data-open-farm-journal]').forEach(button=>button.onclick=()=>{localStorage.setItem('audit-bovin-journal-farm',button.dataset.openFarmJournal);setView('journal');});
+  app.querySelectorAll('[data-open-farm-documents]').forEach(button=>button.onclick=()=>{localStorage.setItem('audit-bovin-documents-farm',button.dataset.openFarmDocuments);setView('documents');});
   app.querySelectorAll('[data-set-farm-number]').forEach(button => button.onclick = () => { const farm=db.farms.find(f=>f.id===button.dataset.setFarmNumber);if(!farm)return;const value=prompt('N° cheptel / EDE / exploitation',farm.farmNumber||normalizeHerdNumber(farm.farmer)||'');if(value===null)return;farm.farmNumber=String(value).trim();farm.updatedAt=new Date().toISOString();saveDatabase(db);showToast('Numéro EDE enregistré.');renderFarms(); });
   app.querySelectorAll('[data-delete-farm]').forEach(button => button.onclick = () => {
     const id = button.dataset.deleteFarm;
     if (db.visits.some(v => v.farmId === id)) return showToast('Suppression impossible : cette exploitation possède des visites.');
     if (confirm('Supprimer cette exploitation ?')) { db.farms = db.farms.filter(f => f.id !== id); saveDatabase(db); renderFarms(); }
   });
+}
+
+
+
+const farmDocumentCategories=['Analyse de fourrage','Analyse d’eau','Analyse de sol','Résultat de laboratoire','Rapport vétérinaire','Plan de bâtiment','Rapport d’audit','Photo de référence','Document partenaire','Autre document'];
+function ensureFarmDocuments(farm){farm.documents=Array.isArray(farm.documents)?farm.documents:[];return farm.documents;}
+function humanFileSize(bytes=0){if(bytes<1024)return `${bytes} o`;if(bytes<1048576)return `${(bytes/1024).toFixed(1)} Ko`;return `${(bytes/1048576).toFixed(1)} Mo`;}
+function downloadStoredDocument(docu){
+  if(!docu?.dataUrl)return showToast('Le fichier n’est pas disponible sur cet appareil.');
+  const a=document.createElement('a');a.href=docu.dataUrl;a.download=docu.fileName||docu.title||'document';document.body.appendChild(a);a.click();a.remove();
+}
+function renderFarmDocuments(){
+  const farmId=localStorage.getItem('audit-bovin-documents-farm')||activeVisit()?.farmId||db.farms[0]?.id||'';
+  const farm=db.farms.find(f=>f.id===farmId);if(farm)ensureFarmDocuments(farm);
+  const docs=farm?.documents?.slice().sort((a,b)=>(b.documentDate||b.createdAt||'').localeCompare(a.documentDate||a.createdAt||''))||[];
+  app.innerHTML=`<div class="section-title"><div><h2>📁 Documents de l’exploitation</h2><div class="muted">Analyses de fourrages, eau, sol, résultats de laboratoire, plans et rapports externes.</div></div><span class="badge autosave">Sauvegarde locale + cloud</span></div>
+  <section class="card"><div class="field"><label>Exploitation</label><select id="documents-farm-select"><option value="">Choisir…</option>${db.farms.map(f=>`<option value="${f.id}" ${f.id===farmId?'selected':''}>${escapeHtml(f.name)}${f.farmNumber?' · EDE '+escapeHtml(f.farmNumber):''}</option>`).join('')}</select></div></section>
+  ${!farm?'<section class="card empty">Sélectionnez une exploitation.</section>':`<section class="grid cols-2"><form id="farm-document-form" class="card"><h3>Ajouter un document</h3><div class="field"><label>Fichier *</label><input id="farm-document-file" name="file" type="file" required accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.csv,.txt,application/pdf,image/*"></div><div class="row"><div class="field"><label>Catégorie</label><select name="category">${farmDocumentCategories.map(c=>`<option>${escapeHtml(c)}</option>`).join('')}</select></div><div class="field"><label>Date du document</label><input name="documentDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div></div><div class="field"><label>Titre</label><input name="title" placeholder="Ex. Analyse ensilage maïs 2026"></div><div class="field"><label>Commentaire</label><textarea name="notes" placeholder="Résultat important, laboratoire, parcelle, lot concerné…"></textarea></div><button class="btn primary" type="submit">Enregistrer le document</button><p class="muted small-text">Pour préserver la sauvegarde et la synchronisation, la taille maximale est limitée à 4 Mo par fichier. Les fichiers sont inclus dans la base partagée.</p></form><article class="card"><h3>Résumé du dossier</h3><div class="grid cols-2 professional-kpis"><div><span>Documents</span><strong>${docs.length}</strong></div><div><span>Volume enregistré</span><strong>${humanFileSize(docs.reduce((s,d)=>s+(Number(d.size)||0),0))}</strong></div></div><div class="document-category-summary">${farmDocumentCategories.map(c=>{const n=docs.filter(d=>d.category===c).length;return n?`<span>${escapeHtml(c)} <b>${n}</b></span>`:''}).join('')}</div></article></section>
+  <section class="card"><div class="section-title"><div><h3>Documents enregistrés</h3><div class="muted">Ils suivent l’exploitation dans les exports JSON et la synchronisation Supabase.</div></div><input id="documents-search" placeholder="Rechercher un titre, une catégorie…"></div><div id="documents-list" class="farm-documents-list"></div></section>`}`;
+  document.getElementById('documents-farm-select').onchange=e=>{localStorage.setItem('audit-bovin-documents-farm',e.target.value);renderFarmDocuments();};
+  if(!farm)return;
+  const renderList=()=>{const q=normalizeSearchText(document.getElementById('documents-search')?.value||'');const list=docs.filter(d=>!q||normalizeSearchText([d.title,d.category,d.fileName,d.notes].join(' ')).includes(q));document.getElementById('documents-list').innerHTML=list.length?list.map(d=>`<article class="farm-document-card"><div class="farm-document-icon">${String(d.mimeType||'').startsWith('image/')?'🖼️':String(d.mimeType||'').includes('pdf')?'📄':'📎'}</div><div><span class="badge">${escapeHtml(d.category||'Document')}</span><h4>${escapeHtml(d.title||d.fileName||'Document')}</h4><small>${d.documentDate?formatDate(d.documentDate):formatDateTime(d.createdAt)} · ${humanFileSize(d.size)} · ${escapeHtml(d.fileName||'')}</small>${d.notes?`<p>${escapeHtml(d.notes)}</p>`:''}</div><div class="actions"><button class="btn small action-export" data-download-farm-doc="${d.id}">Ouvrir / télécharger</button><button class="btn small danger" data-delete-farm-doc="${d.id}">Supprimer</button></div></article>`).join(''):'<div class="empty">Aucun document correspondant.</div>';app.querySelectorAll('[data-download-farm-doc]').forEach(b=>b.onclick=()=>downloadStoredDocument(farm.documents.find(d=>d.id===b.dataset.downloadFarmDoc)));app.querySelectorAll('[data-delete-farm-doc]').forEach(b=>b.onclick=()=>{if(!confirm('Supprimer définitivement ce document ?'))return;farm.documents=farm.documents.filter(d=>d.id!==b.dataset.deleteFarmDoc);farm.updatedAt=new Date().toISOString();saveDatabase(db);renderFarmDocuments();});};
+  document.getElementById('documents-search').oninput=renderList;renderList();
+  document.getElementById('farm-document-form').onsubmit=e=>{e.preventDefault();const file=document.getElementById('farm-document-file').files?.[0];if(!file)return showToast('Choisissez un fichier.');if(file.size>4*1024*1024)return showToast('Fichier trop volumineux : maximum 4 Mo.');const fd=Object.fromEntries(new FormData(e.currentTarget));const reader=new FileReader();reader.onerror=()=>showToast('Lecture du fichier impossible.');reader.onload=()=>{try{farm.documents.push({id:uid('document'),category:fd.category,title:(fd.title||file.name).trim(),documentDate:fd.documentDate,notes:fd.notes||'',fileName:file.name,mimeType:file.type||'application/octet-stream',size:file.size,dataUrl:reader.result,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});farm.updatedAt=new Date().toISOString();saveDatabase(db);showToast('Document enregistré dans le dossier de l’exploitation.');renderFarmDocuments();}catch(err){console.error(err);showToast('Enregistrement impossible : espace local insuffisant. Réduisez la taille du fichier.');}};reader.readAsDataURL(file);};
+}
+
+const journalEventTypes=['Appel téléphonique','Mail / message','Passage rapide','Action réalisée','Action partiellement réalisée','Difficulté / blocage','Problème sanitaire','Alimentation / ration','Bâtiment / eau / électricité','Reproduction','Mortalité','Retour vétérinaire','Autre'];
+const journalLevels=['Information','À surveiller','Urgent'];
+function ensureFarmTracking(farm){farm.journal=Array.isArray(farm.journal)?farm.journal:[];farm.vigilances=Array.isArray(farm.vigilances)?farm.vigilances:[];return farm;}
+function renderJournalSuivi(){
+  const farmId=localStorage.getItem('audit-bovin-journal-farm')||db.farms[0]?.id||'',farm=db.farms.find(f=>f.id===farmId);if(farm)ensureFarmTracking(farm);
+  const visits=farm?db.visits.filter(v=>v.farmId===farm.id).sort((a,b)=>(b.date||'').localeCompare(a.date||'')):[];
+  const actions=visits.flatMap(v=>(v.analysisActions||[]).map(a=>({visit:v,action:a}))),preAction=localStorage.getItem('audit-bovin-journal-action')||'';localStorage.removeItem('audit-bovin-journal-action');
+  app.innerHTML=`<div class="section-title"><div><h2>📒 Journal & points de vigilance</h2><div class="muted">Noter les nouvelles reçues entre deux visites, les difficultés et les événements sanitaires.</div></div><span class="badge autosave">v14.1.1</span></div>
+  <section class="card journal-farm-select"><div class="field"><label>Exploitation</label><select id="journal-farm-select"><option value="">Choisir…</option>${db.farms.map(f=>`<option value="${f.id}" ${f.id===farmId?'selected':''}>${escapeHtml(f.name)}${f.farmNumber?' · '+escapeHtml(f.farmNumber):''}</option>`).join('')}</select></div></section>
+  ${!farm?'<section class="card empty">Sélectionnez une exploitation.</section>':`
+  <section class="grid cols-2"><form id="journal-entry-form" class="card"><h3>Ajouter une nouvelle</h3><div class="row"><div class="field"><label>Date et heure</label><input name="date" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field"><label>Origine / type</label><select name="type">${journalEventTypes.map(x=>`<option>${x}</option>`).join('')}</select></div></div><div class="row"><div class="field"><label>Niveau</label><select name="level">${journalLevels.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label>Statut</label><select name="status"><option>Ouvert</option><option>Résolu</option><option>À revoir à la prochaine visite</option></select></div></div><div class="field"><label>Description *</label><textarea name="text" required placeholder="Ex. L'éleveur indique que le deuxième abreuvoir est installé…"></textarea></div><div class="row"><div class="field"><label>Visite liée</label><select name="visitId"><option value="">Aucune</option>${visits.map(v=>`<option value="${v.id}">${formatDate(v.date)} · ${escapeHtml(v.type||'Visite')}</option>`).join('')}</select></div><div class="field"><label>Action liée</label><select name="actionId"><option value="">Aucune</option>${actions.map(x=>`<option value="${x.action.id}" ${x.action.id===preAction?'selected':''}>${escapeHtml(x.action.text||'Action')}</option>`).join('')}</select></div></div><div class="field"><label>Technicien</label><input name="technician" value="${escapeHtml(window.auditCloud?.session?.user?.email||'')}"></div><button class="btn primary" type="submit">Enregistrer la nouvelle</button></form>
+  <form id="vigilance-form" class="card"><h3>🚩 Ajouter un point de vigilance</h3><div class="field"><label>Point à garder en mémoire *</label><textarea name="text" required placeholder="Ex. Recontrôler le débit du nouvel abreuvoir."></textarea></div><div class="row"><div class="field"><label>Échéance indicative</label><input name="dueDate" type="date"></div><div class="field"><label>Priorité</label><select name="priority"><option>Haute</option><option selected>Moyenne</option><option>Basse</option></select></div></div><button class="btn primary" type="submit">Ajouter la vigilance</button><hr><h4>Points actifs</h4><div class="vigilance-list">${farm.vigilances.filter(v=>!v.done).length?farm.vigilances.filter(v=>!v.done).map(v=>`<article class="vigilance-item ${v.priority==='Haute'?'high':''}"><div><strong>${escapeHtml(v.text)}</strong><small>${v.dueDate?'Échéance '+formatDate(v.dueDate):'Sans échéance'} · ${escapeHtml(v.priority)}</small></div><button type="button" class="btn small" data-close-vigilance="${v.id}">Marquer vérifié</button></article>`).join(''):'<div class="empty compact">Aucun point actif.</div>'}</div></form></section>
+  <section class="card"><div class="section-title"><div><h3>Chronologie de l'exploitation</h3><div class="muted">Les informations restent indépendantes des visites et sont partagées par la base cloud.</div></div></div><div class="farm-timeline">${farm.journal.length?farm.journal.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(e=>`<article class="timeline-note level-${e.level==='Urgent'?'urgent':e.level==='À surveiller'?'watch':'info'}"><div class="timeline-dot"></div><div><header><strong>${escapeHtml(e.type)}</strong><span>${formatDateTime(e.date)}</span></header><p>${escapeHtml(e.text).replace(/\n/g,'<br>')}</p><small>${escapeHtml(e.technician||'Technicien non renseigné')} · ${escapeHtml(e.status||'Ouvert')}</small>${e.actionId?'<span class="badge">Lié à une action</span>':''}</div><button class="btn small danger" data-delete-journal="${e.id}">Supprimer</button></article>`).join(''):'<div class="empty">Aucune nouvelle enregistrée.</div>'}</div></section>`}`;
+  document.getElementById('journal-farm-select').onchange=e=>{localStorage.setItem('audit-bovin-journal-farm',e.target.value);renderJournalSuivi();};
+  document.getElementById('journal-entry-form')?.addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget));if(!d.text.trim())return;const entry={id:uid('journal'),...d,date:new Date(d.date).toISOString(),createdAt:new Date().toISOString()};farm.journal.push(entry);if(d.actionId){const x=actions.find(x=>x.action.id===d.actionId);if(x){x.action.history=Array.isArray(x.action.history)?x.action.history:[];x.action.history.push({id:uid('action-history'),date:entry.date,status:x.action.status,note:d.text,technician:d.technician});if(d.type==='Action réalisée')x.action.status='Réalisé';if(d.type==='Action partiellement réalisée')x.action.status='En cours';if(d.type==='Difficulté / blocage')x.action.status='Bloquée';x.action.progressNote=d.text;}}farm.updatedAt=new Date().toISOString();saveDatabase(db);showToast('Nouvelle enregistrée.');renderJournalSuivi();});
+  document.getElementById('vigilance-form')?.addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget));if(!d.text.trim())return;farm.vigilances.push({id:uid('vigilance'),...d,done:false,createdAt:new Date().toISOString()});farm.updatedAt=new Date().toISOString();saveDatabase(db);renderJournalSuivi();});
+  app.querySelectorAll('[data-close-vigilance]').forEach(b=>b.onclick=()=>{const v=farm.vigilances.find(x=>x.id===b.dataset.closeVigilance);if(v){v.done=true;v.doneAt=new Date().toISOString();saveDatabase(db);renderJournalSuivi();}});
+  app.querySelectorAll('[data-delete-journal]').forEach(b=>b.onclick=()=>{if(!confirm('Supprimer cette entrée du journal ?'))return;farm.journal=farm.journal.filter(x=>x.id!==b.dataset.deleteJournal);saveDatabase(db);renderJournalSuivi();});
 }
 
 function visitFormHtml(visit = {}) {
@@ -1075,12 +1157,38 @@ function renderPilotageActions(){
   const completed=all.filter(x=>x.action.status==='Réalisé');
   const farmsWithOpen=new Set(open.map(x=>x.visit.farmId)).size;
   const rows=all.slice().sort((a,b)=>{const pa={Haute:0,Moyenne:1,Basse:2}[a.action.priority]??3,pb={Haute:0,Moyenne:1,Basse:2}[b.action.priority]??3;return pa-pb||(a.action.dueDate||'9999').localeCompare(b.action.dueDate||'9999');});
-  app.innerHTML=`<div class="section-title"><div><h2>🎯 Pilotage des actions</h2><div class="muted">Vue commune de toutes les actions décidées lors des visites.</div></div><span class="badge autosave">v14.0</span></div>
+  app.innerHTML=`<div class="section-title"><div><h2>🎯 Pilotage des actions</h2><div class="muted">Vue commune de toutes les actions décidées lors des visites.</div></div><span class="badge autosave">v14.1.1</span></div>
   <section class="grid cols-4 professional-kpis"><article class="card"><span>Actions ouvertes</span><strong>${open.length}</strong></article><article class="card"><span>En retard</span><strong>${overdue.length}</strong></article><article class="card"><span>Échéance sous 30 j</span><strong>${dueSoon.length}</strong></article><article class="card"><span>Exploitations concernées</span><strong>${farmsWithOpen}</strong></article></section>
   <section class="card pilotage-toolbar"><div class="field"><label>Filtrer</label><select id="pilotage-filter"><option value="all">Toutes les actions</option><option value="open">Ouvertes</option><option value="overdue">En retard</option><option value="high">Priorité haute</option><option value="done">Réalisées</option></select></div><div class="field"><label>Recherche</label><input id="pilotage-search" placeholder="Exploitation, action, responsable…"></div></section>
   <section class="card"><div id="pilotage-list" class="pilotage-list"></div></section>`;
-  const renderList=()=>{const f=document.getElementById('pilotage-filter').value,q=normalizeSearchText(document.getElementById('pilotage-search').value);let list=rows.filter(x=>{if(f==='open'&&['Réalisé','Abandonné'].includes(x.action.status))return false;if(f==='overdue'&&!(x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status)))return false;if(f==='high'&&x.action.priority!=='Haute')return false;if(f==='done'&&x.action.status!=='Réalisé')return false;const hay=normalizeSearchText([x.farm?.name,x.farm?.farmNumber,x.action.text,x.action.responsible,x.action.progressNote].join(' '));return !q||hay.includes(q);});document.getElementById('pilotage-list').innerHTML=list.length?list.map(x=>{const late=x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status);return `<article class="pilotage-action ${late?'overdue':''}"><div class="pilotage-action-main"><span class="badge ${actionPriorityClass(x.action.priority)}">${escapeHtml(x.action.priority)}</span><div><strong>${escapeHtml(x.action.text||'Action sans intitulé')}</strong><small>${escapeHtml(x.farm?.name||'Exploitation')} · visite du ${formatDate(x.visit.date)}</small></div></div><div class="pilotage-action-meta"><span>${escapeHtml(x.action.responsible||'Responsable non défini')}</span><span>${x.action.dueDate?`${late?'⚠️ ':''}${formatDate(x.action.dueDate)}`:'Sans échéance'}</span><select data-pilotage-status="${x.action.id}" data-visit-id="${x.visit.id}"><option ${x.action.status==='À faire'?'selected':''}>À faire</option><option ${x.action.status==='En cours'?'selected':''}>En cours</option><option ${x.action.status==='Réalisé'?'selected':''}>Réalisé</option><option ${x.action.status==='Abandonné'?'selected':''}>Abandonné</option></select><button class="btn small" data-open-pilotage-visit="${x.visit.id}">Ouvrir la visite</button></div>${x.action.progressNote?`<p>${escapeHtml(x.action.progressNote)}</p>`:''}</article>`;}).join(''):'<div class="empty">Aucune action correspondant au filtre.</div>';document.querySelectorAll('[data-pilotage-status]').forEach(el=>el.onchange=()=>{const v=db.visits.find(v=>v.id===el.dataset.visitId),a=v?.analysisActions?.find(a=>a.id===el.dataset.pilotageStatus);if(a){a.status=el.value;a.updatedAt=new Date().toISOString();saveDatabase(db);renderPilotageActions();}});document.querySelectorAll('[data-open-pilotage-visit]').forEach(b=>b.onclick=()=>{setActiveVisit(b.dataset.openPilotageVisit);setView('analysis');});};
+  const renderList=()=>{const f=document.getElementById('pilotage-filter').value,q=normalizeSearchText(document.getElementById('pilotage-search').value);let list=rows.filter(x=>{if(f==='open'&&['Réalisé','Abandonné'].includes(x.action.status))return false;if(f==='overdue'&&!(x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status)))return false;if(f==='high'&&x.action.priority!=='Haute')return false;if(f==='done'&&x.action.status!=='Réalisé')return false;const hay=normalizeSearchText([x.farm?.name,x.farm?.farmNumber,x.action.text,x.action.responsible,x.action.progressNote].join(' '));return !q||hay.includes(q);});document.getElementById('pilotage-list').innerHTML=list.length?list.map(x=>{const late=x.action.dueDate&&x.action.dueDate<today&&!['Réalisé','Abandonné'].includes(x.action.status);return `<article class="pilotage-action ${late?'overdue':''}"><div class="pilotage-action-main"><span class="badge ${actionPriorityClass(x.action.priority)}">${escapeHtml(x.action.priority)}</span><div><strong>${escapeHtml(x.action.text||'Action sans intitulé')}</strong><small>${escapeHtml(x.farm?.name||'Exploitation')} · visite du ${formatDate(x.visit.date)}</small></div></div><div class="pilotage-action-meta"><span>${escapeHtml(x.action.responsible||'Responsable non défini')}</span><span>${x.action.dueDate?`${late?'⚠️ ':''}${formatDate(x.action.dueDate)}`:'Sans échéance'}</span><select data-pilotage-status="${x.action.id}" data-visit-id="${x.visit.id}"><option ${x.action.status==='À faire'?'selected':''}>À faire</option><option ${x.action.status==='En cours'?'selected':''}>En cours</option><option ${x.action.status==='Réalisé'?'selected':''}>Réalisé</option><option ${x.action.status==='Bloquée'?'selected':''}>Bloquée</option><option ${x.action.status==='Abandonné'?'selected':''}>Abandonné</option></select><button class="btn small" data-action-news="${x.action.id}" data-farm-id="${x.farm?.id||''}">Ajouter une nouvelle</button><button class="btn small" data-open-pilotage-visit="${x.visit.id}">Ouvrir la visite</button></div>${x.action.progressNote?`<p>${escapeHtml(x.action.progressNote)}</p>`:''}</article>`;}).join(''):'<div class="empty">Aucune action correspondant au filtre.</div>';document.querySelectorAll('[data-pilotage-status]').forEach(el=>el.onchange=()=>{const v=db.visits.find(v=>v.id===el.dataset.visitId),a=v?.analysisActions?.find(a=>a.id===el.dataset.pilotageStatus);if(a){a.status=el.value;a.updatedAt=new Date().toISOString();saveDatabase(db);renderPilotageActions();}});document.querySelectorAll('[data-action-news]').forEach(b=>b.onclick=()=>{localStorage.setItem('audit-bovin-journal-farm',b.dataset.farmId);localStorage.setItem('audit-bovin-journal-action',b.dataset.actionNews);setView('journal');});document.querySelectorAll('[data-open-pilotage-visit]').forEach(b=>b.onclick=()=>{setActiveVisit(b.dataset.openPilotageVisit);setView('analysis');});};
   document.getElementById('pilotage-filter').onchange=renderList;document.getElementById('pilotage-search').oninput=renderList;renderList();
+}
+
+function renderAnalysis() {
+  const visits=db.visits.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!activeVisitId&&visits.length)setActiveVisit(visits[0].id);
+  const visit=activeVisit();
+  if(visit)ensureAnalysisVisit(visit);
+  const tabs=[['numeric','Matrices par famille'],['observations','Observations'],['general','Tamis · Silos · Sol · Plantes'],['reasoning','Raisonnement'],['summary','Statistiques & actions'],['conclusion','Conclusion de visite']];
+  app.innerHTML=`<div class="section-title"><div><h2>Mesures</h2><div class="muted">Saisie des mesures, observations et relevés généraux. La synthèse et le raisonnement restent accessibles dans les onglets internes.</div></div><span class="badge autosave">Sauvegarde automatique</span></div>
+  ${activeVisitBanner(visit)}
+  ${!visit?'<div class="empty" style="margin-top:16px">Choisissez une visite dans l’onglet Visites.</div>':!visit.subjects?.length?'<div class="empty" style="margin-top:16px">Ajoutez des sujets dans l’onglet Animaux.</div>':`<section class="card analysis-utilities"><div class="actions"><button class="btn" id="analysis-demo">Jeu d’essai</button><button class="btn secondary" id="analysis-clear">Effacer l’analyse</button></div></section><nav class="analysis-tabs">${tabs.map(([k,l])=>`<button class="analysis-tab ${activeAnalysisSection===k?'active':''}" data-analysis-section="${k}">${l}</button>`).join('')}</nav><section class="analysis-content">${activeAnalysisSection==='numeric'?renderNumericSection(visit):activeAnalysisSection==='observations'?renderObservationsSection(visit):activeAnalysisSection==='general'?renderGeneralSection(visit):activeAnalysisSection==='reasoning'?renderReasoningSection(visit):activeAnalysisSection==='summary'?renderSynthesisSection(visit):renderConclusionSection(visit)}</section>`}`;
+  app.querySelectorAll('[data-analysis-section]').forEach(b=>b.onclick=()=>{activeAnalysisSection=b.dataset.analysisSection;localStorage.setItem('audit-bovin-active-analysis-section',activeAnalysisSection);renderAnalysis();});
+  app.querySelectorAll('[data-analysis-family]').forEach(b=>b.onclick=()=>{activeAnalysisFamily=b.dataset.analysisFamily;localStorage.setItem('audit-bovin-active-analysis-family',activeAnalysisFamily);renderAnalysis();});
+  app.querySelectorAll('[data-general-kind]').forEach(b=>b.onclick=()=>{activeGeneralKind=b.dataset.generalKind;localStorage.setItem('audit-bovin-active-general-kind',activeGeneralKind);renderAnalysis();});
+  app.querySelectorAll('[data-open-library-theme]').forEach(b=>b.onclick=()=>openLibraryTheme(b.dataset.openLibraryTheme));
+  bindAnalysisEvents(visit);
+  if(activeAnalysisSection==='conclusion')bindConclusionEvents(visit);
+  if (focusedAnalysisSubjectId && activeAnalysisSection === 'numeric') {
+    setTimeout(() => {
+      const row = app.querySelector(`[data-analysis-subject-row="${focusedAnalysisSubjectId}"]`);
+      row?.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
+      row?.querySelector('input')?.focus({ preventScroll:true });
+      focusedAnalysisSubjectId='';
+      localStorage.removeItem('audit-bovin-focused-analysis-subject');
+    }, 80);
+  }
 }
 
 function bindAnalysisEvents(visit) {

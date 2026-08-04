@@ -1,0 +1,12 @@
+AUDIT BOVIN GDS 32-65 — v14.1.1
+
+CORRECTIF BLOQUANT
+- Restauration de la fonction renderAnalysis / écran Mesures.
+- Suppression de l’erreur « renderAnalysis is not defined ».
+- Vérification des renderers principaux et du chargement JavaScript.
+
+NOUVEAU
+- Onglet Documents exploitation.
+- Classement : analyses de fourrages, eau, sol, laboratoire, vétérinaire, plans, rapports, photos et documents partenaires.
+- Fichiers inclus dans la sauvegarde JSON et la base cloud commune.
+- Limite de 4 Mo par fichier pour préserver les performances.
