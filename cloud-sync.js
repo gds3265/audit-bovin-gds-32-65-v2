@@ -44,7 +44,7 @@ function renderSecureGate(){
   if(signedIn() && (document.body.classList.contains('auth-authorized'))) return;
   let gate=document.getElementById('secure-auth-gate');
   if(!gate){gate=document.createElement('div');gate.id='secure-auth-gate';gate.className='secure-auth-gate';document.body.appendChild(gate);}
-  gate.innerHTML=`<div class="secure-auth-card"><div class="secure-auth-brand"><img src="icon-192.png?v=12.1.0" alt=""><div><strong>Audit Bovin GDS 32-65</strong><span>Accès sécurisé techniciens</span></div></div><div class="secure-auth-badge">🔒 Application protégée</div>${secureGateBody()}<p class="secure-auth-note">Aucun accès n’est prévu pour les éleveurs ni pour les utilisateurs non autorisés.</p></div>`;
+  gate.innerHTML=`<div class="secure-auth-card"><div class="secure-auth-brand"><img src="icon-192.png?v=12.2.0" alt=""><div><strong>Audit Bovin GDS 32-65</strong><span>Accès sécurisé techniciens</span></div></div><div class="secure-auth-badge">🔒 Application protégée</div>${secureGateBody()}<p class="secure-auth-note">Aucun accès n’est prévu pour les éleveurs ni pour les utilisateurs non autorisés.</p></div>`;
   bindPanel(gate);
 }
 async function validateStoredSession(){
