@@ -1,0 +1,12 @@
+AUDIT BOVIN GDS 32-65 - v13.0.0 PROFESSIONAL
+
+NOUVEAUTES PRINCIPALES
+- Tableau de bord professionnel de la visite active.
+- Assistant GDS avec synthèse, pistes prioritaires et proposition de plan d’action.
+- Centre d’attention : anomalies, audit incomplet, conclusion, actions et rapports.
+- Indicateurs de suivi par domaine (non diagnostiques).
+- Mode Terrain / Mode Bureau.
+- Thème rose, authentification obligatoire et synchronisation Supabase conservés.
+
+IMPORTANT
+Les indicateurs et pistes sont des aides au raisonnement. Ils doivent être validés par le technicien et ne constituent pas un diagnostic.

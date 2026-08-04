@@ -1,3 +1,5 @@
+AUDIT BOVIN GDS 32-65 - v13.0.0 PROFESSIONAL
+
 AUDIT BOVIN GDS 32-65 — v11.11.0
 
 Nouveauté : export automatique du fichier partenaire PASSAGE au format Excel.
@@ -12,3 +14,6 @@ Déploiement GitHub Pages :
 Le fichier Excel se génère depuis l’onglet Rapports, section « Fichier partenaire PASSAGE ».
 
 Version 12.1.0 : authentification obligatoire et thème rose. Déployer tous les fichiers puis ouvrir avec ?v=12.1.0.
+
+
+Nouveautés : tableau de bord professionnel, Assistant GDS, centre d’attention, indicateurs par domaine et mode Terrain/Bureau.

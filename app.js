@@ -338,41 +338,91 @@ function activeVisitBanner(visit) {
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
 }
 
-function renderDashboard() {
-  const inProgress = db.visits.filter(v => v.status === 'in-progress');
-  const complete = db.visits.filter(v => v.status === 'complete');
-  const subjectCount = db.visits.reduce((sum, visit) => sum + (visit.subjects?.length || 0), 0);
-  const draft = loadDraft();
-  app.innerHTML = `
-    <section class="grid cols-4">
-      <article class="card"><div class="muted">Exploitations</div><div class="metric">${db.farms.length}</div></article>
-      <article class="card"><div class="muted">Visites en cours</div><div class="metric">${inProgress.length}</div></article>
-      <article class="card"><div class="muted">Visites terminées</div><div class="metric">${complete.length}</div></article>
-      <article class="card"><div class="muted">Sujets enregistrés</div><div class="metric">${subjectCount}</div></article>
-    </section>
-    ${draft ? `<section class="card notice warning" style="margin-top:16px"><strong>Une saisie non finalisée a été retrouvée.</strong><div class="actions" style="margin-top:10px"><button class="btn primary" id="resume-draft">Reprendre la saisie</button><button class="btn secondary" id="discard-draft">Ignorer</button></div></section>` : ''}
-    <section class="grid cols-2" style="margin-top:16px">
-      <article class="card">
-        <h2>Commencer</h2>
-        <p class="muted">Les données sont enregistrées automatiquement. Créez une visite, puis ajoutez les sujets dans l’onglet Animaux.</p>
-        <div class="actions"><button class="btn primary" id="new-farm">Nouvelle exploitation</button><button class="btn" id="new-visit">Nouvelle visite</button><button class="btn" id="open-animals">Ouvrir les animaux</button></div>
-      </article>
-      <article class="card">
-        <h2>Dernières visites</h2>
-        ${db.visits.length ? `<ul class="journal">${db.visits.slice().sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||'')).slice(0,5).map(v => `<li><strong>${escapeHtml(farmName(v.farmId))}</strong> — ${formatDate(v.date)}<br><span class="muted">${escapeHtml(v.type || 'Visite')} · ${v.subjects?.length || 0} sujet(s) · ${escapeHtml(v.status === 'complete' ? 'Terminée' : 'En cours')}</span></li>`).join('')}</ul>` : '<div class="empty">Aucune visite enregistrée.</div>'}
-      </article>
-    </section>`;
 
-  document.getElementById('new-farm').onclick = () => { setView('farms'); setTimeout(() => document.getElementById('farm-name')?.focus(), 0); };
-  document.getElementById('new-visit').onclick = () => { setView('visits'); setTimeout(() => document.getElementById('visit-farm')?.focus(), 0); };
-  document.getElementById('open-animals').onclick = () => setView('animals');
-  document.getElementById('resume-draft')?.addEventListener('click', () => { setView(draft.kind === 'farm' ? 'farms' : 'visits'); });
-  document.getElementById('discard-draft')?.addEventListener('click', () => { clearDraft(); renderDashboard(); });
+function visitProfessionalStats(visit){
+  if(!visit)return {completion:0,anomalies:0,measured:0,photos:0,actions:0,actionsDone:0,auditPct:0,pistes:[]};
+  const subjects=visit.subjects||[],groups=categoryAnalysis(visit);
+  const measured=subjects.filter(s=>Object.values(s.measurements?.analysis||{}).some(v=>numericValue(v)!==null)).length;
+  const anomalies=groups.reduce((sum,g)=>sum+g.parameterResults.reduce((n,r)=>n+r.outOfRange,0),0);
+  const a=ensureAuditGlobal(visit),auditPct=auditCompletion(a).pct;
+  const actions=visit.analysisActions||[],actionsDone=actions.filter(x=>x.status==='Réalisé').length;
+  const modules=[
+    subjects.length>0,
+    measured>0,
+    (visit.feeding?.rations||[]).length>0,
+    Object.keys(visit.buildingAudits||{}).length>0,
+    auditPct>=50,
+    !!visit.visitConclusion?.general,
+    (visit.photos||[]).length>0
+  ];
+  const completion=Math.round((modules.filter(Boolean).length/modules.length)*100);
+  const pistes=[];groups.forEach(g=>buildKnowledgePistes(visit,g).forEach(p=>{const state=reasoningState(visit,`${g.category}:${p.id}`);if(state.status!=='dismissed')pistes.push({...p,category:g.category,state});}));
+  const rank={high:3,medium:2,low:1};pistes.sort((a,b)=>(rank[b.confidence.className]||0)-(rank[a.confidence.className]||0)||b.score-a.score);
+  return {completion,anomalies,measured,photos:(visit.photos||[]).length,actions:actions.length,actionsDone,auditPct,pistes};
+}
+function professionalAttentionItems(visit){
+  if(!visit)return [];
+  const s=visitProfessionalStats(visit),items=[];
+  if(!(visit.subjects||[]).length)items.push({level:'warning',icon:'🐄',text:'Aucun sujet enregistré',view:'animals'});
+  if(s.measured===0)items.push({level:'warning',icon:'🧪',text:'Aucune mesure numérique saisie',view:'analysis'});
+  if(s.anomalies>0)items.push({level:'danger',icon:'⚠️',text:`${s.anomalies} valeur(s) hors référence à relire`,view:'analysis'});
+  if(s.auditPct<70)items.push({level:'warning',icon:'📋',text:`Audit global complété à ${s.auditPct} %`,view:'audit'});
+  if(!visit.visitConclusion?.general)items.push({level:'warning',icon:'✍️',text:'Conclusion de visite à valider',view:'analysis'});
+  const pending=(visit.analysisActions||[]).filter(a=>a.status!=='Réalisé').length;if(pending)items.push({level:'info',icon:'🎯',text:`${pending} action(s) encore ouvertes`,view:'analysis'});
+  if(!(visit.generatedReports||[]).length)items.push({level:'info',icon:'📄',text:'Aucun rapport généré',view:'reports'});
+  return items;
+}
+function domainIndicators(visit){
+  if(!visit)return [];
+  const groups=categoryAnalysis(visit),a=ensureAuditGlobal(visit),build=buildingRecords(visit);
+  const countOutside=keys=>groups.reduce((n,g)=>n+g.parameterResults.filter(r=>keys.includes(r.parameter.key)).reduce((s,r)=>s+r.outOfRange,0),0);
+  const score=(base,penalty)=>Math.max(0,Math.min(100,Math.round(base-penalty)));
+  const analysisBase=groups.length?85:20;
+  return [
+    {label:'Santé / analyses',icon:'🩺',value:score(analysisBase,countOutside(['glucose','boh','bloodPH','urea'])*4)},
+    {label:'Digestion',icon:'🧪',value:score(analysisBase,countOutside(['fecesPH','fecesRedox'])*5)},
+    {label:'Eau',icon:'💧',value:score(build.drinkers.length?90:30,build.drinkers.filter(d=>(numericValue(d.flow)||99)<10||['Moyenne','Insuffisante'].includes(d.accessibility)).length*15)},
+    {label:'Bâtiment',icon:'🏠',value:score(Object.keys(visit.buildingAudits||{}).length?85:25,build.questionnaire.filter(q=>['À surveiller','À corriger'].includes(q.status)).length*5)},
+    {label:'Alimentation',icon:'🌾',value:(visit.feeding?.rations||[]).length?80:25},
+    {label:'Reproduction',icon:'📈',value:score(a.answers?.['Intervalle vêlage-vêlage']?.answer?80:35,auditAttentionCount(visit,'reproduction')*4)}
+  ];
+}
+function renderProfessionalIndicators(visit){return `<div class="professional-score-grid">${domainIndicators(visit).map(x=>`<article class="professional-score-card"><span>${x.icon} ${escapeHtml(x.label)}</span><strong>${x.value}</strong><div class="professional-score-bar"><i style="width:${x.value}%"></i></div><small>Indice de suivi, non diagnostique</small></article>`).join('')}</div>`;}
+function renderAssistantGDS(){
+  const visit=activeVisit();if(!visit){renderNoActiveVisit('Assistant GDS');return;}
+  const stats=visitProfessionalStats(visit),auto=autoVisitConclusion(visit),attention=professionalAttentionItems(visit);
+  app.innerHTML=`<div class="section-title"><div><h2>Assistant GDS</h2><div class="muted">Synthèse professionnelle des données de la visite active.</div></div><span class="badge autosave">v13 Professional</span></div>${activeVisitBanner(visit)}
+  <section class="assistant-hero"><div><span class="assistant-kicker">SYNTHESE AUTOMATIQUE</span><h3>${escapeHtml(farmName(visit.farmId))}</h3><p>Les éléments ci-dessous sont construits à partir des données saisies et restent soumis à la validation du technicien.</p></div><div class="assistant-completion"><strong>${stats.completion}%</strong><span>visite structurée</span></div></section>
+  <section class="grid cols-4 professional-kpis"><article class="card"><span>Anomalies</span><strong>${stats.anomalies}</strong></article><article class="card"><span>Sujets mesurés</span><strong>${stats.measured}</strong></article><article class="card"><span>Photos</span><strong>${stats.photos}</strong></article><article class="card"><span>Actions réalisées</span><strong>${stats.actionsDone}/${stats.actions}</strong></article></section>
+  <section class="card"><div class="section-title"><div><h3>Indicateurs par domaine</h3><div class="muted">Repères de suivi calculés à partir de la complétude et des vigilances détectées.</div></div></div>${renderProfessionalIndicators(visit)}</section>
+  <section class="grid cols-2"><article class="card"><h3>✅ Points favorables proposés</h3>${auto.strengths.length?`<ul>${auto.strengths.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`:'<div class="empty">Aucun point favorable automatique suffisamment étayé.</div>'}</article><article class="card"><h3>🔔 Centre d’attention</h3>${attention.length?`<div class="attention-list">${attention.map(x=>`<button class="attention-item ${x.level}" data-attention-view="${x.view}"><span>${x.icon}</span><strong>${escapeHtml(x.text)}</strong><b>›</b></button>`).join('')}</div>`:'<div class="notice"><strong>Aucune étape importante en attente.</strong></div>'}</article></section>
+  <section class="card"><div class="section-title"><div><h3>🧠 Pistes prioritaires</h3><div class="muted">Classées selon le niveau de confiance et le nombre de sources concordantes.</div></div><button class="btn primary" id="assistant-open-analysis">Ouvrir l’analyse détaillée</button></div>${stats.pistes.length?`<div class="assistant-pistes">${stats.pistes.slice(0,6).map((p,i)=>`<article><span class="assistant-rank">${i+1}</span><div><small>${escapeHtml(p.category)}</small><h4>${escapeHtml(p.title)}</h4><p>${escapeHtml(p.summary)}</p><span class="confidence ${p.confidence.className}">Confiance ${escapeHtml(p.confidence.label)} · ${p.sourceCount} source(s)</span></div></article>`).join('')}</div>`:'<div class="empty">Aucune piste suffisamment étayée. Complétez les mesures et les modules de contexte.</div>'}</section>
+  <section class="card"><h3>🎯 Proposition de plan d’action</h3><div class="assistant-actions">${auto.priorities.filter(x=>x.text).map((x,i)=>`<div><span>${i+1}</span><strong>${escapeHtml(x.text)}</strong><small>${escapeHtml(x.source||'')}</small></div>`).join('')||'<div class="empty">Aucune action automatique proposée.</div>'}</div><div class="actions"><button class="btn" id="assistant-open-conclusion">Valider dans la conclusion</button><button class="btn secondary" id="assistant-open-reports">Préparer le rapport</button></div></section>`;
+  app.querySelectorAll('[data-attention-view]').forEach(b=>b.onclick=()=>setView(b.dataset.attentionView));
+  document.getElementById('assistant-open-analysis').onclick=()=>setView('analysis');
+  document.getElementById('assistant-open-conclusion').onclick=()=>setView('analysis');
+  document.getElementById('assistant-open-reports').onclick=()=>setView('reports');
+}
+function renderDashboard() {
+  const inProgress=db.visits.filter(v=>v.status==='in-progress'),complete=db.visits.filter(v=>v.status==='complete');
+  const subjectCount=db.visits.reduce((sum,v)=>sum+(v.subjects?.length||0),0),draft=loadDraft(),visit=activeVisit(),stats=visitProfessionalStats(visit),attention=professionalAttentionItems(visit);
+  app.innerHTML=`<div class="professional-dashboard-head"><div><span class="assistant-kicker">AUDIT BOVIN GDS 32-65</span><h2>Tableau de bord professionnel</h2><p>${visit?`Visite active : <strong>${escapeHtml(visitLabel(visit))}</strong>`:'Ouvrez une visite pour afficher son avancement détaillé.'}</p></div>${visit?`<div class="dashboard-ring" style="--pct:${stats.completion}"><strong>${stats.completion}%</strong><span>avancement</span></div>`:''}</div>
+  <section class="grid cols-4 professional-kpis"><article class="card"><span>Exploitations</span><strong>${db.farms.length}</strong></article><article class="card"><span>Visites en cours</span><strong>${inProgress.length}</strong></article><article class="card"><span>Visites terminées</span><strong>${complete.length}</strong></article><article class="card"><span>Sujets enregistrés</span><strong>${subjectCount}</strong></article></section>
+  ${draft?`<section class="card notice warning" style="margin-top:16px"><strong>Une saisie non finalisée a été retrouvée.</strong><div class="actions" style="margin-top:10px"><button class="btn primary" id="resume-draft">Reprendre la saisie</button><button class="btn secondary" id="discard-draft">Ignorer</button></div></section>`:''}
+  ${visit?`<section class="grid cols-4 dashboard-visit-kpis"><article class="card"><span>🧪 Valeurs hors réf.</span><strong>${stats.anomalies}</strong></article><article class="card"><span>📷 Photos</span><strong>${stats.photos}</strong></article><article class="card"><span>📋 Audit global</span><strong>${stats.auditPct}%</strong></article><article class="card"><span>🎯 Actions réalisées</span><strong>${stats.actionsDone}/${stats.actions}</strong></article></section>
+  <section class="grid cols-2"><article class="card"><div class="section-title"><div><h3>Centre d’attention</h3><div class="muted">Ce qui mérite une action ou une vérification.</div></div></div>${attention.length?`<div class="attention-list">${attention.slice(0,7).map(x=>`<button class="attention-item ${x.level}" data-attention-view="${x.view}"><span>${x.icon}</span><strong>${escapeHtml(x.text)}</strong><b>›</b></button>`).join('')}</div>`:'<div class="notice"><strong>La visite ne présente aucune étape majeure en attente.</strong></div>'}</article><article class="card"><div class="section-title"><div><h3>Assistant GDS</h3><div class="muted">Pistes prioritaires actuellement détectées.</div></div><button class="btn primary" id="open-assistant">Ouvrir</button></div>${stats.pistes.length?`<div class="dashboard-pistes">${stats.pistes.slice(0,3).map(p=>`<div><strong>${escapeHtml(p.title)}</strong><span>${escapeHtml(p.category)} · confiance ${escapeHtml(p.confidence.label)}</span></div>`).join('')}</div>`:'<div class="empty">Complétez les mesures pour générer les pistes.</div>'}</article></section>
+  <section class="card"><h3>Indicateurs de suivi par domaine</h3>${renderProfessionalIndicators(visit)}</section>`:''}
+  <section class="grid cols-2" style="margin-top:16px"><article class="card"><h2>Actions rapides</h2><div class="actions"><button class="btn primary" id="new-farm">Nouvelle exploitation</button><button class="btn" id="new-visit">Nouvelle visite</button><button class="btn" id="open-animals">Ouvrir les animaux</button>${visit?'<button class="btn secondary" id="open-report">Rapports</button>':''}</div></article><article class="card"><h2>Dernières visites</h2>${db.visits.length?`<ul class="journal">${db.visits.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).slice(0,5).map(v=>`<li><strong>${escapeHtml(farmName(v.farmId))}</strong> — ${formatDate(v.date)}<br><span class="muted">${escapeHtml(v.type||'Visite')} · ${v.subjects?.length||0} sujet(s) · ${escapeHtml(v.status==='complete'?'Terminée':'En cours')}</span></li>`).join('')}</ul>`:'<div class="empty">Aucune visite enregistrée.</div>'}</article></section>`;
+  document.getElementById('new-farm').onclick=()=>{setView('farms');setTimeout(()=>document.getElementById('farm-name')?.focus(),0)};
+  document.getElementById('new-visit').onclick=()=>{setView('visits');setTimeout(()=>document.getElementById('visit-farm')?.focus(),0)};
+  document.getElementById('open-animals').onclick=()=>setView('animals');document.getElementById('open-report')?.addEventListener('click',()=>setView('reports'));document.getElementById('open-assistant')?.addEventListener('click',()=>setView('assistant'));
+  app.querySelectorAll('[data-attention-view]').forEach(b=>b.onclick=()=>setView(b.dataset.attentionView));
+  document.getElementById('resume-draft')?.addEventListener('click',()=>setView(draft.kind==='farm'?'farms':'visits'));document.getElementById('discard-draft')?.addEventListener('click',()=>{clearDraft();renderDashboard()});
 }
 
 function renderFarms() {
@@ -2054,5 +2104,9 @@ window.addEventListener('error', event => {
   app.prepend(errorBox);
 });
 
+
+function applyWorkMode(mode){document.body.classList.toggle('terrain-mode',mode==='terrain');localStorage.setItem('audit-bovin-work-mode',mode);const b=document.getElementById('work-mode-toggle');if(b)b.textContent=mode==='terrain'?'🖥️ Mode Bureau':'📱 Mode Terrain';}
+function initWorkMode(){const current=localStorage.getItem('audit-bovin-work-mode')||'bureau';applyWorkMode(current);document.getElementById('work-mode-toggle')?.addEventListener('click',()=>applyWorkMode(document.body.classList.contains('terrain-mode')?'bureau':'terrain'));}
+initWorkMode();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=11.10.6',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();
