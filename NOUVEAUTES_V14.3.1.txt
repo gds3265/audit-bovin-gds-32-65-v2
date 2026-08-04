@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.3.1
+
+CORRECTIF MODE TERRAIN / BUREAU
+- Rétablissement visible du bouton dans le bandeau supérieur.
+- Mode Terrain : interface simplifiée, boutons et champs adaptés à la saisie mobile.
+- Mode Bureau : accès à l'ensemble des modules, analyses, documents, pilotage et restitutions.
+- Mémorisation automatique du dernier mode utilisé.
+- Conservation intégrale des ajouts Nutrition de la v14.3.
+- Mise à jour du cache hors ligne et des numéros de version.

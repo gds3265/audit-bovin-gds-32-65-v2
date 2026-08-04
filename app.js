@@ -2012,7 +2012,7 @@ async function partnerWorkbookSetCell(zip,path,ref,value,cache){
 async function exportPartnerWorkbook(visit,phase='auto'){
   if(typeof JSZip==='undefined'){showToast('Module Excel indisponible.');return;}
   const farm=db.farms.find(f=>f.id===visit.farmId);if(!farm)return showToast('Exploitation introuvable.');
-  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.2.1',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
+  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.3.1',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
   const zip=await JSZip.loadAsync(await response.arrayBuffer()),cache={};const requiredSheets=[1,2,4,5,6].map(n=>`xl/worksheets/sheet${n}.xml`);const missingSheets=requiredSheets.filter(path=>!zip.file(path));if(missingSheets.length)throw new Error(`Modèle partenaire incomplet : ${missingSheets.join(', ')}`);const a=ensureAuditGlobal(visit),item=linkedHerdImportForVisit(visit),col=partnerPhaseColumn(visit,phase),summary=partnerVisitSummary(visit),st=item?.current?.structure||{},mv=item?.current?.movements||{},mort=item?.years?.N?.mortality||{},rep=item?.years?.N?.reproduction||{};
   const writes=[];const set=(sheet,cell,value)=>writes.push(()=>partnerWorkbookSetCell(zip,`xl/worksheets/sheet${sheet}.xml`,cell,value,cache));
   // Données exploitation
@@ -2394,9 +2394,39 @@ function initGlobalSearch(){
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openUniversalSearch();}});
 }
 
-function applyWorkMode(mode){document.body.classList.toggle('terrain-mode',mode==='terrain');localStorage.setItem('audit-bovin-work-mode',mode);const b=document.getElementById('work-mode-toggle');if(b)b.textContent=mode==='terrain'?'🖥️ Mode Bureau':'📱 Mode Terrain';}
-function initWorkMode(){const current=localStorage.getItem('audit-bovin-work-mode')||'bureau';applyWorkMode(current);document.getElementById('work-mode-toggle')?.addEventListener('click',()=>applyWorkMode(document.body.classList.contains('terrain-mode')?'bureau':'terrain'));}
+function applyWorkMode(mode){
+  const normalized=mode==='terrain'?'terrain':'bureau';
+  document.body.classList.toggle('terrain-mode',normalized==='terrain');
+  localStorage.setItem('audit-bovin-work-mode',normalized);
+  const b=document.getElementById('work-mode-toggle');
+  if(b){
+    b.textContent=normalized==='terrain'?'🖥️ Passer en mode Bureau':'📱 Passer en mode Terrain';
+    b.setAttribute('aria-pressed',normalized==='terrain'?'true':'false');
+    b.title=normalized==='terrain'?'Afficher tous les modules et bilans':'Simplifier l’interface pour la saisie sur le terrain';
+  }
+}
+function initWorkMode(){
+  const header=document.querySelector('.app-header');
+  if(!header)return;
+  let tools=header.querySelector('.header-tools');
+  if(!tools){
+    tools=document.createElement('div');
+    tools.className='header-tools';
+    const version=header.querySelector('.version');
+    if(version)header.insertBefore(tools,version);else header.appendChild(tools);
+  }
+  let button=document.getElementById('work-mode-toggle');
+  if(!button){
+    button=document.createElement('button');
+    button.id='work-mode-toggle';
+    button.className='work-mode-toggle';
+    button.type='button';
+    tools.appendChild(button);
+  }
+  button.onclick=()=>applyWorkMode(document.body.classList.contains('terrain-mode')?'bureau':'terrain');
+  applyWorkMode(localStorage.getItem('audit-bovin-work-mode')||'bureau');
+}
 initWorkMode();
 initGlobalSearch();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.0.0',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.3.1',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();
