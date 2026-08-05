@@ -1,0 +1,7 @@
+AUDIT BOVIN GDS 32-65 — V14.4.1
+
+Correctif de chargement :
+- harmonisation de toutes les références de version ;
+- nouveau cache Service Worker ;
+- conservation du module Reproduction ;
+- message d'erreur visible sans blocage total de la navigation.

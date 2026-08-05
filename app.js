@@ -487,8 +487,15 @@ function harmonizeActionButtons(root=document){
 function render() {
   const renderers = { dashboard: renderDashboard, farms: renderFarms, journal: renderJournalSuivi, documents: renderFarmDocuments, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, nutrition: renderNutritionAnalysis, reproduction: renderReproduction, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
-  renderers[currentView]?.();
-  harmonizeActionButtons(app);
+  try {
+    const renderer = renderers[currentView] || renderDashboard;
+    renderer();
+    harmonizeActionButtons(app);
+  } catch (error) {
+    console.error('Erreur de rendu', currentView, error);
+    app.innerHTML = `<section class="card notice warning"><strong>Le module n’a pas pu s’afficher.</strong><br><span class="muted">${escapeHtml(error?.message || String(error))}</span><div class="actions" style="margin-top:12px"><button class="btn primary" id="return-dashboard-after-error">Retour à l’accueil</button></div></section>`;
+    document.getElementById('return-dashboard-after-error')?.addEventListener('click',()=>setView('dashboard'));
+  }
 }
 
 
@@ -2025,7 +2032,7 @@ async function partnerWorkbookSetCell(zip,path,ref,value,cache){
 async function exportPartnerWorkbook(visit,phase='auto'){
   if(typeof JSZip==='undefined'){showToast('Module Excel indisponible.');return;}
   const farm=db.farms.find(f=>f.id===visit.farmId);if(!farm)return showToast('Exploitation introuvable.');
-  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.3.1',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
+  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.4.1',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
   const zip=await JSZip.loadAsync(await response.arrayBuffer()),cache={};const requiredSheets=[1,2,4,5,6].map(n=>`xl/worksheets/sheet${n}.xml`);const missingSheets=requiredSheets.filter(path=>!zip.file(path));if(missingSheets.length)throw new Error(`Modèle partenaire incomplet : ${missingSheets.join(', ')}`);const a=ensureAuditGlobal(visit),item=linkedHerdImportForVisit(visit),col=partnerPhaseColumn(visit,phase),summary=partnerVisitSummary(visit),st=item?.current?.structure||{},mv=item?.current?.movements||{},mort=item?.years?.N?.mortality||{},rep=item?.years?.N?.reproduction||{};
   const writes=[];const set=(sheet,cell,value)=>writes.push(()=>partnerWorkbookSetCell(zip,`xl/worksheets/sheet${sheet}.xml`,cell,value,cache));
   // Données exploitation
@@ -2355,6 +2362,15 @@ window.addEventListener('error', event => {
   app.prepend(errorBox);
 });
 
+window.addEventListener('unhandledrejection', event => {
+  console.error(event.reason);
+  const message = event.reason?.message || String(event.reason || 'Erreur asynchrone inconnue');
+  const errorBox = document.createElement('div');
+  errorBox.className = 'card notice warning';
+  errorBox.innerHTML = `<strong>Une erreur a été détectée.</strong><br><span class="muted">${escapeHtml(message)}</span>`;
+  app.prepend(errorBox);
+});
+
 
 
 function normalizedSearchText(value=''){
@@ -2515,5 +2531,5 @@ function initWorkMode(){
 }
 initWorkMode();
 initGlobalSearch();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.3.1',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.4.1',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();
