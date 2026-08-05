@@ -2032,7 +2032,7 @@ async function partnerWorkbookSetCell(zip,path,ref,value,cache){
 async function exportPartnerWorkbook(visit,phase='auto'){
   if(typeof JSZip==='undefined'){showToast('Module Excel indisponible.');return;}
   const farm=db.farms.find(f=>f.id===visit.farmId);if(!farm)return showToast('Exploitation introuvable.');
-  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.4.1',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
+  let response=await fetch('./modele-partenaires-passage-bv.xlsx?v=14.4.2',{cache:'no-store'});if(!response.ok)response=await fetch('./modele-partenaires-passage-bv.xlsx',{cache:'reload'});if(!response.ok)throw new Error('Modèle partenaire introuvable');
   const zip=await JSZip.loadAsync(await response.arrayBuffer()),cache={};const requiredSheets=[1,2,4,5,6].map(n=>`xl/worksheets/sheet${n}.xml`);const missingSheets=requiredSheets.filter(path=>!zip.file(path));if(missingSheets.length)throw new Error(`Modèle partenaire incomplet : ${missingSheets.join(', ')}`);const a=ensureAuditGlobal(visit),item=linkedHerdImportForVisit(visit),col=partnerPhaseColumn(visit,phase),summary=partnerVisitSummary(visit),st=item?.current?.structure||{},mv=item?.current?.movements||{},mort=item?.years?.N?.mortality||{},rep=item?.years?.N?.reproduction||{};
   const writes=[];const set=(sheet,cell,value)=>writes.push(()=>partnerWorkbookSetCell(zip,`xl/worksheets/sheet${sheet}.xml`,cell,value,cache));
   // Données exploitation
@@ -2428,7 +2428,7 @@ function initGlobalSearch(){
 function cleanCsvCell(value='') {
   return String(value ?? '').replace(/^\uFEFF/, '').trim().replace(/^="(.*)"$/s, '$1').replace(/^"(.*)"$/s, '$1').trim();
 }
-function parseFrenchDate(value='') {
+function parseRegistryFrenchDate(value='') {
   const v=cleanCsvCell(value); if(!v)return '';
   const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
   return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';
@@ -2472,7 +2472,7 @@ function importHerdRegistryRows(rows){
   const headers=rows[0].map(x=>normalizeSearchText(x)); const col=(...names)=>{for(const n of names){const i=headers.indexOf(normalizeSearchText(n));if(i>=0)return i;}return -1;};
   const ix={id:col('Identifiant bovin'),work:col('Numéro travail','Numero travail'),birth:col('Date naissance'),sex:col('Sexe'),breed:col('Type racial'),name:col('Nom'),mother:col('Numéro mère','Numero mere'),motherBreed:col('Type racial mère','Type racial mere'),farm:col('Exploitation'),entry:col('Date entrée','Date entree'),entryCause:col("Cause d'entrée"),exit:col('Date sortie'),exitCause:col('Cause de sortie')};
   if(ix.id<0||ix.birth<0||ix.mother<0)throw new Error('Colonnes Identifiant bovin, Date naissance ou Numéro mère introuvables.');
-  return rows.slice(1).map(r=>({id:cleanCsvCell(r[ix.id]),workNumber:ix.work>=0?cleanCsvCell(r[ix.work]):'',birthDate:parseFrenchDate(r[ix.birth]),sex:ix.sex>=0?cleanCsvCell(r[ix.sex]):'',breed:ix.breed>=0?cleanCsvCell(r[ix.breed]):'',name:ix.name>=0?cleanCsvCell(r[ix.name]):'',motherId:ix.mother>=0?cleanCsvCell(r[ix.mother]):'',motherBreed:ix.motherBreed>=0?cleanCsvCell(r[ix.motherBreed]):'',farmNumber:ix.farm>=0?cleanCsvCell(r[ix.farm]):'',entryDate:ix.entry>=0?parseFrenchDate(r[ix.entry]):'',entryCause:ix.entryCause>=0?cleanCsvCell(r[ix.entryCause]):'',exitDate:ix.exit>=0?parseFrenchDate(r[ix.exit]):'',exitCause:ix.exitCause>=0?cleanCsvCell(r[ix.exitCause]):''})).filter(a=>a.id);
+  return rows.slice(1).map(r=>({id:cleanCsvCell(r[ix.id]),workNumber:ix.work>=0?cleanCsvCell(r[ix.work]):'',birthDate:parseRegistryFrenchDate(r[ix.birth]),sex:ix.sex>=0?cleanCsvCell(r[ix.sex]):'',breed:ix.breed>=0?cleanCsvCell(r[ix.breed]):'',name:ix.name>=0?cleanCsvCell(r[ix.name]):'',motherId:ix.mother>=0?cleanCsvCell(r[ix.mother]):'',motherBreed:ix.motherBreed>=0?cleanCsvCell(r[ix.motherBreed]):'',farmNumber:ix.farm>=0?cleanCsvCell(r[ix.farm]):'',entryDate:ix.entry>=0?parseRegistryFrenchDate(r[ix.entry]):'',entryCause:ix.entryCause>=0?cleanCsvCell(r[ix.entryCause]):'',exitDate:ix.exit>=0?parseRegistryFrenchDate(r[ix.exit]):'',exitCause:ix.exitCause>=0?cleanCsvCell(r[ix.exitCause]):''})).filter(a=>a.id);
 }
 let reproductionSort=localStorage.getItem('audit-bovin-repro-sort')||'lastCalvingOld';
 let reproductionFilter=localStorage.getItem('audit-bovin-repro-filter')||'all';
@@ -2531,5 +2531,5 @@ function initWorkMode(){
 }
 initWorkMode();
 initGlobalSearch();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.4.1',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.4.2',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();

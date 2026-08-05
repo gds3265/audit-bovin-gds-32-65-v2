@@ -1,0 +1,7 @@
+AUDIT BOVIN GDS 32-65 — V14.4.2
+
+CORRECTIF BLOQUANT
+- Suppression du conflit de nom parseFrenchDate dans app.js.
+- Le conflit empêchait le chargement complet du JavaScript et bloquait tous les boutons.
+- Module Reproduction conservé.
+- Cache et références harmonisés en v14.4.2.
