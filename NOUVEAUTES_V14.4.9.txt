@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.4.9
+
+CORRECTIF SYNCHRONISATION
+- Suppression de la boucle de rechargement accueil.
+- La date de fusion n’est plus recréée à chaque synchronisation.
+- Envoi cloud uniquement si le contenu fusionné diffère réellement du cloud.
+- Rechargement uniquement lorsqu’une donnée locale a réellement changé.
+- Navigation, Reproduction, Nutrition et modes Terrain/Bureau conservés.

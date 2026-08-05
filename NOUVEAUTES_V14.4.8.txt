@@ -1,4 +1,4 @@
-Audit Bovin GDS 32-65 — v14.4.8
+Audit Bovin GDS 32-65 — v14.4.9
 
 - Correction de l'écrasement des visites lors de la synchronisation cloud.
 - Fusion des exploitations, visites et imports par identifiant au lieu de remplacer toute la base.

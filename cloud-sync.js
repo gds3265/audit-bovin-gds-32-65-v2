@@ -38,7 +38,7 @@ function mergeDatabases(local={},remote={}){
     farms:mergeById(local.farms||[],remote.farms||[]),
     visits:mergeById(local.visits||[],remote.visits||[]),
     herdImports:mergeById(local.herdImports||[],remote.herdImports||[]),
-    updatedAt:new Date(Math.max(Date.parse(local.updatedAt||0)||0,Date.parse(remote.updatedAt||0)||0,Date.now())).toISOString()
+    updatedAt:new Date(Math.max(Date.parse(local.updatedAt||0)||0,Date.parse(remote.updatedAt||0)||0)).toISOString()
   };
 }
 
@@ -135,35 +135,61 @@ async function createDailyBackup(db){
   await request('/rest/v1/backup_snapshots?on_conflict=backup_date',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{backup_date:date,payload:db,updated_at:nowIso(),created_by:session.user.email}});
 }
 async function initialSync(){
-  if(!signedIn()||!navigator.onLine)return;
+  if(!signedIn()||!navigator.onLine||syncing)return;
   syncing=true;renderStatus();
+  let reloadNeeded=false;
+  let uploadNeeded=false;
   try{
-    const remote=await fetchRemoteState();const local=localDb();
-    if(!remote){syncing=false;await uploadState({silent:true});toast('Base locale envoyée dans le cloud.');return;}
+    const remote=await fetchRemoteState();
+    const local=localDb();
+    if(!remote){
+      syncing=false;
+      await uploadState({silent:true});
+      toast('Base locale envoyée dans le cloud.');
+      return;
+    }
     lastRemoteVersion=Number(remote.version)||0;
-    const merged=mergeDatabases(local,remote.payload||{});
-    localStorage.setItem(DB_KEY,JSON.stringify(merged));
+    const remoteDb=remote.payload||{};
+    const merged=mergeDatabases(local,remoteDb);
+    const localJson=JSON.stringify(local);
+    const remoteJson=JSON.stringify(remoteDb);
+    const mergedJson=JSON.stringify(merged);
+    reloadNeeded=localJson!==mergedJson;
+    uploadNeeded=remoteJson!==mergedJson;
+    if(reloadNeeded)localStorage.setItem(DB_KEY,mergedJson);
+    lastUploadedAt=merged.updatedAt||'';
     syncing=false;
-    await uploadState({silent:true});
-    toast('Bases locale et cloud fusionnées sans supprimer les visites.');
-    if(JSON.stringify(local)!==JSON.stringify(merged))setTimeout(()=>location.reload(),700);
+    if(uploadNeeded)await uploadState({silent:true});
+    toast(reloadNeeded?'Bases locale et cloud fusionnées sans supprimer les visites.':'Base déjà synchronisée.');
+    if(reloadNeeded)setTimeout(()=>location.reload(),700);
   }catch(e){console.error(e);toast(`Connexion cloud : ${e.message}`);}
   finally{syncing=false;renderStatus();}
 }
 async function pollRemote(){
   if(!signedIn()||!navigator.onLine||syncing)return;
+  syncing=true;renderStatus();
   try{
     const remote=await fetchRemoteState();if(!remote)return;
     const remoteVersion=Number(remote.version)||0;if(remoteVersion<=lastRemoteVersion)return;
     const local=localDb();
-    const merged=mergeDatabases(local,remote.payload||{});
+    const remoteDb=remote.payload||{};
+    const merged=mergeDatabases(local,remoteDb);
+    const localJson=JSON.stringify(local);
+    const remoteJson=JSON.stringify(remoteDb);
+    const mergedJson=JSON.stringify(merged);
+    const reloadNeeded=localJson!==mergedJson;
+    const uploadNeeded=remoteJson!==mergedJson;
     lastRemoteVersion=remoteVersion;
-    localStorage.setItem(DB_KEY,JSON.stringify(merged));
+    if(reloadNeeded)localStorage.setItem(DB_KEY,mergedJson);
+    lastUploadedAt=merged.updatedAt||'';
     syncing=false;
-    await uploadState({silent:true});
-    toast(`Mise à jour de ${remote.updated_by||'un collègue'} fusionnée sans écraser les visites.`);
-    setTimeout(()=>location.reload(),700);
+    if(uploadNeeded)await uploadState({silent:true});
+    if(reloadNeeded){
+      toast(`Mise à jour de ${remote.updated_by||'un collègue'} fusionnée sans écraser les visites.`);
+      setTimeout(()=>location.reload(),700);
+    }
   }catch(e){console.warn('Vérification cloud',e);}
+  finally{syncing=false;renderStatus();}
 }
 function scheduleUpload(){
   if(!signedIn())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>uploadState({silent:true}),2200);
