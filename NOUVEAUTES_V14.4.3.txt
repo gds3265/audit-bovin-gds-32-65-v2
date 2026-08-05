@@ -1,4 +1,4 @@
-AUDIT BOVIN GDS 32-65 — V14.4.4
+AUDIT BOVIN GDS 32-65 — V14.4.7
 
 CORRECTIF REPRODUCTION
 - Les fiches individuelles peuvent utiliser tout le registre historique, y compris les femelles sorties.

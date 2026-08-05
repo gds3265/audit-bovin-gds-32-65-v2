@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.4.7
+
+Correctif ciblé des imports CSV technico-économiques :
+- sélection obligatoire de l’exploitation avant import ;
+- chaque import reçoit un identifiant unique, même pour la même période ;
+- aucune détection automatique ne peut déplacer un fichier vers une autre exploitation ;
+- chaque visite conserve une copie figée du CSV qui lui est associé ;
+- les rapports utilisent exclusivement la copie de la visite ;
+- supprimer ou importer un autre CSV ne modifie plus les visites existantes.
