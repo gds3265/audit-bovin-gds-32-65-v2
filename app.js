@@ -319,6 +319,7 @@ function migrateDatabase() {
   db.farms = Array.isArray(db.farms) ? db.farms : [];
   db.visits = Array.isArray(db.visits) ? db.visits : [];
   db.herdImports = Array.isArray(db.herdImports) ? db.herdImports : [];
+  db.animalRegisters = Array.isArray(db.animalRegisters) ? db.animalRegisters : [];
   db.visits.forEach(visit => {
     visit.subjects = Array.isArray(visit.subjects) ? visit.subjects : [];
     visit.subjects.forEach(subject => {
@@ -484,7 +485,7 @@ function harmonizeActionButtons(root=document){
 }
 
 function render() {
-  const renderers = { dashboard: renderDashboard, farms: renderFarms, journal: renderJournalSuivi, documents: renderFarmDocuments, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, nutrition: renderNutritionAnalysis, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
+  const renderers = { dashboard: renderDashboard, farms: renderFarms, journal: renderJournalSuivi, documents: renderFarmDocuments, visits: renderVisits, animals: renderAnimals, analysis: renderAnalysis, assistant: renderAssistantGDS, feeding: renderFeeding, nutrition: renderNutritionAnalysis, building: renderBuilding, audit: renderAuditGlobal, planches: renderPlanches, photos: renderPhotos, herddata: renderHerdData, reproduction: renderReproduction, followup: renderFollowup, pilotage: renderPilotageActions, reports: renderReports, backup: renderBackup };
   app.innerHTML = '';
   renderers[currentView]?.();
   harmonizeActionButtons(app);
@@ -792,7 +793,10 @@ function subjectCardHtml(subject, index) {
 }
 
 function subjectDetailsHtml(subject) {
+  const regInfo = subject.registerAnimalId ? findRegisterAnimal(subject.registerAnimalId, activeVisit()?.farmId).matches[0] : null;
+  const reproInfo = regInfo ? reproductionData(activeFarmRegister(), parseFrDate(activeVisit()?.date)||new Date()).cows.find(c=>normalizeAnimalId(c.id)===normalizeAnimalId(regInfo.id)) : null;
   return `<form class="subject-details" data-subject-form="${subject.id}">
+    ${regInfo?`<section class="notice animal-identity-import"><strong>📥 Identité complétée depuis le registre</strong><div class="grid cols-4"><span><b>N° complet</b>${escapeHtml(regInfo.id)}</span><span><b>Naissance / âge</b>${formatDate(regInfo.birthDate)} · ${escapeHtml(subject.age||'')}</span><span><b>Race</b>${escapeHtml(regInfo.raceCode||'—')}</span><span><b>Mère</b>${escapeHtml(regInfo.motherId||'—')}</span>${reproInfo?`<span><b>Dernier vêlage</b>${reproInfo.lastCalving?formatDate(reproInfo.lastCalving):'—'}</span><span><b>Dernier veau</b>${escapeHtml(reproInfo.lastCalf?.id||'—')}</span><span><b>IVV moyen</b>${reproInfo.avgIVV?reproInfo.avgIVV+' j':'—'}</span><span><b>Âge 1er vêlage</b>${reproInfo.ageFirst!==null?reproInfo.ageFirst+' mois':'—'}</span>`:''}</div></section>`:''}
     <div class="grid cols-2">
       <section>
         <h4>Identification</h4>
@@ -806,6 +810,8 @@ function subjectDetailsHtml(subject) {
         <div class="field"><label>Stade physiologique</label><select name="stage">${physiologicalStages.map(value => `<option ${subject.stage === value ? 'selected' : ''}>${value}</option>`).join('')}</select></div>
         <div class="row"><div class="field"><label>Mois de gestation</label><input name="gestationMonths" type="number" min="1" max="9" inputmode="numeric" value="${escapeHtml(subject.gestationMonths || '')}" /></div><div class="field"><label>Jours en lactation</label><input name="lactationDays" type="number" min="0" inputmode="numeric" value="${escapeHtml(subject.lactationDays || '')}" /></div></div>
         <div class="row"><div class="field"><label>Âge</label><input name="age" value="${escapeHtml(subject.age || '')}" placeholder="Ex. 4 ans" /></div><div class="field"><label>Rang</label><input name="rank" type="number" min="0" inputmode="numeric" value="${escapeHtml(subject.rank || '')}" /></div></div>
+        <div class="row"><div class="field"><label>Date de naissance</label><input name="birthDate" type="date" value="${escapeHtml(subject.birthDate || '')}" /></div><div class="field"><label>Code race</label><input name="raceCode" value="${escapeHtml(subject.raceCode || '')}" /></div></div>
+        <div class="field"><label>Numéro de la mère</label><input name="motherNumber" value="${escapeHtml(subject.motherNumber || '')}" /></div>
         <div class="field"><label>Lot</label><input name="lot" value="${escapeHtml(subject.lot || '')}" /></div>
       </section>
     </div>
@@ -845,14 +851,18 @@ function renderAnimals() {
   quickForm?.addEventListener('submit', event => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(quickForm));
-    const tag = data.tag.trim();
+    let tag = data.tag.trim();
     if (!tag) return showToast('Le numéro de boucle ou le repère est obligatoire.');
-    if (visit.subjects.some(subject => subject.tag?.trim().toLowerCase() === tag.toLowerCase())) return showToast('Ce numéro est déjà présent dans la visite.');
+    const found=findRegisterAnimal(tag,visit.farmId);
+    if(found.matches.length===1) tag=found.matches[0].id;
+    else if(found.matches.length>1){const choices=found.matches.slice(0,12).map((a,i)=>`${i+1}. ${a.id} — né(e) ${formatDate(a.birthDate)} — race ${a.raceCode}`).join('\n');const answer=prompt(`Plusieurs bovins correspondent à ${data.tag}. Saisissez le numéro de ligne :\n${choices}`);const pick=found.matches[Number(answer)-1];if(!pick)return showToast('Ajout annulé : choisissez le bon bovin.');tag=pick.id;}
+    if (visit.subjects.some(subject => normalizeAnimalId(subject.tag) === normalizeAnimalId(tag))) return showToast('Ce numéro est déjà présent dans la visite.');
     const subject = {
       id: uid('subject'), tag, location: data.location.trim(), name: '', category: 'Non classé', stage: 'Non renseigné',
-      gestationMonths: '', lactationDays: '', age: '', rank: '', lot: '', notes: '', measurements: {},
+      gestationMonths: '', lactationDays: '', age: '', rank: '', lot: '', notes: '', birthDate:'', raceCode:'', motherNumber:'', measurements: {},
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     };
+    if(found.matches.length) enrichSubjectFromRegister(subject,found.matches.find(a=>normalizeAnimalId(a.id)===normalizeAnimalId(tag))||found.matches[0]);
     visit.subjects.push(subject);
     visit.updatedAt = new Date().toISOString();
     addJournal(visit, `Sujet ajouté : ${tag}.`);
@@ -2394,6 +2404,122 @@ function initGlobalSearch(){
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openUniversalSearch();}});
 }
 
+
+// V14.4 — Registre bovins et reproduction
+let reproductionSort = 'daysSinceLast';
+let reproductionFilter = 'all';
+let selectedReproCowId = '';
+
+function csvFormulaClean(v=''){
+  let x=String(v??'').trim();
+  if(/^=\".*\"$/.test(x)) x=x.slice(2,-1).replace(/\"\"/g,'\"');
+  return x.trim();
+}
+function parseFrDate(v){
+  const x=csvFormulaClean(v); if(!x)return null;
+  const m=x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(x); return Number.isNaN(d.getTime())?null:d;
+}
+function isoDate(v){const d=parseFrDate(v);return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:'';}
+function daysBetween(a,b){const x=parseFrDate(a),y=parseFrDate(b);return x&&y?Math.round((y-x)/86400000):null;}
+function monthsBetween(a,b){const d=daysBetween(a,b);return d===null?null:Math.round(d/30.4375*10)/10;}
+function ageLabelFromDate(date, reference=new Date()){
+  const d=parseFrDate(date); if(!d)return '';
+  const months=Math.max(0,Math.floor((reference-d)/2629800000));
+  return months<24?`${months} mois`:`${Math.floor(months/12)} ans ${months%12} mois`;
+}
+function normalizeAnimalId(v=''){return csvFormulaClean(v).toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function shortAnimalId(v=''){const d=normalizeAnimalId(v).replace(/^FR/,'');return d.slice(-4);}
+function activeFarmRegister(){const v=activeVisit();return db.animalRegisters?.filter(r=>r.farmId===v?.farmId).sort((a,b)=>(b.importedAt||'').localeCompare(a.importedAt||''))[0]||null;}
+function animalRegisterForFarm(farmId){return db.animalRegisters?.filter(r=>r.farmId===farmId).sort((a,b)=>(b.importedAt||'').localeCompare(a.importedAt||''))[0]||null;}
+function findRegisterAnimal(query, farmId){
+  const reg=animalRegisterForFarm(farmId); if(!reg)return {matches:[],register:null};
+  const q=normalizeAnimalId(query), digits=q.replace(/^FR/,'');
+  let matches=reg.animals.filter(a=>normalizeAnimalId(a.id)===q || normalizeAnimalId(a.workNumber)===q);
+  if(!matches.length && digits.length<=6) matches=reg.animals.filter(a=>normalizeAnimalId(a.id).replace(/^FR/,'').endsWith(digits));
+  return {matches,register:reg};
+}
+function enrichSubjectFromRegister(subject, animal){
+  if(!animal)return subject;
+  subject.tag=animal.id||subject.tag; subject.name=subject.name||animal.name||'';
+  subject.birthDate=animal.birthDate||''; subject.sex=animal.sex||''; subject.raceCode=animal.raceCode||'';
+  subject.motherNumber=animal.motherId||''; subject.age=ageLabelFromDate(animal.birthDate, parseFrDate(activeVisit()?.date)||new Date());
+  subject.registerAnimalId=animal.id; subject.updatedAt=new Date().toISOString(); return subject;
+}
+function extractAnimalRegister(rows,fileName,farmId){
+  const animals=rows.map(row=>{const l=rowLookup(row);return {
+    id:csvFormulaClean(l.exact('Identifiant bovin','Numero bovin','N° bovin')),
+    workNumber:csvFormulaClean(l.exact('Numéro travail','Numero travail','N° travail')),
+    birthDate:isoDate(l.exact('Date naissance','Date de naissance')),
+    sex:csvFormulaClean(l.exact('Sexe')),
+    raceCode:csvFormulaClean(l.exact('Type racial','Code race','Race')),
+    name:csvFormulaClean(l.exact('Nom')),
+    motherId:csvFormulaClean(l.exact('Numéro mère','Numero mere','N° mère')),
+    motherRace:csvFormulaClean(l.exact('Type racial mère','Type racial mere')),
+    fatherId:csvFormulaClean(l.exact('Numéro père','Numero pere','N° père')),
+    farmNumber:csvFormulaClean(l.exact('Exploitation','Numéro exploitation')),
+    entryDate:isoDate(l.exact('Date entrée','Date entree')),
+    entryCause:csvFormulaClean(l.exact("Cause d'entrée",'Cause entree')),
+    exitDate:isoDate(l.exact('Date sortie')),
+    exitCause:csvFormulaClean(l.exact('Cause de sortie'))
+  }}).filter(a=>a.id);
+  return {id:uid('animalregister'),farmId,sourceFile:fileName,importedAt:new Date().toISOString(),animals};
+}
+function reproductionData(register, refDate=new Date()){
+  if(!register)return {cows:[],stats:{}};
+  const byMother=new Map();
+  register.animals.forEach(a=>{const m=normalizeAnimalId(a.motherId);if(m){if(!byMother.has(m))byMother.set(m,[]);byMother.get(m).push(a)}});
+  const cows=register.animals.filter(a=>a.sex==='F' && byMother.has(normalizeAnimalId(a.id))).map(cow=>{
+    const calves=byMother.get(normalizeAnimalId(cow.id)).slice().sort((a,b)=>(a.birthDate||'').localeCompare(b.birthDate||''));
+    const calvings=calves.map(x=>x.birthDate).filter(Boolean);
+    const ivvs=[];for(let i=1;i<calvings.length;i++){const d=daysBetween(calvings[i-1],calvings[i]);if(d!==null)ivvs.push(d)}
+    const first=calvings[0]||'', last=calvings.at(-1)||'';
+    const dead6=calves.filter(x=>x.exitCause==='M'&&x.exitDate&&x.birthDate&&daysBetween(x.birthDate,x.exitDate)<183).length;
+    const lastCalf=calves.at(-1)||null; const ageFirst=first?monthsBetween(cow.birthDate,first):null;
+    const daysSince=last?daysBetween(last,refDate):null;
+    const avg=ivvs.length?Math.round(ivvs.reduce((a,b)=>a+b,0)/ivvs.length):null;
+    const score=Math.max(0,Math.min(100,100-(ageFirst&&ageFirst>36?(ageFirst-36)*2:0)-(avg&&avg>390?(avg-390)/3:0)-dead6*12));
+    return {...cow,calves,calvings,ivvs,firstCalving:first,lastCalving:last,ageFirst,daysSinceLast:daysSince,lastIVV:ivvs.at(-1)??null,avgIVV:avg,minIVV:ivvs.length?Math.min(...ivvs):null,maxIVV:ivvs.length?Math.max(...ivvs):null,deadUnder6:dead6,lastCalf,score:Math.round(score)};
+  });
+  const vals=k=>cows.map(x=>x[k]).filter(x=>x!==null&&x!==undefined);
+  const mean=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:null;
+  const af=vals('ageFirst'), iv=vals('avgIVV');
+  return {cows,stats:{cowCount:cows.length,ageFirstMean:mean(af),ageFirstMin:af.length?Math.min(...af):null,ageFirstMax:af.length?Math.max(...af):null,ivvMean:mean(iv),ivvMin:iv.length?Math.min(...iv):null,ivvMax:iv.length?Math.max(...iv):null,over390:cows.filter(x=>x.daysSinceLast>390).length,deadMothers:cows.filter(x=>x.deadUnder6>=2).length}};
+}
+function reproKpi(label,value,sub=''){return `<div class="repro-kpi"><span>${escapeHtml(label)}</span><strong>${value??'—'}</strong><small>${escapeHtml(sub)}</small></div>`}
+function cowDetailHtml(c){if(!c)return '';
+  const timeline=c.calvings.map((d,i)=>`<div class="repro-timeline-event"><b>Vêlage ${i+1}</b><span>${formatDate(d)}</span>${i?`<small>IVV ${c.ivvs[i-1]} j</small>`:''}</div>`).join('');
+  return `<section class="card repro-detail"><div class="section-title"><div><h3>🐄 ${escapeHtml(c.workNumber||shortAnimalId(c.id))} — ${escapeHtml(c.id)}</h3><div class="muted">Race ${escapeHtml(c.raceCode||'—')} · née le ${formatDate(c.birthDate)} · ${escapeHtml(ageLabelFromDate(c.birthDate))}</div></div><span class="badge ${c.score>=75?'complete':c.score>=60?'partial':'warning'}">Score ${c.score}/100</span></div>
+  <div class="grid cols-4">${reproKpi('1er vêlage',c.firstCalving?formatDate(c.firstCalving):'—',c.ageFirst!==null?`${c.ageFirst} mois`:'')}${reproKpi('Dernier vêlage',c.lastCalving?formatDate(c.lastCalving):'—',c.daysSinceLast!==null?`${c.daysSinceLast} jours`:'')}${reproKpi('IVV moyen',c.avgIVV?`${c.avgIVV} j`:'—',c.ivvs.length?`${c.minIVV}–${c.maxIVV} j`:'')}${reproKpi('Veaux morts <6 mois',c.deadUnder6,`${c.calves.length} veau(x) retrouvé(s)`)}</div>
+  <h4>Chronologie des vêlages</h4><div class="repro-timeline">${timeline||'<div class="empty">Aucun vêlage retrouvé.</div>'}</div>
+  <h4>Descendance</h4><div class="table-wrap"><table class="herd-table"><thead><tr><th>Veau</th><th>Naissance</th><th>Sexe</th><th>Race</th><th>Sortie</th><th>Statut</th></tr></thead><tbody>${c.calves.map(v=>`<tr><td>${escapeHtml(v.workNumber||shortAnimalId(v.id))}<small>${escapeHtml(v.id)}</small></td><td>${formatDate(v.birthDate)}</td><td>${escapeHtml(v.sex||'—')}</td><td>${escapeHtml(v.raceCode||'—')}</td><td>${v.exitDate?formatDate(v.exitDate):'Présent'}</td><td>${escapeHtml(({M:'Mort',B:'Boucherie',E:'Élevage'})[v.exitCause]||v.exitCause||'Présent')}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function renderReproduction(){
+  db.animalRegisters=Array.isArray(db.animalRegisters)?db.animalRegisters:[];
+  const visit=activeVisit(), farmId=visit?.farmId||document.getElementById('repro-farm-select')?.value||db.farms[0]?.id||'';
+  const reg=animalRegisterForFarm(farmId); const data=reproductionData(reg,parseFrDate(visit?.date)||new Date());
+  let cows=data.cows.slice();
+  if(reproductionFilter==='over390')cows=cows.filter(x=>x.daysSinceLast>390);
+  if(reproductionFilter==='dead')cows=cows.filter(x=>x.deadUnder6>=2);
+  if(reproductionFilter==='under28')cows=cows.filter(x=>x.ageFirst!==null&&x.ageFirst<28);
+  if(reproductionFilter==='28to36')cows=cows.filter(x=>x.ageFirst>=28&&x.ageFirst<=36);
+  if(reproductionFilter==='over36')cows=cows.filter(x=>x.ageFirst>36);
+  const sorters={daysSinceLast:(a,b)=>(b.daysSinceLast??-1)-(a.daysSinceLast??-1),avgIVV:(a,b)=>(b.avgIVV??-1)-(a.avgIVV??-1),lastCalving:(a,b)=>(a.lastCalving||'9999').localeCompare(b.lastCalving||'9999'),ageFirst:(a,b)=>(b.ageFirst??-1)-(a.ageFirst??-1),dead:(a,b)=>b.deadUnder6-a.deadUnder6,score:(a,b)=>a.score-b.score};
+  cows.sort(sorters[reproductionSort]||sorters.daysSinceLast);
+  const selected=data.cows.find(x=>x.id===selectedReproCowId)||null;
+  app.innerHTML=`<div class="section-title"><div><h2>🐄 Reproduction</h2><div class="muted">Calculs réalisés à partir du registre complet des bovins et des liens mère–veau.</div></div><span class="badge autosave">v14.4</span></div>
+  <section class="card"><div class="row"><div class="field"><label>Exploitation</label><select id="repro-farm-select">${db.farms.map(f=>`<option value="${f.id}" ${f.id===farmId?'selected':''}>${escapeHtml(f.name)}</option>`).join('')}</select></div><div class="field"><label>Importer le registre bovins CSV</label><input id="animal-register-input" type="file" accept=".csv,text/csv"></div></div>${reg?`<div class="notice"><strong>${reg.animals.length} bovins chargés</strong> · ${escapeHtml(reg.sourceFile)} · importé le ${formatDateTime(reg.importedAt)}</div>`:'<div class="empty">Importez le fichier contenant tous les bovins passés par l’exploitation.</div>'}</section>
+  ${reg?`<section class="repro-kpis">${reproKpi('Vaches avec descendance',data.stats.cowCount)}${reproKpi('Âge moyen au 1er vêlage',data.stats.ageFirstMean!==null?`${data.stats.ageFirstMean} mois`:'—',`${data.stats.ageFirstMin??'—'} à ${data.stats.ageFirstMax??'—'} mois`)}${reproKpi('IVV moyen',data.stats.ivvMean!==null?`${data.stats.ivvMean} j`:'—',`${data.stats.ivvMin??'—'} à ${data.stats.ivvMax??'—'} j`)}${reproKpi('Sans vêlage depuis >390 j',data.stats.over390)}${reproKpi('≥2 veaux morts <6 mois',data.stats.deadMothers)}</section>
+  <section class="card"><div class="repro-toolbar"><div class="field"><label>Afficher</label><select id="repro-filter"><option value="all">Toutes les vaches</option><option value="over390">Dernier vêlage >390 j</option><option value="dead">Plusieurs veaux morts <6 mois</option><option value="under28">1er vêlage <28 mois</option><option value="28to36">1er vêlage 28–36 mois</option><option value="over36">1er vêlage >36 mois</option></select></div><div class="field"><label>Trier par</label><select id="repro-sort"><option value="daysSinceLast">Plus longtemps sans vêlage</option><option value="avgIVV">IVV moyen le plus élevé</option><option value="lastCalving">Date du dernier vêlage</option><option value="ageFirst">1er vêlage le plus tardif</option><option value="dead">Mortalité des veaux</option><option value="score">Score le plus faible</option></select></div><div class="field"><label>Rechercher une vache</label><input id="repro-search" placeholder="Ex. 1318 ou numéro complet"></div></div>
+  <div class="table-wrap"><table class="herd-table repro-table"><thead><tr><th>Vache</th><th>Race</th><th>Âge 1er vêlage</th><th>Dernier vêlage</th><th>Depuis</th><th>IVV dernier</th><th>IVV moyen</th><th>Veaux</th><th>Morts <6m</th><th>Score</th></tr></thead><tbody>${cows.map(c=>`<tr data-repro-cow="${escapeHtml(c.id)}"><td><b>${escapeHtml(c.workNumber||shortAnimalId(c.id))}</b><small>${escapeHtml(c.id)}</small></td><td>${escapeHtml(c.raceCode||'—')}</td><td>${c.ageFirst!==null?`${c.ageFirst} m`:'—'}</td><td>${c.lastCalving?formatDate(c.lastCalving):'—'}</td><td class="${c.daysSinceLast>390?'repro-alert':''}">${c.daysSinceLast!==null?`${c.daysSinceLast} j`:'—'}</td><td>${c.lastIVV?`${c.lastIVV} j`:'—'}</td><td class="${c.avgIVV>420?'repro-alert':''}">${c.avgIVV?`${c.avgIVV} j`:'—'}</td><td>${c.calves.length}</td><td class="${c.deadUnder6>=2?'repro-alert':''}">${c.deadUnder6}</td><td>${c.score}/100</td></tr>`).join('')}</tbody></table></div></section>${cowDetailHtml(selected)}`:''}`;
+  const farmSelect=document.getElementById('repro-farm-select'); if(farmSelect)farmSelect.onchange=()=>{selectedReproCowId='';renderReproduction()};
+  const input=document.getElementById('animal-register-input'); if(input)input.onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const rows=parseCsvText(await file.text());const fid=document.getElementById('repro-farm-select')?.value||farmId;if(!fid)return showToast('Choisissez une exploitation.');const item=extractAnimalRegister(rows,file.name,fid);if(!item.animals.length)throw new Error('Aucun bovin');db.animalRegisters=db.animalRegisters.filter(x=>x.farmId!==fid);db.animalRegisters.push(item);saveDatabase(db);showToast(`${item.animals.length} bovins importés.`);renderReproduction()}catch(err){console.error(err);showToast('Import impossible : vérifiez les colonnes du CSV.')}};
+  const f=document.getElementById('repro-filter');if(f){f.value=reproductionFilter;f.onchange=()=>{reproductionFilter=f.value;renderReproduction()}}
+  const so=document.getElementById('repro-sort');if(so){so.value=reproductionSort;so.onchange=()=>{reproductionSort=so.value;renderReproduction()}}
+  const search=document.getElementById('repro-search');if(search)search.oninput=()=>{const q=normalizeAnimalId(search.value);app.querySelectorAll('[data-repro-cow]').forEach(tr=>tr.hidden=q&&!normalizeAnimalId(tr.dataset.reproCow).includes(q)&&!shortAnimalId(tr.dataset.reproCow).includes(q))};
+  app.querySelectorAll('[data-repro-cow]').forEach(tr=>tr.onclick=()=>{selectedReproCowId=tr.dataset.reproCow;renderReproduction();setTimeout(()=>document.querySelector('.repro-detail')?.scrollIntoView({behavior:'smooth'}),0)});
+}
+
 function applyWorkMode(mode){
   const normalized=mode==='terrain'?'terrain':'bureau';
   document.body.classList.toggle('terrain-mode',normalized==='terrain');
@@ -2428,5 +2554,5 @@ function initWorkMode(){
 }
 initWorkMode();
 initGlobalSearch();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.3.1',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.4',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();
