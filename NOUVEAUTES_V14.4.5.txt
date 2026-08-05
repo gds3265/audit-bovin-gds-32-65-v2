@@ -1,10 +1,9 @@
 AUDIT BOVIN GDS 32-65 — v14.4.5
 
-Correctif critique des imports CSV technico-économiques :
-- chaque fichier importé reçoit un identifiant unique et immuable ;
-- un nouvel import ne remplace plus un import précédent ayant la même période ;
-- chaque visite conserve une copie figée (snapshot) du CSV qui lui a été explicitement associé ;
-- les rapports, exports partenaires et suppressions utilisent cette copie propre à la visite ;
-- modifier ou importer un CSV pour une autre exploitation/visite ne peut plus modifier les visites déjà enregistrées.
-
-Important : les visites qui ont déjà été écrasées par une ancienne version doivent être réassociées une fois au bon CSV afin d'enregistrer leur copie figée.
+CORRECTIF CRITIQUE IMPORTS CSV / VISITES
+- Chaque fichier CSV enregistré reçoit désormais un identifiant neuf et reste indépendant.
+- Un CSV de même période ne remplace plus un ancien import.
+- Lorsqu’un CSV est appliqué à une visite, une copie complète et figée est stockée dans cette visite.
+- Les rapports et exports relisent en priorité cette copie figée : un import ultérieur ne peut plus modifier une ancienne visite.
+- Une liaison manuelle import → exploitation n’est plus modifiée automatiquement.
+- Conservation de la navigation et de l’onglet Reproduction de la v14.4.4.
