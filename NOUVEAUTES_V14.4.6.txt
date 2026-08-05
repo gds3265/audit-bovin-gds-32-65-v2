@@ -1,0 +1,12 @@
+AUDIT BOVIN GDS 32-65 — v14.4.6
+
+CORRECTIF MAJEUR — ISOLATION DES DONNÉES TECHNICO-ÉCONOMIQUES
+
+- aucun rattachement automatique d’un CSV à une exploitation ;
+- choix obligatoire de l’exploitation avant import ;
+- chaque fichier reçoit un identifiant unique ;
+- chaque visite conserve une copie figée de son CSV ;
+- aucun repli vers le dernier CSV global ;
+- rapports et données technico-économiques lisent uniquement la copie de la visite ;
+- rupture des anciennes références partagées lors de l’application d’un CSV ;
+- contrôle strict exploitation + visite + import.
