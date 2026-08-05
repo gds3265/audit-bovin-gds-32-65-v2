@@ -20,6 +20,28 @@ function normalizeUrl(url='') { return url.trim().replace(/\/+$/, ''); }
 function configured() { return !!(config?.url && config?.key); }
 function signedIn() { return !!(session?.access_token && session?.user?.email); }
 function nowIso() { return new Date().toISOString(); }
+
+function itemTime(item){ return Date.parse(item?.updatedAt || item?.importedAt || item?.createdAt || 0) || 0; }
+function mergeById(localItems=[], remoteItems=[]){
+  const map=new Map();
+  [...remoteItems,...localItems].forEach(item=>{
+    if(!item||!item.id)return;
+    const prev=map.get(item.id);
+    if(!prev||itemTime(item)>=itemTime(prev))map.set(item.id,item);
+  });
+  return [...map.values()];
+}
+function mergeDatabases(local={},remote={}){
+  return {
+    ...remote,
+    ...local,
+    farms:mergeById(local.farms||[],remote.farms||[]),
+    visits:mergeById(local.visits||[],remote.visits||[]),
+    herdImports:mergeById(local.herdImports||[],remote.herdImports||[]),
+    updatedAt:new Date(Math.max(Date.parse(local.updatedAt||0)||0,Date.parse(remote.updatedAt||0)||0,Date.now())).toISOString()
+  };
+}
+
 function statusLabel() {
   if (!configured()) return 'Cloud à configurer';
   if (!signedIn()) return 'Connexion technicien';
@@ -119,14 +141,12 @@ async function initialSync(){
     const remote=await fetchRemoteState();const local=localDb();
     if(!remote){syncing=false;await uploadState({silent:true});toast('Base locale envoyée dans le cloud.');return;}
     lastRemoteVersion=Number(remote.version)||0;
-    const remoteTime=Date.parse(remote.payload?.updatedAt||remote.updated_at||0)||0;
-    const localTime=Date.parse(local?.updatedAt||0)||0;
-    if(remoteTime>localTime){
-      localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));
-      toast('Base commune téléchargée. Actualisation…');setTimeout(()=>location.reload(),900);
-    }else if(localTime>remoteTime){
-      syncing=false;await uploadState({silent:true});toast('Modifications locales envoyées dans le cloud.');
-    }else{toast('Base commune à jour.');}
+    const merged=mergeDatabases(local,remote.payload||{});
+    localStorage.setItem(DB_KEY,JSON.stringify(merged));
+    syncing=false;
+    await uploadState({silent:true});
+    toast('Bases locale et cloud fusionnées sans supprimer les visites.');
+    if(JSON.stringify(local)!==JSON.stringify(merged))setTimeout(()=>location.reload(),700);
   }catch(e){console.error(e);toast(`Connexion cloud : ${e.message}`);}
   finally{syncing=false;renderStatus();}
 }
@@ -135,9 +155,14 @@ async function pollRemote(){
   try{
     const remote=await fetchRemoteState();if(!remote)return;
     const remoteVersion=Number(remote.version)||0;if(remoteVersion<=lastRemoteVersion)return;
-    const local=localDb();const localDirty=local.updatedAt && local.updatedAt!==lastUploadedAt;
-    if(localDirty){await uploadState({silent:true});return;}
-    lastRemoteVersion=remoteVersion;localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));toast(`Mise à jour de ${remote.updated_by||'un collègue'} reçue.`);setTimeout(()=>location.reload(),900);
+    const local=localDb();
+    const merged=mergeDatabases(local,remote.payload||{});
+    lastRemoteVersion=remoteVersion;
+    localStorage.setItem(DB_KEY,JSON.stringify(merged));
+    syncing=false;
+    await uploadState({silent:true});
+    toast(`Mise à jour de ${remote.updated_by||'un collègue'} fusionnée sans écraser les visites.`);
+    setTimeout(()=>location.reload(),700);
   }catch(e){console.warn('Vérification cloud',e);}
 }
 function scheduleUpload(){

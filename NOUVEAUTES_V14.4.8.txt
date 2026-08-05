@@ -1,0 +1,8 @@
+Audit Bovin GDS 32-65 — v14.4.8
+
+- Correction de l'écrasement des visites lors de la synchronisation cloud.
+- Fusion des exploitations, visites et imports par identifiant au lieu de remplacer toute la base.
+- Suppression des données CSV brutes inutiles stockées dans la base locale.
+- Allègement automatique des anciennes données importées.
+- Alerte explicite si la mémoire locale est pleine.
+- Navigation et onglet Reproduction conservés depuis la v14.4.4.
