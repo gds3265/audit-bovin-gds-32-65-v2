@@ -1,11 +1,9 @@
-AUDIT BOVIN GDS 32-65 — V14.4 REPRODUCTION
-
-- Import d'un registre CSV contenant tous les bovins passés par l'exploitation.
-- Recherche par numéro court (ex. 1318) et complétion du numéro national.
-- Complétion automatique : date de naissance, âge, code race, numéro de mère.
-- Dernier vêlage, dernier veau, âge au premier vêlage et IVV par vache.
-- Tableau de bord Reproduction avec tris et filtres.
-- Alertes >390 jours sans vêlage, premier vêlage par classe d'âge, plusieurs veaux morts avant 6 mois.
-- Historique de descendance et frise des vêlages.
-- Codes de sortie : M = Mort, B = Boucherie, E = Élevage.
-- Conservation des modules Nutrition et Terrain/Bureau.
+V14.4 — REPRODUCTION
+- Nouvel onglet Reproduction réellement intégré au menu.
+- Import CSV du registre complet des bovins par exploitation.
+- Calculs automatiques : âge au premier vêlage, dernier vêlage, IVV dernier/moyen/mini/maxi.
+- Alertes vaches sans vêlage depuis plus de 390 jours.
+- Classement des génisses selon l'âge au premier vêlage.
+- Détection des mères avec plusieurs veaux morts avant 6 mois (M = mort).
+- Historique détaillé des veaux et score reproduction indicatif.
+- Recherche par numéro court dans l'onglet Animaux et complétion du numéro national, âge, race, mère et reproduction.
