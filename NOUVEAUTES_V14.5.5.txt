@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.5.5
+
+- Multi-utilisateur sans changement de page pendant la saisie.
+- Fusion cloud renforcée pour conserver toutes les visites.
+- Historique complet sans limite.
+- Reproduction : seuil >400 jours, filtres IVV, génisses séparées, détail du score.
+- Indicateurs sur période : taux de vêlage, primipares, IVV 1-2, IA et vaches sans mise bas.
+- Lecture facultative du numéro de père dans le CSV Reproduction.
