@@ -1,0 +1,7 @@
+AUDIT BOVIN GDS 32-65 — v14.5.6
+
+- Historique des visites affiché intégralement, avec compteur, recherche et filtres par exploitation et année.
+- Onglet Historique et évolution enrichi : effectifs, achats, sorties, mortalité et indicateurs Reproduction comparables entre les visites choisies.
+- Tableau de bord Reproduction rendu plus compact et lisible sur tablette.
+- Correction du calcul « veaux issus d’IA » : rapprochement avec identifiant et numéro de travail des mâles du registre.
+- Ajout du détail de classement IA / monte naturelle / père inconnu pour chaque veau de la période.
