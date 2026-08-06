@@ -1,4 +1,4 @@
-AUDIT BOVIN GDS 32-65 — V14.6.0
+AUDIT BOVIN GDS 32-65 — V14.5.4
 
 - Synchronisation multi-utilisateur sans rechargement ni retour forcé à l’accueil.
 - Fusion des exploitations et visites par identifiant avant chaque envoi cloud afin d’éviter la disparition de visites créées sur un autre appareil.

@@ -1,0 +1,26 @@
+AUDIT BOVIN GDS 32-65 — VERSION 14.6.1
+
+Version reconstruite depuis la v14.5.4 stable.
+
+VISITES
+- Historique complet sans limitation volontaire d'affichage.
+- Recherche par exploitation, technicien, type et date.
+- Filtres par exploitation et statut.
+- Ouverture directe d'une visite ancienne.
+- Accès Animaux, Comparer, Partager et export JSON depuis l'historique.
+
+REPRODUCTION
+- Tableau de bord compact.
+- Tous les IVV calculés et classes ≤400, 401–450, 451–500 et >500 jours.
+- Femelles présentes sans vêlage, avec alertes d'âge.
+- Mortalité des veaux avant 6 mois.
+- Veaux probablement issus d'IA lorsque le père est renseigné et absent des mâles présents.
+- Détail par vache et détail du score.
+
+HISTORIQUE & ÉVOLUTION
+- Choix de deux visites d'une même exploitation.
+- Comparaison des indicateurs reproduction, mortalité, effectifs et mesures disponibles.
+- Écarts chiffrés et mise en évidence des évolutions.
+
+VERSION
+- Numéro inédit v14.6.1 dans l'application, le manifeste et le cache hors ligne.
