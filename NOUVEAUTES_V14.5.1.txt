@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.5.1
+
+CORRECTIF AFFICHAGE ET LIAISON DES CSV PAR VISITE
+
+- La page Données technico-économiques affiche uniquement le CSV associé à la visite active.
+- Les imports des autres exploitations ne sont plus visibles sur cette page.
+- Le bouton « Changer de CSV » n’affiche que les CSV de l’exploitation concernée.
+- Un nouveau CSV importé depuis une visite est automatiquement rattaché à cette exploitation.
+- Le retrait d’un CSV agit uniquement sur la visite active et conserve le fichier dans la bibliothèque de l’exploitation.
+- Cache mis à jour en v14.5.1 afin de forcer l’actualisation.

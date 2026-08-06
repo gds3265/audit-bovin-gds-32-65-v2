@@ -1,7 +1,7 @@
 {
-  "name": "Audit Bovin GDS 32-65 v14.5",
+  "name": "Audit Bovin GDS 32-65 v14.5.1",
   "short_name": "Audit Bovin",
-  "start_url": "./?v=14.5",
+  "start_url": "./?v=14.5.1",
   "display": "standalone",
   "background_color": "#fff6fa",
   "theme_color": "#b53670",
