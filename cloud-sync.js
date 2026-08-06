@@ -21,11 +21,21 @@ function configured() { return !!(config?.url && config?.key); }
 function signedIn() { return !!(session?.access_token && session?.user?.email); }
 function nowIso() { return new Date().toISOString(); }
 
-function entityTime(value){return Date.parse(value?.updatedAt||value?.createdAt||0)||0;}
-function mergeSharedData(base,incoming){
- if(Array.isArray(base)||Array.isArray(incoming)){const a=Array.isArray(base)?base:[],b=Array.isArray(incoming)?incoming:[],all=[...a,...b];const identifiable=all.filter(x=>x&&typeof x==='object').every(x=>x.id!==undefined);if(!identifiable)return JSON.parse(JSON.stringify(b.length?b:a));const map=new Map();all.forEach(x=>{if(!x||typeof x!=='object')return;const k=String(x.id),e=map.get(k);if(!e)map.set(k,JSON.parse(JSON.stringify(x)));else{const newer=entityTime(x)>=entityTime(e)?x:e,older=newer===x?e:x;map.set(k,mergeSharedData(older,newer));}});return [...map.values()];}
- if(base&&typeof base==='object'&&incoming&&typeof incoming==='object'){const incomingNewer=entityTime(incoming)>=entityTime(base),primary=incomingNewer?incoming:base,secondary=incomingNewer?base:incoming,out=JSON.parse(JSON.stringify(secondary));Object.keys(primary).forEach(k=>{out[k]=(k in out)?mergeSharedData(out[k],primary[k]):JSON.parse(JSON.stringify(primary[k]));});return out;}
- return incoming===undefined?base:incoming;
+function mergeSharedData(base, incoming){
+  if(Array.isArray(base)||Array.isArray(incoming)){
+    const a=Array.isArray(base)?base:[],b=Array.isArray(incoming)?incoming:[];
+    const identifiable=[...a,...b].filter(x=>x&&typeof x==='object').every(x=>x.id!==undefined);
+    if(!identifiable)return JSON.parse(JSON.stringify(b.length?b:a));
+    const map=new Map(a.map(x=>[String(x.id),JSON.parse(JSON.stringify(x))]));
+    b.forEach(x=>{const key=String(x.id);map.set(key,map.has(key)?mergeSharedData(map.get(key),x):JSON.parse(JSON.stringify(x)));});
+    return [...map.values()];
+  }
+  if(base&&typeof base==='object'&&incoming&&typeof incoming==='object'){
+    const out={...base};
+    Object.keys(incoming).forEach(k=>{out[k]=(k in out)?mergeSharedData(out[k],incoming[k]):JSON.parse(JSON.stringify(incoming[k]));});
+    return out;
+  }
+  return incoming===undefined?base:incoming;
 }
 function applyMergedLocal(payload, message=''){
   localStorage.setItem(DB_KEY,JSON.stringify(payload));

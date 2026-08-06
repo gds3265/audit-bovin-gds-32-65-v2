@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — VERSION 14.6.0
+
+- Historique complet des visites avec recherche, filtres et accès direct aux anciennes visites.
+- Bouton Comparer depuis chaque visite.
+- Historique & évolution limité volontairement à deux visites, avec comparaison : reproduction, mortalité, mesures, alimentation, bâtiment et plan d'action.
+- Refonte compacte du tableau de bord Reproduction.
+- Tous les IVV calculés sont visibles, avec répartition par classes.
+- Tableau dédié aux femelles présentes sans vêlage et alertes d'âge.
+- Mortalité des veaux avant 6 mois.
+- Veaux probablement issus d'IA lorsque la colonne père est présente dans le CSV et que le père n'est pas un mâle présent.
+- Numéro de version v14.6.0.
