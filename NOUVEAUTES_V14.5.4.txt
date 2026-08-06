@@ -7,3 +7,4 @@ AUDIT BOVIN GDS 32-65 — V14.5.4
 - Filtres IVV : ≤400, 401-450, 451-500 et >500 jours.
 - Génisses présentes sans vêlage exclues de la liste des vaches et affichées dans un récapitulatif séparé avec leur âge.
 - Score reproduction cliquable avec détail des points retirés.
+- Relance publication GitHub Pages
