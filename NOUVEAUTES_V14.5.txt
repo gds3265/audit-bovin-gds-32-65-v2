@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — v14.5
+
+CORRECTIF MAJEUR — ISOLATION DES IMPORTS CSV PAR VISITE
+
+- Chaque visite conserve sa propre copie figée du CSV appliqué.
+- Chaque valeur importée est associée à son import d’origine.
+- Le remplacement d’un CSV retire précisément les anciennes données importées.
+- Les valeurs saisies manuellement avant import sont restaurées lorsque nécessaire.
+- Les achats, ventes, mortalités, effectifs et données de reproduction ne doivent plus se cumuler entre visites.
+- Les rapports et le fichier partenaire utilisent uniquement les données de la visite active.
+- Numéro de cache et ressources mis à jour en v14.5 pour forcer l’actualisation de l’application.
