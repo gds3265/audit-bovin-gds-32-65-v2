@@ -20,6 +20,28 @@ function normalizeUrl(url='') { return url.trim().replace(/\/+$/, ''); }
 function configured() { return !!(config?.url && config?.key); }
 function signedIn() { return !!(session?.access_token && session?.user?.email); }
 function nowIso() { return new Date().toISOString(); }
+
+function mergeSharedData(base, incoming){
+  if(Array.isArray(base)||Array.isArray(incoming)){
+    const a=Array.isArray(base)?base:[],b=Array.isArray(incoming)?incoming:[];
+    const identifiable=[...a,...b].filter(x=>x&&typeof x==='object').every(x=>x.id!==undefined);
+    if(!identifiable)return JSON.parse(JSON.stringify(b.length?b:a));
+    const map=new Map(a.map(x=>[String(x.id),JSON.parse(JSON.stringify(x))]));
+    b.forEach(x=>{const key=String(x.id);map.set(key,map.has(key)?mergeSharedData(map.get(key),x):JSON.parse(JSON.stringify(x)));});
+    return [...map.values()];
+  }
+  if(base&&typeof base==='object'&&incoming&&typeof incoming==='object'){
+    const out={...base};
+    Object.keys(incoming).forEach(k=>{out[k]=(k in out)?mergeSharedData(out[k],incoming[k]):JSON.parse(JSON.stringify(incoming[k]));});
+    return out;
+  }
+  return incoming===undefined?base:incoming;
+}
+function applyMergedLocal(payload, message=''){
+  localStorage.setItem(DB_KEY,JSON.stringify(payload));
+  window.dispatchEvent(new CustomEvent('audit-bovin-cloud-merged',{detail:{message}}));
+}
+
 function statusLabel() {
   if (!configured()) return 'Cloud à configurer';
   if (!signedIn()) return 'Connexion technicien';
@@ -100,10 +122,14 @@ async function uploadState({silent=false}={}){
   const db=localDb();if(!db?.updatedAt)return;
   syncing=true;renderStatus();
   try{
+    const remote=await fetchRemoteState();
+    const merged=remote?.payload?mergeSharedData(remote.payload,db):db;
+    merged.updatedAt=nowIso();
     const version=Date.now();
-    await request('/rest/v1/shared_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{id:STATE_ID,payload:db,version,updated_at:nowIso(),updated_by:session.user.email}});
-    lastUploadedAt=db.updatedAt;lastRemoteVersion=version;
-    await createDailyBackup(db);
+    await request('/rest/v1/shared_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{id:STATE_ID,payload:merged,version,updated_at:nowIso(),updated_by:session.user.email}});
+    applyMergedLocal(merged);
+    lastUploadedAt=merged.updatedAt;lastRemoteVersion=version;
+    await createDailyBackup(merged);
     if(!silent)toast('Toutes les visites sont sauvegardées dans le cloud.');
   }catch(e){console.error(e);if(!silent)toast(`Synchronisation impossible : ${e.message}`);}
   finally{syncing=false;renderStatus();}
@@ -122,8 +148,10 @@ async function initialSync(){
     const remoteTime=Date.parse(remote.payload?.updatedAt||remote.updated_at||0)||0;
     const localTime=Date.parse(local?.updatedAt||0)||0;
     if(remoteTime>localTime){
-      localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));
-      toast('Base commune téléchargée. Actualisation…');setTimeout(()=>location.reload(),900);
+      const merged=mergeSharedData(local,remote.payload);
+      applyMergedLocal(merged,'Base commune fusionnée sans quitter la page.');
+      lastUploadedAt=merged.updatedAt||'';
+      toast('Base commune fusionnée sans quitter la page.');
     }else if(localTime>remoteTime){
       syncing=false;await uploadState({silent:true});toast('Modifications locales envoyées dans le cloud.');
     }else{toast('Base commune à jour.');}
@@ -137,7 +165,11 @@ async function pollRemote(){
     const remoteVersion=Number(remote.version)||0;if(remoteVersion<=lastRemoteVersion)return;
     const local=localDb();const localDirty=local.updatedAt && local.updatedAt!==lastUploadedAt;
     if(localDirty){await uploadState({silent:true});return;}
-    lastRemoteVersion=remoteVersion;localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));toast(`Mise à jour de ${remote.updated_by||'un collègue'} reçue.`);setTimeout(()=>location.reload(),900);
+    lastRemoteVersion=remoteVersion;
+    const merged=mergeSharedData(local,remote.payload);
+    applyMergedLocal(merged,`Mise à jour de ${remote.updated_by||'un collègue'} reçue sans quitter la page.`);
+    lastUploadedAt=merged.updatedAt||'';
+    toast(`Mise à jour de ${remote.updated_by||'un collègue'} reçue sans quitter la page.`);
   }catch(e){console.warn('Vérification cloud',e);}
 }
 function scheduleUpload(){

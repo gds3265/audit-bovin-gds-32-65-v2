@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — V14.5.4
+
+- Synchronisation multi-utilisateur sans rechargement ni retour forcé à l’accueil.
+- Fusion des exploitations et visites par identifiant avant chaque envoi cloud afin d’éviter la disparition de visites créées sur un autre appareil.
+- Historique complet des visites conservé.
+- Reproduction : alerte sans vêlage portée à plus de 400 jours.
+- Filtres IVV : ≤400, 401-450, 451-500 et >500 jours.
+- Génisses présentes sans vêlage exclues de la liste des vaches et affichées dans un récapitulatif séparé avec leur âge.
+- Score reproduction cliquable avec détail des points retirés.
