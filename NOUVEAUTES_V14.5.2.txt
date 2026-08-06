@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.5.2
+
+CORRECTIF COHÉRENCE CSV PAR VISITE
+
+- Correction du cas où une ancienne référence de CSV restait enregistrée sans que le fichier correspondant soit encore disponible.
+- La page et la confirmation d'import utilisent désormais exactement le même contrôle.
+- L'application ne signale plus qu'une visite possède déjà un CSV lorsqu'elle affiche « Aucun CSV associé ».
+- Lorsqu'un nouveau CSV est appliqué, les anciennes valeurs importées encore marquées sont nettoyées avant l'association du nouveau fichier.
+- Cache mis à jour en v14.5.2.
