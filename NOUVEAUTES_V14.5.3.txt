@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.5.3
+
+MODULE REPRODUCTION
+- Affichage du nom du CSV Reproduction réellement utilisé pour la visite.
+- Affichage de la date d'import, du nombre de lignes reconnues et de la période détectée.
+- Copie indépendante du registre bovins enregistrée dans chaque visite.
+- Un import réalisé dans une autre visite ne remplace plus les données de reproduction de la visite courante.
+- Les anciens registres sans nom de fichier restent visibles avec un avertissement demandant une réimportation de contrôle.
+- Le module technico-économique n'est pas modifié.
