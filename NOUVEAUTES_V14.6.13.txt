@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.13
+
+- Responsive revu pour PC, tablette et téléphone.
+- Largeurs du bandeau, formulaires et cartes alignées sur l’écran.
+- Défilement horizontal des matrices corrigé sur Android portrait.
+- Défilement vertical de la page conservé pendant la saisie tactile.
+- Colonne Sujet renforcée en sticky sur iPhone/Android.
+- Brouillon local ultra-léger pour chaque mesure avant sauvegarde complète.
+- Sauvegarde forcée lors du changement d’application/fermeture de page.

@@ -555,3 +555,56 @@ body.terrain-mode .top-nav .nav-btn[data-view="farms"],body.terrain-mode .top-na
  .analysis-input{font-size:16px!important;min-height:44px}
  .observation-grid input,.observation-grid select{font-size:16px;min-height:44px}
 }
+
+
+/* v14.6.13 — responsive téléphone/tablette + défilement tactile + sujet figé */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{min-width:0}
+.app-header,.top-nav{width:100%;max-width:100vw}
+.app-main{width:min(100%,1560px);max-width:1560px;min-width:0;padding:clamp(10px,2vw,20px)}
+.app-main>*{min-width:0}
+.card,.analysis-content,.analysis-content>*,.family-tabs-row{min-width:0;max-width:100%}
+.table-wrap,.analysis-table-wrap{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;overscroll-behavior-y:auto;touch-action:pan-x pan-y}
+.analysis-table-wrap{max-height:none}
+.analysis-table{border-collapse:separate;border-spacing:0}
+.analysis-table .sticky-col{position:sticky!important;left:0!important;z-index:10!important;background:#fff!important;box-shadow:4px 0 8px rgba(31,41,55,.12)}
+.analysis-table thead .sticky-col{z-index:16!important;background:#fdf0f6!important}
+.analysis-table tbody .sticky-col{background:#fff!important}
+.analysis-table .sticky-col-2{position:static!important}
+.matrix-table{max-width:none!important}
+
+@media (min-width:1181px){
+ .app-main{width:min(96vw,1560px)}
+}
+@media (min-width:701px) and (max-width:1180px){
+ .app-main{width:100%;max-width:100%;padding:12px}
+ .app-header{padding:10px 12px;gap:8px}
+ .brand-icon{width:42px;height:42px}.app-header h1{font-size:1.15rem}.app-header p{font-size:.75rem}
+ .nav-btn{padding:11px 12px;min-width:max-content}
+ .analysis-table .sticky-col{min-width:150px!important;width:150px!important;max-width:150px!important}
+ .analysis-value-cell{min-width:108px}.matrix-table .analysis-value-cell{min-width:108px}
+ .matrix-comment-cell{min-width:220px!important}.matrix-comment{min-width:200px}
+}
+@media (max-width:700px){
+ .app-header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:8px 10px;gap:6px 8px}
+ .brand-wrap{gap:8px;min-width:0}.brand-icon{width:36px;height:36px;border-radius:9px}.app-header h1{font-size:1rem}.app-header p{display:none}
+ .header-tools{grid-column:1/-1;display:flex!important;gap:6px;overflow-x:auto;min-width:0}.header-tools>*{flex:0 0 auto}
+ .version{font-size:.68rem;padding:4px 7px;white-space:nowrap}
+ .cloud-status-btn{grid-column:1/-1;width:100%;max-width:100%;order:initial!important;padding:7px 10px}
+ .top-nav{top:0;position:sticky}.nav-btn{min-width:max-content;padding:10px 11px;font-size:.88rem}
+ .app-main{width:100%;max-width:100%;padding:8px}
+ .card{padding:10px;border-radius:12px}
+ .section-title{align-items:flex-start;gap:8px}.section-title h2{font-size:1.12rem}.section-title h3{font-size:1rem}
+ .analysis-tabs{margin:10px 0;padding:3px;gap:4px}.analysis-tab{padding:8px 10px;font-size:.85rem}
+ .family-tabs-row{display:grid;gap:8px}.family-tabs{flex-wrap:nowrap;overflow-x:auto;margin:6px 0}.family-tab{padding:8px 11px;white-space:nowrap}.library-context-btn{width:100%}
+ .analysis-table .sticky-col{min-width:126px!important;width:126px!important;max-width:126px!important;padding:7px 6px!important}
+ .subject-sticky-tag{font-size:.96rem}.subject-sticky-name{font-size:.76rem}.subject-context-mini{font-size:.66rem;gap:1px}
+ .analysis-value-cell{min-width:96px;padding:5px}.matrix-table .analysis-value-cell{min-width:96px}
+ .analysis-value-cell input{min-width:0;padding:8px 6px;font-size:16px!important;min-height:42px}
+ .matrix-comment-cell{min-width:190px!important}.matrix-comment{min-width:180px;min-height:52px}
+ .matrix-table{min-width:max-content!important;width:max-content!important}
+}
+@media (max-width:430px){
+ .analysis-table .sticky-col{min-width:112px!important;width:112px!important;max-width:112px!important}
+ .subject-context-mini span{white-space:normal}.analysis-value-cell{min-width:90px}.matrix-table .analysis-value-cell{min-width:90px}
+}
