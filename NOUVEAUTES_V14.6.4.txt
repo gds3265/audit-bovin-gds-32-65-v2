@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.4
+
+Corrections et améliorations :
+- Refonte de la mise en forme de l’onglet Reproduction.
+- Carte du CSV source plus lisible avec nom de fichier, date d’import et période.
+- Indicateurs Reproduction réorganisés en cartes plus lisibles.
+- Résumé du registre présenté sous forme de pastilles.
+- Blocs IVV et compteur de filtre mieux mis en valeur.
+- Références de cache et de version passées en v14.6.4.
