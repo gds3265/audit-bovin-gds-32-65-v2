@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.6.12
+
+- Stabilisation de la saisie des mesures sur Android : sauvegarde temporisée pendant la frappe et immédiate à la sortie de cellule.
+- Suppression de la navigation gauche/droite qui pouvait perturber le curseur et le clavier tactile ; Entrée et haut/bas restent disponibles.
+- Colonne Sujet figée pendant le défilement horizontal des matrices.
+- Contexte animal affiché directement dans les matrices : nom, âge, dernier vêlage, code race et rang.
+- Même contexte ajouté dans l’onglet Observations.
+- Champs de saisie tactiles agrandis sur petit écran pour limiter les pertes de focus.
