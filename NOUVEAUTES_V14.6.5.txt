@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.5
+
+Ajouts onglet Reproduction :
+- Sélection d’une période d’analyse comprise dans les dates du CSV importé.
+- Indicateur Taux de vêlage > 24 mois.
+- Indicateur Taux de vêlage > 36 mois.
+- Indicateurs IVV mini et IVV maxi.
+- Les statistiques Reproduction se recalculent sur la période choisie.
+- Références de cache et de version passées en v14.6.5.
