@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.6
+
+Correctif de la v14.6.5 :
+- Reprise propre depuis la v14.6.4 stable.
+- Correction du blocage complet de la navigation.
+- Sélection d’une période d’analyse dans Reproduction.
+- Taux de vêlage > 24 mois.
+- Taux de vêlage > 36 mois.
+- IVV mini et IVV maxi.
+- Statistiques IVV, mortalité et IA recalculées sur la période choisie.
