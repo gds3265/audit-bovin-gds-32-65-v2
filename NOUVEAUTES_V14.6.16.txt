@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.16
+
+Stabilisation profonde de la saisie mobile des mesures :
+- Pendant la frappe, aucune conversion ni réécriture de la base complète.
+- Chaque cellule conserve son texte brut jusqu’à la validation.
+- Validation sur sortie de cellule / changement / Entrée.
+- Virgule et point restent équivalents.
+- Une sauvegarde différée d’une autre cellule ne relit plus toutes les cases visibles.
+- Le brouillon local n’est nettoyé que pour les valeurs réellement enregistrées.
+- Même principe appliqué aux observations numériques et relevés généraux.
