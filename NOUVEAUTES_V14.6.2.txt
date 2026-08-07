@@ -1,0 +1,21 @@
+AUDIT BOVIN GDS 32-65 — VERSION 14.6.2
+
+CORRECTION PRIORITAIRE — ISOLEMENT DES DONNÉES PAR VISITE
+- Les données technico-économiques affichent désormais en priorité l’instantané figé enregistré dans la visite, jamais une version globale modifiée ensuite.
+- Contrôle du n° EDE lors de l’import CSV : un fichier identifié comme appartenant à une autre exploitation est bloqué.
+- Si plusieurs exploitations sont présentes dans un CSV sans correspondance certaine, l’import est bloqué plutôt que d’utiliser arbitrairement la première ligne.
+- Protection contre un changement de visite pendant la lecture du fichier.
+- Migration des anciennes visites : création d’un instantané local quand la source historique est encore disponible.
+
+REPRODUCTION
+- Le registre bovins importé pendant une visite est désormais conservé uniquement dans cette visite.
+- Il ne remplace plus automatiquement le registre global de l’exploitation.
+- Contrôle du n° d’exploitation du registre avant validation.
+
+SYNCHRONISATION CLOUD
+- Une même visite datée n’est plus fusionnée champ par champ avec une ancienne copie cloud.
+- La version la plus récente de la visite est conservée comme un bloc, évitant le mélange de deux CSV/registres différents.
+- Les instantanés d’import sont traités comme des objets atomiques pendant la fusion.
+
+VERSION
+- Cache hors ligne et références internes passés en v14.6.2.

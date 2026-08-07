@@ -21,16 +21,40 @@ function configured() { return !!(config?.url && config?.key); }
 function signedIn() { return !!(session?.access_token && session?.user?.email); }
 function nowIso() { return new Date().toISOString(); }
 
+function objectTimestamp(value){
+  if(!value||typeof value!=='object')return 0;
+  return Date.parse(value.updatedAt||value.appliedAt||value.importedAt||value.createdAt||0)||0;
+}
+function atomicSharedObject(value){
+  return !!(value&&typeof value==='object'&&(
+    value.snapshot || value.importInstanceId || value.reproductionRegistrySource || value.previousVisitReview
+  ));
+}
 function mergeSharedData(base, incoming){
   if(Array.isArray(base)||Array.isArray(incoming)){
     const a=Array.isArray(base)?base:[],b=Array.isArray(incoming)?incoming:[];
     const identifiable=[...a,...b].filter(x=>x&&typeof x==='object').every(x=>x.id!==undefined);
     if(!identifiable)return JSON.parse(JSON.stringify(b.length?b:a));
     const map=new Map(a.map(x=>[String(x.id),JSON.parse(JSON.stringify(x))]));
-    b.forEach(x=>{const key=String(x.id);map.set(key,map.has(key)?mergeSharedData(map.get(key),x):JSON.parse(JSON.stringify(x)));});
+    b.forEach(x=>{
+      const key=String(x.id),existing=map.get(key);
+      if(!existing){map.set(key,JSON.parse(JSON.stringify(x)));return;}
+      const oldTime=objectTimestamp(existing),newTime=objectTimestamp(x);
+      // Une visite/import daté est traité comme un bloc : la version la plus récente gagne.
+      // Cela évite de recombiner récursivement deux CSV ou deux registres différents.
+      if((oldTime||newTime) && (existing.subjects||x.subjects||existing.importedAt||x.importedAt)){
+        map.set(key,JSON.parse(JSON.stringify(newTime>=oldTime?x:existing)));
+      }else{
+        map.set(key,mergeSharedData(existing,x));
+      }
+    });
     return [...map.values()];
   }
   if(base&&typeof base==='object'&&incoming&&typeof incoming==='object'){
+    if(atomicSharedObject(base)||atomicSharedObject(incoming)){
+      const bt=objectTimestamp(base),it=objectTimestamp(incoming);
+      return JSON.parse(JSON.stringify(it>=bt?incoming:base));
+    }
     const out={...base};
     Object.keys(incoming).forEach(k=>{out[k]=(k in out)?mergeSharedData(out[k],incoming[k]):JSON.parse(JSON.stringify(incoming[k]));});
     return out;
@@ -181,7 +205,7 @@ function closePanel(){document.getElementById('cloud-overlay')?.remove();}
 function openCloudPanel(){
   closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
   const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
-  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v12.1 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.2 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
   document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
   bindPanel(overlay);
 }
