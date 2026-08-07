@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.8
+
+Corrections :
+- Recherche Visites : on peut taper le mot entier sans perte de focus à chaque lettre (validation par Entrée ou sortie du champ).
+- Nouvelle visite : après création, le formulaire revient réellement en mode Nouvelle visite ; une deuxième visite de la même exploitation/du même technicien ne remplace plus la première.
+- Animaux : recherche prioritaire par numéro de travail dans le registre Reproduction de la visite active.
+- Animaux : aperçu immédiat du bovin retrouvé (n° travail, n° bovin, nom, âge, dernier vêlage).
+- Animaux : conservation du numéro saisi sur le terrain et mémorisation séparée du numéro bovin complet.
+- Animaux : détection des correspondances multiples et des bovins non retrouvés.
+- Animaux : contrôle de cohérence entre la fiche saisie et le registre Reproduction avec alerte visible.

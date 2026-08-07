@@ -514,3 +514,14 @@ body.terrain-mode .top-nav .nav-btn[data-view="farms"],body.terrain-mode .top-na
 .subject-registry-grid span{display:grid;gap:2px;padding:8px 10px;background:white;border:1px solid #f0dfe7;border-radius:9px}
 .subject-registry-grid small{color:var(--muted);font-size:.72rem}.subject-registry-grid strong{font-size:.9rem}
 @media(max-width:720px){.subject-registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* v14.6.8 — Recherche visites + liaison Animaux / registre Reproduction */
+.registry-lookup-preview{margin:-2px 0 12px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff9fc;font-size:.88rem;line-height:1.35}
+.registry-lookup-preview.ok,.registry-coherence.ok{border-color:#a7d7b6;background:#f0faf3;color:#21633a}
+.registry-lookup-preview.warning,.registry-coherence.warning{border-color:#f2c49f;background:#fff7ed;color:#8a3b0a}
+.registry-coherence{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid}
+.registry-coherence ul{margin:6px 0 0 18px;padding:0}
+.registry-coherence p{margin:5px 0 0}
+.registry-warning-inline,.registry-ok-inline{display:block;margin-top:3px;font-size:.76rem;font-style:normal;font-weight:700}
+.registry-warning-inline{color:var(--warning)}.registry-ok-inline{color:#287a47}
