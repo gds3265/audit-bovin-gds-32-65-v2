@@ -629,3 +629,34 @@ body{min-width:0}
   .app-main{padding-left:16px!important;padding-right:16px!important}
   .analysis-value-cell,.matrix-table .analysis-value-cell{min-width:106px}
 }
+
+
+/* v14.6.15 — entêtes matrices visibles + saisie Android anti-troncature */
+.analysis-table-wrap{
+  position:relative;
+}
+.analysis-table thead th{
+  position:sticky!important;
+  top:0!important;
+  z-index:14;
+  background:#fdf0f6!important;
+  box-shadow:0 2px 0 var(--line),0 4px 8px rgba(31,41,55,.05);
+}
+.analysis-table thead th.sticky-col{
+  left:0!important;
+  z-index:22!important;
+}
+/* En paysage tablette, la matrice devient sa propre zone verticale : l'entête reste toujours visible. */
+@media (orientation: landscape) and (min-width:700px) and (max-width:1400px){
+  .analysis-table-wrap{
+    max-height:calc(100dvh - 245px)!important;
+    min-height:280px;
+    overflow:auto!important;
+    overscroll-behavior:auto;
+    touch-action:pan-x pan-y;
+  }
+  .analysis-table thead th{top:0!important}
+}
+@media (max-height:650px) and (orientation:landscape) and (min-width:700px){
+  .analysis-table-wrap{max-height:calc(100dvh - 205px)!important;min-height:220px}
+}
