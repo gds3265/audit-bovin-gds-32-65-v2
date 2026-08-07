@@ -1,0 +1,7 @@
+AUDIT BOVIN GDS 32-65 — v14.6.7
+
+- Affichage du nom des vaches dans Reproduction lorsqu’il est présent dans le registre.
+- L’onglet Animaux utilise désormais le registre Reproduction propre à la visite active.
+- Complément automatique des sujets déjà saisis : nom, date de naissance/âge, race, sexe, mère, dernier vêlage et IVV si les champs sont vides.
+- Les informations saisies manuellement ne sont pas écrasées.
+- Affichage d’un bloc Données du registre Reproduction dans la fiche animal.
