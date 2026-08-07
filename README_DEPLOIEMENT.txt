@@ -17,5 +17,4 @@ Version 12.1.0 : authentification obligatoire et thème rose. Déployer tous les
 
 
 Nouveautés : tableau de bord professionnel, Assistant GDS, centre d’attention, indicateurs par domaine et mode Terrain/Bureau.
-
 .
