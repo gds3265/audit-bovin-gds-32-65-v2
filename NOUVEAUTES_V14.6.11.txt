@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.11
+
+Optimisation de la saisie terrain :
+- Pavé numérique demandé automatiquement pour les numéros de sujets.
+- Pavé décimal demandé automatiquement pour les mesures.
+- Entrée passe à la case numérique suivante.
+- Flèches gauche/droite passent à la case précédente/suivante.
+- Flèches haut/bas passent à la même colonne sur la ligne précédente/suivante dans les tableaux.
+- Compatibilité virgule et point conservée pour les décimales.
