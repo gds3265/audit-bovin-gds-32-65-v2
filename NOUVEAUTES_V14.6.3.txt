@@ -1,0 +1,12 @@
+AUDIT BOVIN GDS 32-65 — v14.6.3
+
+Corrections :
+- Reproduction : nom du CSV source visible avec date, période et nombre de lignes.
+- Tableau de bord Reproduction compact.
+- Ajout taux de vêlage sur 12 mois, primipares (nombre et %), IVV1-IVV2 moyen.
+- Femelles sans vêlage : uniquement femelles présentes de plus de 24 mois.
+- Compteur visible pour chaque filtre Reproduction.
+- Calcul « veaux probablement issus d’IA » corrigé : père absent de tout le registre mâles, et non seulement des mâles présents.
+- Historique & évolution : nouveaux indicateurs Reproduction comparables.
+- Audit : couleur appliquée à tout le cadre de chaque catégorie (sanitaire violet, reproduction bleu, etc.).
+- Suppression visite : ajout d’un marqueur de suppression synchronisé pour éviter que Supabase ne ressuscite une visite supprimée.

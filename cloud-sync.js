@@ -33,7 +33,8 @@ function atomicSharedObject(value){
 function mergeSharedData(base, incoming){
   if(Array.isArray(base)||Array.isArray(incoming)){
     const a=Array.isArray(base)?base:[],b=Array.isArray(incoming)?incoming:[];
-    const identifiable=[...a,...b].filter(x=>x&&typeof x==='object').every(x=>x.id!==undefined);
+    const combined=[...a,...b];
+    const identifiable=combined.length>0&&combined.every(x=>x&&typeof x==='object'&&x.id!==undefined);
     if(!identifiable)return JSON.parse(JSON.stringify(b.length?b:a));
     const map=new Map(a.map(x=>[String(x.id),JSON.parse(JSON.stringify(x))]));
     b.forEach(x=>{
@@ -61,7 +62,15 @@ function mergeSharedData(base, incoming){
   }
   return incoming===undefined?base:incoming;
 }
+function applyDeletionTombstones(payload){
+  if(!payload||typeof payload!=='object')return payload;
+  const deleted=[...new Set(Array.isArray(payload.deletedVisitIds)?payload.deletedVisitIds.map(String):[])];
+  payload.deletedVisitIds=deleted;
+  if(Array.isArray(payload.visits)&&deleted.length){const gone=new Set(deleted);payload.visits=payload.visits.filter(v=>!gone.has(String(v?.id)));}
+  return payload;
+}
 function applyMergedLocal(payload, message=''){
+  payload=applyDeletionTombstones(payload);
   localStorage.setItem(DB_KEY,JSON.stringify(payload));
   window.dispatchEvent(new CustomEvent('audit-bovin-cloud-merged',{detail:{message}}));
 }
@@ -147,7 +156,7 @@ async function uploadState({silent=false}={}){
   syncing=true;renderStatus();
   try{
     const remote=await fetchRemoteState();
-    const merged=remote?.payload?mergeSharedData(remote.payload,db):db;
+    const merged=applyDeletionTombstones(remote?.payload?mergeSharedData(remote.payload,db):db);
     merged.updatedAt=nowIso();
     const version=Date.now();
     await request('/rest/v1/shared_state?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{id:STATE_ID,payload:merged,version,updated_at:nowIso(),updated_by:session.user.email}});
@@ -172,7 +181,7 @@ async function initialSync(){
     const remoteTime=Date.parse(remote.payload?.updatedAt||remote.updated_at||0)||0;
     const localTime=Date.parse(local?.updatedAt||0)||0;
     if(remoteTime>localTime){
-      const merged=mergeSharedData(local,remote.payload);
+      const merged=applyDeletionTombstones(mergeSharedData(local,remote.payload));
       applyMergedLocal(merged,'Base commune fusionnée sans quitter la page.');
       lastUploadedAt=merged.updatedAt||'';
       toast('Base commune fusionnée sans quitter la page.');
@@ -190,7 +199,7 @@ async function pollRemote(){
     const local=localDb();const localDirty=local.updatedAt && local.updatedAt!==lastUploadedAt;
     if(localDirty){await uploadState({silent:true});return;}
     lastRemoteVersion=remoteVersion;
-    const merged=mergeSharedData(local,remote.payload);
+    const merged=applyDeletionTombstones(mergeSharedData(local,remote.payload));
     applyMergedLocal(merged,`Mise à jour de ${remote.updated_by||'un collègue'} reçue sans quitter la page.`);
     lastUploadedAt=merged.updatedAt||'';
     toast(`Mise à jour de ${remote.updated_by||'un collègue'} reçue sans quitter la page.`);
@@ -205,7 +214,7 @@ function closePanel(){document.getElementById('cloud-overlay')?.remove();}
 function openCloudPanel(){
   closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
   const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
-  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.2 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.3 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
   document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
   bindPanel(overlay);
 }

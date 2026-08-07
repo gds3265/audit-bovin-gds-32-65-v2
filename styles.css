@@ -463,3 +463,15 @@ body.terrain-mode .top-nav .nav-btn[data-view="farms"],body.terrain-mode .top-na
 @media(max-width:900px){.nutrition-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:560px){.nutrition-fields{grid-template-columns:1fr!important}}
 .visit-history-filters{margin:12px 0}.visit-history-table{max-height:62vh}.active-history-row{outline:2px solid var(--primary,#b02a6b);outline-offset:-2px}.repro-kpi-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:16px 0}.repro-kpi-grid .metric{padding:12px;min-height:105px}.repro-kpi-grid .metric strong{font-size:1.65rem}.ivv-band-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.ivv-band-grid div{padding:12px;border:1px solid var(--border,#ddd);border-radius:12px;text-align:center}.ivv-band-grid strong,.ivv-band-grid span{display:block}.comparison-text-grid p{white-space:normal}.trend-badge.stable{opacity:.8}@media(max-width:900px){.repro-kpi-grid{grid-template-columns:repeat(2,1fr)}.ivv-band-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* v14.6.3 — Reproduction compacte + couleurs Audit sur tout le cadre */
+.audit-section{background:var(--section-soft)!important;border:2px solid var(--section-color)!important;border-top-width:6px!important}
+.audit-section .audit-question-list{background:var(--section-soft)}
+.audit-section .audit-question-row,.audit-section .audit-question-smart,.audit-section .chapter-summary{background:rgba(255,255,255,.74)!important;border-color:color-mix(in srgb,var(--section-color) 24%,#fff)!important}
+.audit-section summary{border-radius:11px 11px 0 0}
+.audit-section:not([open]) summary{border-radius:11px}
+.repro-source-card{margin:10px 0 8px;padding:10px 12px;border:1px solid #b9d7c4;border-left:5px solid var(--green);border-radius:10px;background:#f1f8f3;display:grid;gap:4px}
+.repro-source-card>div{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.repro-source-card span{font-weight:800;color:#304a3a}.repro-source-card small{color:#63746a}
+.repro-kpi-grid.compact{grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin:12px 0}.repro-kpi-grid.compact .card{padding:11px 10px;min-height:102px}.repro-kpi-grid.compact .metric strong{font-size:1.55rem}.repro-kpi-grid.compact .metric span{font-size:.86rem;line-height:1.15}.repro-kpi-grid.compact .metric small{font-size:.72rem;line-height:1.15}.repro-ivv-card{padding:12px}.repro-ivv-card h3{font-size:1rem;margin-bottom:8px}.repro-filter-count{margin:3px 0 10px}.repro-filter-count strong{font-size:1.08rem;color:var(--green)}
+@media(max-width:700px){.repro-kpi-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}.repro-kpi-grid.compact .card{min-height:94px;padding:9px}.repro-source-card>div{display:grid;gap:3px}}

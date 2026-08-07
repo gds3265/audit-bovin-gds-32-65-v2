@@ -1,4 +1,4 @@
-AUDIT BOVIN GDS 32-65 — VERSION 14.6.2
+AUDIT BOVIN GDS 32-65 — VERSION 14.6.3
 
 CORRECTION PRIORITAIRE — ISOLEMENT DES DONNÉES PAR VISITE
 - Les données technico-économiques affichent désormais en priorité l’instantané figé enregistré dans la visite, jamais une version globale modifiée ensuite.
@@ -18,4 +18,4 @@ SYNCHRONISATION CLOUD
 - Les instantanés d’import sont traités comme des objets atomiques pendant la fusion.
 
 VERSION
-- Cache hors ligne et références internes passés en v14.6.2.
+- Cache hors ligne et références internes passés en v14.6.3.
