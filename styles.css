@@ -525,3 +525,6 @@ body.terrain-mode .top-nav .nav-btn[data-view="farms"],body.terrain-mode .top-na
 .registry-coherence p{margin:5px 0 0}
 .registry-warning-inline,.registry-ok-inline{display:block;margin-top:3px;font-size:.76rem;font-style:normal;font-weight:700}
 .registry-warning-inline{color:var(--warning)}.registry-ok-inline{color:#287a47}
+
+/* v14.6.10 — saisie décimale compatible virgule / point */
+.decimal-input{font-variant-numeric:tabular-nums}

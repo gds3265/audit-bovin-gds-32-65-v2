@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.6.10
+
+Correctif Mesures :
+- Correction de l’enregistrement des champs numériques.
+- Virgule et point acceptés indifféremment pour les décimales.
+- 6,8 et 6.8 sont interprétés de la même manière.
+- Correction appliquée aux mesures par animal, aux observations numériques et aux relevés généraux.
+- Sauvegarde dès la saisie, puis normalisation de la valeur à la sortie du champ.
