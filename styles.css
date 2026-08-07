@@ -608,3 +608,24 @@ body{min-width:0}
  .analysis-table .sticky-col{min-width:112px!important;width:112px!important;max-width:112px!important}
  .subject-context-mini span{white-space:normal}.analysis-value-cell{min-width:90px}.matrix-table .analysis-value-cell{min-width:90px}
 }
+
+
+/* v14.6.14 — plein écran tablette paysage + terrain responsive */
+@media (orientation: landscape) and (min-width: 700px) and (max-width: 1400px){
+  html,body{width:100%;max-width:100%;min-width:0}
+  body.terrain-mode .app-main,
+  .app-main{width:100%!important;max-width:none!important;margin:0!important;padding:10px 12px!important}
+  .app-header,.top-nav{width:100%!important;max-width:none!important}
+  body.terrain-mode .card{border-radius:12px}
+  .analysis-content{width:100%;max-width:none}
+  .analysis-table-wrap,.table-wrap{width:100%;max-width:100%}
+  .analysis-table .sticky-col{min-width:150px!important;width:150px!important;max-width:150px!important}
+  .analysis-value-cell,.matrix-table .analysis-value-cell{min-width:100px}
+  .matrix-comment-cell{min-width:190px!important}.matrix-comment{min-width:180px}
+  .section-title{margin-bottom:10px}
+  .active-visit-banner{margin-bottom:10px}
+}
+@media (orientation: landscape) and (min-width: 900px) and (max-width: 1400px){
+  .app-main{padding-left:16px!important;padding-right:16px!important}
+  .analysis-value-cell,.matrix-table .analysis-value-cell{min-width:106px}
+}
