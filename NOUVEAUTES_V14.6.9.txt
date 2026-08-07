@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.6.9
+
+- Reproduction : période d’analyse par défaut = 12 derniers mois de données disponibles.
+- Le bouton « Toute la période importée » permet toujours d’analyser l’historique complet.
+- Rapports Technique et Expert : ajout des données Reproduction.
+- Option séparée pour inclure ou non le détail des vaches à problème / à surveiller.
+- Animaux : complétion automatique depuis le registre Repro du nom, âge, rang (nombre de veaux), code race et date du dernier vêlage.
+- Les champs correspondants sont visibles et restent modifiables dans la fiche animal.
