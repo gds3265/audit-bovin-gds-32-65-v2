@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.18
+
+- Correction du bug bloquant renderConclusionSection : accès Mesures et Conclusion de visite restaurés.
+- Conclusion de visite complète avec points favorables, priorités, synthèse et propositions automatiques.
+- Dans Animaux : suppression de la barre globale de classement au profit d’une coche de catégorie et de points colorés par famille de mesures.
+- Lait et Colostrum ne sont affichés dans le suivi que lorsqu’ils sont utilisés.
+- Bibliothèque : ajout des mémos Score aplombs, frise SRR et note d’état corporel.
+- Bibliothèque : ajout d’un carnet technique libre avec notes, informations et petites photos.
+- Cache hors ligne mis à jour avec les trois mémos.
