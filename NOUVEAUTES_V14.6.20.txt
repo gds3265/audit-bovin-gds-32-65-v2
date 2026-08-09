@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.20
+
+Bibliothèque technique enrichie :
+- Découpage du PDF « Fiches thématiques élevage V6 » en 12 fiches par thème.
+- Découpage du guide « Modes d'emploi terrain » en 9 fiches par appareil.
+- Intégration des fiches dans les rubriques correspondantes de la Bibliothèque.
+- Nouvelle rubrique « Environnement & litière ».
+- Aperçu miniature + bouton « Ouvrir la fiche PDF ».
+- Fiches intégrées au cache hors ligne de l'application.
+- Version/cache mis à jour en v14.6.20.
