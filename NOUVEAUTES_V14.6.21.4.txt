@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 — v14.6.21.4
+
+Ergonomie des accordéons :
+- Audit : à l'ouverture d'une sous-catégorie, fermeture des autres et remontée automatique en haut du cadre ouvert.
+- Bâtiment > Questionnaire : la sous-catégorie reste ouverte pendant la saisie ; une réponse ne replie plus le cadre.
+- Bâtiment > Questionnaire : l'ouverture d'une autre sous-catégorie ferme la précédente.
+- Les compteurs d'avancement bâtiment se mettent à jour sans recharger/replier le questionnaire.
