@@ -1,0 +1,5 @@
+V14.6.21.2 — Version compacte GitHub
+
+- Bibliothèque : suppression des vignettes JPG séparées.
+- Les fiches PDF restent individuelles et accessibles hors ligne.
+- Réduction du nombre total de fichiers pour rester sous la limite de 100 fichiers de l’interface GitHub.

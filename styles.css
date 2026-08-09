@@ -697,4 +697,15 @@ body{min-width:0}
 @media(max-width:900px){.library-pdf-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.library-pdf-card{grid-template-columns:88px 1fr;padding:10px;gap:10px}.library-pdf-card>img{width:88px}.library-pdf-card .btn{width:100%;text-align:center}}
 
+/* v14.6.21 — Questionnaires éleveur */
+.questionnaire-workflow .questionnaire-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.questionnaire-steps span{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff9fc;font-size:.86rem}
+.questionnaire-steps span b{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#ecd7e1;color:#7e2852;flex:0 0 auto}
+.questionnaire-steps span.done{background:#f1f8f3;border-color:#bed9c8}.questionnaire-steps span.done b{background:#d7eee0;color:#24623e}
+.questionnaire-section-selector{display:grid;gap:7px;margin:12px 0 15px}.questionnaire-section-selector label{display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff}.questionnaire-section-selector input{width:auto}
+.questionnaire-card{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.questionnaire-card:last-child{border-bottom:0}.questionnaire-card h4{margin:5px 0 3px}.questionnaire-card small{color:var(--muted)}
+.farmer-declared-answer{margin:6px 0;padding:6px 8px;border-radius:8px;background:#fff3d9;color:#765000;font-size:.82rem}
+@media(max-width:800px){.questionnaire-workflow .questionnaire-steps{grid-template-columns:1fr 1fr}.questionnaire-card{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.questionnaire-workflow .questionnaire-steps{grid-template-columns:1fr}}
+
 .library-pdf-icon{display:flex;align-items:center;justify-content:center;min-height:120px;font-size:52px;background:rgba(255,255,255,.65);border-radius:14px;border:1px solid rgba(120,70,100,.12)}
