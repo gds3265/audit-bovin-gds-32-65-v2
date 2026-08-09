@@ -1,0 +1,9 @@
+AUDIT BOVIN GDS 32-65 — v14.6.17
+
+- Indice de confiance rendu transparent : éléments en faveur, prudence/contradictions, données manquantes et sources distinctes.
+- SRR / remplissage du rumen saisissable par pas de 0,5.
+- Membres : ajout de « Bons ».
+- Poils : ajout de « Longs ».
+- Observations : l’ouverture d’un sujet ferme les autres.
+- Audit : l’ouverture d’une catégorie ferme les autres.
+- Tamis à bouses : coloration automatique des pourcentages avec repères pratiques affichés.

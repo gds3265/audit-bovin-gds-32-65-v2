@@ -1,5 +1,5 @@
-const CACHE = 'audit-bovin-v14.6.16';
-const ASSETS = ['./?v=14.6.16','./index.html?v=14.6.16','./styles.css?v=14.6.16','./app.js?v=14.6.16','./cloud-sync.js?v=14.6.16','./analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.16','./icon-192.png?v=14.6.16','./icon-512.png?v=14.6.16','./planches-visuelles.png','./jszip.min.js?v=14.6.16','./modele-partenaires-passage-bv.xlsx?v=14.6.16'];
+const CACHE = 'audit-bovin-v14.6.17';
+const ASSETS = ['./?v=14.6.17','./index.html?v=14.6.17','./styles.css?v=14.6.17','./app.js?v=14.6.17','./cloud-sync.js?v=14.6.17','./analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.17','./icon-192.png?v=14.6.17','./icon-512.png?v=14.6.17','./planches-visuelles.png','./jszip.min.js?v=14.6.17','./modele-partenaires-passage-bv.xlsx?v=14.6.17'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
