@@ -1,4 +1,4 @@
-V14.6.21.2 — Version compacte GitHub
+V14.6.21.3 — Version compacte GitHub
 
 - Bibliothèque : suppression des vignettes JPG séparées.
 - Les fiches PDF restent individuelles et accessibles hors ligne.
