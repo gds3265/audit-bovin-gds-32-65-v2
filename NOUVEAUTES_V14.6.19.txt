@@ -1,0 +1,6 @@
+AUDIT BOVIN GDS 32-65 — v14.6.19
+
+Bibliothèque technique :
+- Suppression de la rubrique séparée « Mémos visuels ».
+- Les mémos Score des aplombs, SRR par période et Note d’état corporel sont désormais regroupés directement dans « Repères visuels animaux ».
+- Les images restent cliquables et disponibles hors ligne.

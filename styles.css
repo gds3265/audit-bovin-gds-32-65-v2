@@ -682,3 +682,6 @@ body{min-width:0}
 @media(max-width:900px){.memo-grid{grid-template-columns:1fr}.memo-image-button img{height:auto;max-height:520px}.subject-status-row{grid-template-columns:1fr auto}.measure-status-dots{grid-column:1/-1}.conclusion-priority{grid-template-columns:34px 1fr}.conclusion-priority .field{grid-column:2}}
 
 
+
+/* v14.6.19 — mémos regroupés dans Repères visuels animaux */
+.animal-memos-title{margin:18px 0 10px}.animal-memo-grid{margin-top:0}
