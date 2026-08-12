@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.5
+
+BIBLIOTHÈQUE — HYDRATATION
+- Observation du troupeau enrichie avec les signes pratiques de déshydratation.
+- Fiche Urines enrichie avec le pilotage de l’hydratation (densité, pH, Brix).
+- Fiche Eau / abreuvement enrichie : besoins par espèce, accessibilité, types d’abreuvoirs, qualité de l’eau et courants parasites.
+- Nouvelle fiche dédiée « Hydratation des ruminants en bâtiment ».
+- Livret Clim’Alim 2026 original ajouté comme référence technique.
+- Tous les nouveaux PDF sont ajoutés au cache hors ligne.
+
+Aucune modification des données d’élevage, des visites ou de la synchronisation.
