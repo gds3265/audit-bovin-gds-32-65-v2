@@ -709,3 +709,15 @@ body{min-width:0}
 @media(max-width:520px){.questionnaire-workflow .questionnaire-steps{grid-template-columns:1fr}}
 
 .library-pdf-icon{display:flex;align-items:center;justify-content:center;min-height:120px;font-size:52px;background:rgba(255,255,255,.65);border-radius:14px;border:1px solid rgba(120,70,100,.12)}
+
+
+/* v14.6.21.6 — lecteur PDF intégré, fermeture toujours accessible sur mobile */
+.library-pdf-overlay{position:fixed;inset:0;z-index:20000;background:rgba(8,20,14,.88);display:flex;align-items:stretch;justify-content:center;padding:0}
+.library-pdf-viewer{width:100%;height:100%;max-width:1200px;background:#fff;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+.library-pdf-viewer-head{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;background:#fff;border-bottom:1px solid var(--line)}
+.library-pdf-viewer-head strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.library-pdf-close{flex:0 0 auto;border:0;border-radius:999px;background:#b53670;color:#fff;min-height:44px;padding:0 14px;font-weight:800;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.library-pdf-frame{width:100%;height:100%;min-height:0;border:0;background:#f3f3f3}
+.library-pdf-viewer-foot{display:none;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+.library-pdf-close-bottom{width:100%;min-height:46px}
+@media(max-width:700px){.library-pdf-viewer-head{padding-left:8px;padding-right:8px}.library-pdf-viewer-head strong{font-size:.92rem}.library-pdf-close{min-width:96px;justify-content:center}.library-pdf-viewer-foot{display:block}}

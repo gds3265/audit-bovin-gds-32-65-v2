@@ -1,0 +1,8 @@
+Audit Bovin GDS 32-65 — v14.6.21.6
+
+CORRECTIF MOBILE — BIBLIOTHÈQUE PDF
+- Les fiches PDF s'ouvrent maintenant dans un lecteur intégré à l'application.
+- Bouton « Fermer » toujours visible en haut.
+- Sur téléphone, second bouton « Fermer la fiche » en bas.
+- Les fiches restent disponibles hors ligne.
+- Aucune modification des données, visites ou de la synchronisation.
