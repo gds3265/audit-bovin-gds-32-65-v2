@@ -794,3 +794,35 @@ body{min-width:0}
   .library-context-btn{padding:6px 9px!important;font-size:.78rem!important}
   .analysis-table-wrap{max-height:calc(100dvh - 165px)!important;min-height:130px!important}
 }
+
+
+/* v14.6.21.9 — ergonomie tablette : saisie en série, fiche animal compacte et fermeture clavier */
+/* Les paires restent sur 2 colonnes sur tablette, même quand la règle mobile générale passe en 1 colonne. */
+@media (min-width:480px){
+  .subject-details .row{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .subject-details .field{margin-bottom:9px}
+  .subject-details .field input,.subject-details .field select{padding:9px 10px}
+  .subject-details textarea{min-height:72px}
+}
+@media (max-width:479px){
+  .subject-details .row{grid-template-columns:1fr!important}
+}
+.subject-action-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.subject-collapse-new{min-width:190px}
+@media(max-width:650px){
+  .subject-details{padding:12px}
+  .subject-actions{align-items:stretch}
+  .subject-action-buttons{width:100%;margin-left:0}
+  .subject-action-buttons .btn{flex:1 1 180px}
+}
+
+.keyboard-dismiss{
+  position:fixed;right:14px;bottom:max(12px,env(safe-area-inset-bottom));z-index:25000;
+  display:none;align-items:center;gap:6px;min-height:42px;padding:8px 12px;border:0;border-radius:999px;
+  background:#20242b;color:#fff;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:.94
+}
+.keyboard-dismiss.visible{display:inline-flex}
+.keyboard-dismiss span{font-size:.82rem}
+@media(orientation:landscape) and (max-height:650px){
+  .keyboard-dismiss{right:10px;bottom:8px;min-height:36px;padding:6px 10px}
+}

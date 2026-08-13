@@ -1,4 +1,4 @@
-IMPORTANT — mise à jour Audit Bovin v14.6.21.8
+IMPORTANT — mise à jour Audit Bovin v14.6.21.9
 
 1. DÉCOMPRESSER ce ZIP sur le PC.
 2. Dans GitHub > Add file > Upload files, déposer LES FICHIERS EXTRAITS, pas le ZIP.
@@ -6,9 +6,11 @@ IMPORTANT — mise à jour Audit Bovin v14.6.21.8
 4. Valider le commit.
 
 Correctifs de cette version :
-- matrice Mesures beaucoup plus compacte sur tablette en portrait ;
-- colonnes resserrées aussi en paysage pour garder davantage de données visibles ;
-- optimisation de la hauteur disponible quand le clavier Android est ouvert ;
-- pendant la frappe, le clavier reste ouvert normalement ;
-- appui sur Entrée : validation de la valeur + fermeture du clavier ;
-- virgule et point restent acceptés pour les décimales.
+- Entrée repasse à la case numérique suivante pour les saisies en série ;
+- nouveau bouton flottant « ⌄ Clavier » pour fermer le clavier uniquement quand on le souhaite ;
+- dézoom autorisé jusqu’à 75 % (zoom jusqu’à 200 %) ;
+- fiche animal plus compacte : deux champs par ligne sur tablette dès que la largeur le permet ;
+- Catégorie et Stade physiologique sont désormais côte à côte ;
+- bouton « ↑ Replier et nouveau sujet » en bas d’une fiche animal ;
+- ce bouton replie la fiche, remonte au formulaire d’ajout et prépare la saisie du bovin suivant ;
+- conservation des optimisations portrait/paysage de la v14.6.21.8.
