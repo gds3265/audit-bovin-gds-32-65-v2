@@ -1,8 +1,14 @@
-IMPORTANT — mise à jour Audit Bovin v14.6.21.7
+IMPORTANT — mise à jour Audit Bovin v14.6.21.8
 
 1. DÉCOMPRESSER ce ZIP sur le PC.
 2. Dans GitHub > Add file > Upload files, déposer LES FICHIERS EXTRAITS, pas le ZIP.
 3. Les fichiers portant le même nom doivent remplacer les anciens.
 4. Valider le commit.
 
-Cette archive ne contient que les fichiers à remplacer/ajouter pour la bibliothèque et le correctif PDF mobile.
+Correctifs de cette version :
+- matrice Mesures beaucoup plus compacte sur tablette en portrait ;
+- colonnes resserrées aussi en paysage pour garder davantage de données visibles ;
+- optimisation de la hauteur disponible quand le clavier Android est ouvert ;
+- pendant la frappe, le clavier reste ouvert normalement ;
+- appui sur Entrée : validation de la valeur + fermeture du clavier ;
+- virgule et point restent acceptés pour les décimales.
