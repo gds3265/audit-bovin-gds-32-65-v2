@@ -1,0 +1,9 @@
+Audit Bovin v14.6.21.15
+
+Corrections :
+- Analyse & interprétation déplacée vers la fin du bandeau, juste avant Restitution.
+- Regroupement réel des pistes identiques entre catégories bovines dans la synthèse Analyse & interprétation.
+  Exemple : « Fin lactation + Préparation vêlage » apparaît sur une seule carte si la même piste est retrouvée dans les deux lots.
+- Le regroupement s’appuie sur l’identifiant stable de la règle technique et non sur les scores/confiances propres à chaque catégorie.
+- Relecture collègue : regroupement assoupli des interprétations communes par thème + titre.
+- Toutes les fonctions de la v14.6.21.14 sont conservées.
