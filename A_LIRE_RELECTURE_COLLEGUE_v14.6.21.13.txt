@@ -1,0 +1,15 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.13
+Demande de relecture collègue
+
+Nouveautés :
+- Dans « Relecture collègue », renseigner le nom et éventuellement l'e-mail de la collègue.
+- Bouton « Envoyer par e-mail » : ouvre l'application mail avec sujet, résumé et lien direct préremplis.
+- Bouton « Partager » : ouvre le menu de partage du téléphone/tablette (WhatsApp, Messages, Mail, etc. selon l'appareil).
+- Bouton « Copier le lien » : permet de coller le lien manuellement.
+- Le lien ouvre directement la visite dans le mode Relecture collègue.
+- Statuts : Non demandée → Demandée → En cours → Terminée.
+- La date de demande, d'ouverture et de fin est conservée.
+- Quand la collègue clique sur « Relecture terminée », la demande passe automatiquement à « Terminée ».
+
+IMPORTANT :
+La collègue doit utiliser l'application reliée à la même base Supabase et se connecter avec un compte autorisé. Le lien n'envoie pas les données de la visite dans l'e-mail : il ne contient que l'identifiant de la visite et ouvre les données après connexion/synchronisation.

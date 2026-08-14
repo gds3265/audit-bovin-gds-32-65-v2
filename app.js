@@ -505,6 +505,7 @@ window.addEventListener('audit-bovin-cloud-merged',event=>{
   db=loadDatabase();
   if(previousVisitId&&db.visits.some(v=>v.id===previousVisitId))setActiveVisit(previousVisitId);
   else if(activeVisitId&&!db.visits.some(v=>v.id===activeVisitId))setActiveVisit('');
+  applyPeerReviewDeepLink();
   render();
   if(event.detail?.message)showToast(event.detail.message);
 });
@@ -671,7 +672,47 @@ function ensurePeerReview(visit){
   const r=visit.peerReview&&typeof visit.peerReview==='object'?visit.peerReview:{};
   r.reviewer=String(r.reviewer||''); r.general=String(r.general||''); r.validatedAt=String(r.validatedAt||'');
   r.cards=r.cards&&typeof r.cards==='object'?r.cards:{};
+  r.request=r.request&&typeof r.request==='object'?r.request:{};
+  r.request.email=String(r.request.email||'');
+  r.request.status=String(r.request.status||'Non demandée');
+  r.request.requestedAt=String(r.request.requestedAt||'');
+  r.request.openedAt=String(r.request.openedAt||'');
+  r.request.completedAt=String(r.request.completedAt||'');
+  r.request.deadline=String(r.request.deadline||'');
   visit.peerReview=r; return r;
+}
+function peerReviewLink(visit){
+  const u=new URL(window.location.href);
+  u.searchParams.set('reviewVisit',visit.id);
+  u.searchParams.set('reviewMode','1');
+  u.hash='';
+  return u.toString();
+}
+function peerReviewRequestStatusClass(v){return v==='Terminée'?'complete':v==='En cours'?'in-progress':v==='Demandée'?'warning':'archived';}
+function peerReviewMailText(visit,review){
+  const farm=farmName(visit.farmId),link=peerReviewLink(visit),deadline=review.request.deadline?`\nÉchéance souhaitée : ${formatDate(review.request.deadline)}`:'';
+  const subject=`Demande de relecture — ${farm} — ${formatDate(visit.date)}`;
+  const body=`Bonjour${review.reviewer?' '+review.reviewer:''},\n\nPeux-tu relire la visite bovine suivante ?\n\nExploitation : ${farm}\nDate de visite : ${formatDate(visit.date)}\nTechnicien : ${visit.technician||'Non renseigné'}${deadline}\n\nLien direct vers la relecture :\n${link}\n\nTu peux valider chaque thème, signaler les points à discuter ou à modifier, puis terminer la relecture dans l’application.\n\nMerci.`;
+  return {subject,body,link};
+}
+function markPeerReviewRequested(visit,review,status='Demandée'){
+  review.request.status=status;
+  if(!review.request.requestedAt)review.request.requestedAt=new Date().toISOString();
+  visit.updatedAt=new Date().toISOString();
+  addJournal(visit,`Demande de relecture ${status.toLowerCase()}${review.reviewer?' pour '+review.reviewer:''}.`);
+  saveDatabase(db);
+}
+function applyPeerReviewDeepLink(){
+  const params=new URLSearchParams(window.location.search),id=params.get('reviewVisit');
+  if(!id)return false;
+  const visit=db.visits.find(v=>v.id===id); if(!visit)return false;
+  setActiveVisit(id); currentView='review';
+  document.body.classList.toggle('shared-review-mode',params.get('reviewMode')==='1');
+  const review=ensurePeerReview(visit);
+  if(review.request.status==='Demandée'){
+    review.request.status='En cours'; review.request.openedAt=review.request.openedAt||new Date().toISOString(); visit.updatedAt=new Date().toISOString(); saveDatabase(db);
+  }
+  return true;
 }
 function peerReviewCardState(review,key){
   if(!review.cards[key])review.cards[key]={status:'À discuter',note:''};
@@ -699,16 +740,24 @@ function renderPeerReview(){
   const priorities=(conclusion.priorities||[]).filter(a=>String(a.text||'').trim());
   cards.push(peerReviewCard('theme:actions','🎯 Conclusion & plan d’action',`${priorities.length} priorité(s)`,`<div class="peer-actions">${priorities.length?priorities.map((a,i)=>`<div><strong>${i+1}. ${escapeHtml(a.text)}</strong><span>${escapeHtml(a.decision||'À étudier')}${a.comment?' · '+escapeHtml(a.comment):''}</span></div>`).join(''):'<div class="empty">Aucune priorité renseignée.</div>'}</div><div class="peer-tech-conclusion"><strong>Conclusion générale</strong><p>${escapeHtml(conclusion.general||'Aucune conclusion générale renseignée.').replace(/\n/g,'<br>')}</p></div>`,review));
   const reviewed=Object.values(review.cards).filter(x=>x.status==='Validé').length, flagged=Object.entries(review.cards).filter(([,x])=>x.status==='À discuter'||x.status==='À modifier');
-  app.innerHTML=`<div class="section-title peer-review-title"><div><h2>👥 Relecture de la visite</h2><div class="muted">Vue interne pour discuter les résultats et valider les interprétations à deux.</div></div><div class="actions"><button class="btn secondary" id="peer-presentation">🖥️ Mode présentation</button><span class="badge autosave">v14.6.21.12</span></div></div>${activeVisitBanner(visit)}
-  <section class="card peer-review-head"><div class="grid cols-4"><div><span>Sujets</span><strong>${visit.subjects?.length||0}</strong></div><div><span>Valeurs hors réf.</span><strong>${stats.anomalies}</strong></div><div><span>Audit global</span><strong>${auditPct}%</strong></div><div><span>Actions</span><strong>${stats.actionsDone}/${stats.actions}</strong></div></div><div class="grid cols-2" style="margin-top:14px"><div class="field"><label>Relu avec</label><input id="peer-reviewer" value="${escapeHtml(review.reviewer)}" placeholder="Nom de la collègue"></div><div class="field"><label>État de la relecture</label><div class="peer-review-summary"><span class="badge complete">${reviewed} validé(s)</span><span class="badge warning">${flagged.length} à revoir</span></div></div></div></section>
+  const req=review.request,reqStatus=req.status||'Non demandée';
+  app.innerHTML=`<div class="section-title peer-review-title"><div><h2>👥 Relecture de la visite</h2><div class="muted">Vue interne pour discuter les résultats et valider les interprétations à deux.</div></div><div class="actions"><button class="btn secondary" id="peer-presentation">🖥️ Mode présentation</button>${document.body.classList.contains('shared-review-mode')?'<button class="btn secondary" id="peer-exit-shared">↩ Retour application</button>':''}<span class="badge autosave">v14.6.21.13</span></div></div>${activeVisitBanner(visit)}
+  <section class="card peer-review-request"><div class="section-title"><div><h3>📨 Demande de relecture</h3><span class="muted">Envoi par e-mail, partage (WhatsApp, Messages…) ou copie du lien direct.</span></div><span class="badge ${peerReviewRequestStatusClass(reqStatus)}">${escapeHtml(reqStatus)}</span></div><div class="grid cols-3"><div class="field"><label>Collègue</label><input id="peer-reviewer" value="${escapeHtml(review.reviewer)}" placeholder="Nom de la collègue"></div><div class="field"><label>Adresse e-mail</label><input id="peer-review-email" type="email" value="${escapeHtml(req.email)}" placeholder="prenom.nom@..."></div><div class="field"><label>Échéance souhaitée (facultatif)</label><input id="peer-review-deadline" type="date" value="${escapeHtml(req.deadline)}"></div></div><div class="peer-review-link"><input id="peer-review-link" readonly value="${escapeHtml(peerReviewLink(visit))}"><div class="actions"><button class="btn primary" id="peer-send-email">✉️ Envoyer par e-mail</button><button class="btn" id="peer-share">📲 Partager</button><button class="btn secondary" id="peer-copy-link">🔗 Copier le lien</button></div></div>${req.requestedAt?`<div class="muted peer-request-meta">Demandée le ${formatDateTime(req.requestedAt)}${req.openedAt?` · ouverte le ${formatDateTime(req.openedAt)}`:''}${req.completedAt?` · terminée le ${formatDateTime(req.completedAt)}`:''}</div>`:''}</section>
+  <section class="card peer-review-head"><div class="grid cols-4"><div><span>Sujets</span><strong>${visit.subjects?.length||0}</strong></div><div><span>Valeurs hors réf.</span><strong>${stats.anomalies}</strong></div><div><span>Audit global</span><strong>${auditPct}%</strong></div><div><span>Actions</span><strong>${stats.actionsDone}/${stats.actions}</strong></div></div><div class="grid cols-2" style="margin-top:14px"><div class="field"><label>État de la relecture</label><div class="peer-review-summary"><span class="badge complete">${reviewed} validé(s)</span><span class="badge warning">${flagged.length} à revoir</span></div></div><div class="field"><label>Demande</label><div class="peer-review-summary"><span class="badge ${peerReviewRequestStatusClass(reqStatus)}">${escapeHtml(reqStatus)}</span></div></div></div></section>
   <div class="peer-review-list">${cards.join('')}</div>
   <section class="card peer-review-final"><div class="section-title"><div><h3>🔎 Synthèse des points à reprendre</h3><span class="muted">Seuls les désaccords et modifications sont repris ici.</span></div></div><div id="peer-flagged">${flagged.length?flagged.map(([k,x])=>`<div class="peer-flagged-item"><strong>${escapeHtml(k.replace(/^cat:/,'').replace('theme:',''))}</strong><span>${escapeHtml(x.status)}${x.note?' — '+escapeHtml(x.note):''}</span></div>`).join(''):'<div class="notice positive"><strong>Aucun point marqué à discuter ou modifier.</strong></div>'}</div><div class="field"><label>Conclusion de la relecture</label><textarea rows="4" id="peer-general" placeholder="Accords, réserves, éléments à compléter avant restitution…">${escapeHtml(review.general)}</textarea></div><div class="actions"><button class="btn primary" id="peer-validate">✓ Relecture terminée</button>${review.validatedAt?`<span class="badge complete">Validée le ${formatDateTime(review.validatedAt)}</span>`:''}</div></section>`;
   const save=()=>{visit.updatedAt=new Date().toISOString();saveDatabase(db);};
   document.getElementById('peer-reviewer').oninput=e=>{review.reviewer=e.target.value;save();};
+  document.getElementById('peer-review-email').oninput=e=>{review.request.email=e.target.value;save();};
+  document.getElementById('peer-review-deadline').onchange=e=>{review.request.deadline=e.target.value;save();};
   document.getElementById('peer-general').oninput=e=>{review.general=e.target.value;save();};
+  document.getElementById('peer-send-email').onclick=()=>{const m=peerReviewMailText(visit,review);if(!review.request.email.trim()){showToast('Renseignez l’adresse e-mail de la collègue.');document.getElementById('peer-review-email')?.focus();return;}markPeerReviewRequested(visit,review,'Demandée');window.location.href=`mailto:${encodeURIComponent(review.request.email.trim())}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}`;setTimeout(renderPeerReview,250);};
+  document.getElementById('peer-share').onclick=async()=>{const m=peerReviewMailText(visit,review);try{if(navigator.share){await navigator.share({title:m.subject,text:m.body,url:m.link});markPeerReviewRequested(visit,review,'Demandée');renderPeerReview();}else{await navigator.clipboard.writeText(m.link);markPeerReviewRequested(visit,review,'Demandée');showToast('Lien copié. Vous pouvez le coller dans WhatsApp ou Messages.');renderPeerReview();}}catch(err){if(err?.name!=='AbortError')showToast('Partage impossible sur cet appareil. Utilisez « Copier le lien ».');}};
+  document.getElementById('peer-copy-link').onclick=async()=>{const m=peerReviewMailText(visit,review);try{await navigator.clipboard.writeText(m.link);markPeerReviewRequested(visit,review,'Demandée');showToast('Lien de relecture copié.');renderPeerReview();}catch(_){const input=document.getElementById('peer-review-link');input?.select();document.execCommand('copy');markPeerReviewRequested(visit,review,'Demandée');showToast('Lien de relecture copié.');renderPeerReview();}};
+  document.getElementById('peer-exit-shared')?.addEventListener('click',()=>{document.body.classList.remove('shared-review-mode');const u=new URL(window.location.href);u.searchParams.delete('reviewVisit');u.searchParams.delete('reviewMode');history.replaceState({},'',u);setView('dashboard');});
   app.querySelectorAll('[data-peer-status]').forEach(el=>el.onchange=()=>{peerReviewCardState(review,el.dataset.peerStatus).status=el.value;save();renderPeerReview();});
   app.querySelectorAll('[data-peer-note]').forEach(el=>el.oninput=()=>{peerReviewCardState(review,el.dataset.peerNote).note=el.value;save();});
-  document.getElementById('peer-validate').onclick=()=>{review.validatedAt=new Date().toISOString();addJournal(visit,`Relecture collégiale terminée${review.reviewer?' avec '+review.reviewer:''}.`);save();showToast('Relecture enregistrée.');renderPeerReview();};
+  document.getElementById('peer-validate').onclick=()=>{review.validatedAt=new Date().toISOString();review.request.status='Terminée';review.request.completedAt=review.validatedAt;addJournal(visit,`Relecture collégiale terminée${review.reviewer?' avec '+review.reviewer:''}.`);save();showToast('Relecture enregistrée.');renderPeerReview();};
   document.getElementById('peer-presentation').onclick=()=>{document.body.classList.toggle('peer-presentation-mode');const on=document.body.classList.contains('peer-presentation-mode');document.getElementById('peer-presentation').textContent=on?'↩ Quitter présentation':'🖥️ Mode présentation';if(on&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});};
 }
 
@@ -3259,5 +3308,6 @@ function initKeyboardDismissButton(){
 initWorkMode();
 initGlobalSearch();
 initKeyboardDismissButton();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.6.21.11',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
+applyPeerReviewDeepLink();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=14.6.21.13',{updateViaCache:'none'}).then(r=>r.update()).catch(console.error);
 render();
