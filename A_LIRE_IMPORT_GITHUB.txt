@@ -1,4 +1,4 @@
-IMPORTANT — mise à jour Audit Bovin v14.6.21.10
+IMPORTANT — mise à jour Audit Bovin v14.6.21.11
 
 1. DÉCOMPRESSER ce ZIP sur le PC.
 2. Dans GitHub > Add file > Upload files, déposer LES FICHIERS EXTRAITS, pas le ZIP.
@@ -16,7 +16,7 @@ Correctifs de cette version :
 - conservation des optimisations portrait/paysage de la v14.6.21.8.
 
 
-CORRECTIF v14.6.21.10 — VALEURS QUI SAUTENT APRÈS ENTRÉE
+CORRECTIF v14.6.21.11 — VALEURS QUI SAUTENT APRÈS ENTRÉE
 - Entrée conserve le fonctionnement pratique : validation puis passage à la case suivante.
 - La valeur qui vient d'être saisie est conservée immédiatement dans le filet local de saisie.
 - Une réponse / fusion Supabase ne peut plus recharger l'écran pendant qu'un champ est actif.
@@ -29,3 +29,10 @@ TEST CONSEILLÉ
 2. Saisir 5 à 10 mesures rapidement avec Entrée pour passer de case en case.
 3. Vérifier que les valeurs déjà saisies restent affichées pendant la saisie et après quelques secondes.
 4. Fermer le clavier puis revenir dans Mesures pour contrôler la persistance.
+
+
+CORRECTIF v14.6.21.11 — EN-TÊTES TOUJOURS VISIBLES
+- La première ligne des matrices reste visible pendant le défilement.
+- Sur tablette, si Android fait défiler la page quand le clavier s’ouvre, une copie synchronisée des en-têtes reste fixée en haut de l’écran.
+- Le défilement horizontal est suivi afin que les titres restent alignés avec les colonnes.
+- La première colonne et la colonne Catégorie restent fixes comme auparavant.

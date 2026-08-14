@@ -69,7 +69,7 @@ function applyDeletionTombstones(payload){
   if(Array.isArray(payload.visits)&&deleted.length){const gone=new Set(deleted);payload.visits=payload.visits.filter(v=>!gone.has(String(v?.id)));}
   return payload;
 }
-// v14.6.21.10 — protection de la saisie terrain.
+// v14.6.21.11 — protection de la saisie terrain.
 // Une fusion cloud ne doit jamais remplacer/recharger l'écran pendant qu'un champ est actif.
 // Les données distantes sont mises en attente puis fusionnées avec la base locale la plus récente
 // seulement lorsque l'utilisateur a réellement terminé sa série de saisies.
@@ -258,7 +258,7 @@ function closePanel(){document.getElementById('cloud-overlay')?.remove();}
 function openCloudPanel(){
   closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
   const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
-  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.21.10 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.21.11 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
   document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
   bindPanel(overlay);
 }

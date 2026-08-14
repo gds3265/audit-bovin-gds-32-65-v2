@@ -826,3 +826,17 @@ body{min-width:0}
 @media(orientation:landscape) and (max-height:650px){
   .keyboard-dismiss{right:10px;bottom:8px;min-height:36px;padding:6px 10px}
 }
+
+
+/* v14.6.21.11 — En-têtes de matrices toujours visibles, y compris clavier ouvert */
+.analysis-table-wrap{position:relative;overscroll-behavior:contain;}
+.analysis-table thead{position:sticky;top:0;z-index:8;}
+.analysis-table thead th{position:sticky;top:0;z-index:9;background:#fdf0f6;box-shadow:0 1px 0 #d8e0da,0 2px 5px rgba(0,0,0,.05);}
+.analysis-table thead .sticky-col,.analysis-table thead .sticky-col-2{z-index:12!important;}
+.analysis-floating-head{position:fixed;top:0;left:0;z-index:80;display:none;overflow:hidden;background:#fdf0f6;box-shadow:0 2px 8px rgba(0,0,0,.18);pointer-events:none;}
+.analysis-floating-head.visible{display:block;}
+.analysis-floating-head-inner{overflow:hidden;width:100%;}
+.analysis-floating-table{margin:0!important;border-collapse:collapse!important;background:#fff;table-layout:auto!important;}
+.analysis-floating-table thead{position:static!important;}
+.analysis-floating-table thead th{position:static!important;box-sizing:border-box;white-space:nowrap;background:#fdf0f6!important;border-bottom:1px solid #d8e0da;padding:10px;}
+@media(max-width:900px){.analysis-floating-table thead th{padding:6px 7px;font-size:.78rem;line-height:1.05}.analysis-table thead th{padding-top:6px;padding-bottom:6px;}}
