@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.14
+
+Évolutions :
+- Relecture collègue déplacée vers la fin du bandeau, juste après Restitution.
+- Relecture : regroupement des interprétations identiques retrouvées dans plusieurs catégories bovines dans une carte « Tendances communes ».
+- Les cartes par catégorie n’affichent ensuite que les interprétations propres à la catégorie, tout en gardant les résultats chiffrés.
+- Questionnaire éleveur « Questions restantes » : choix des catégories à envoyer, comme pour le pré-questionnaire.
+- Questionnaire « Questions restantes » : champ facultatif « Point(s) à revoir avec l’éleveur » intégré dans l’introduction transmise.
+
+Toutes les évolutions de la v14.6.21.13 sont conservées.
