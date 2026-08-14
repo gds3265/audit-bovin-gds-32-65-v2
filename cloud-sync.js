@@ -69,11 +69,55 @@ function applyDeletionTombstones(payload){
   if(Array.isArray(payload.visits)&&deleted.length){const gone=new Set(deleted);payload.visits=payload.visits.filter(v=>!gone.has(String(v?.id)));}
   return payload;
 }
-function applyMergedLocal(payload, message=''){
+// v14.6.21.10 — protection de la saisie terrain.
+// Une fusion cloud ne doit jamais remplacer/recharger l'écran pendant qu'un champ est actif.
+// Les données distantes sont mises en attente puis fusionnées avec la base locale la plus récente
+// seulement lorsque l'utilisateur a réellement terminé sa série de saisies.
+let deferredMergedPayload=null;
+let deferredMergedMessage='';
+let deferredMergeTimer=null;
+function cloudEditableActive(){
+  const el=document.activeElement;
+  if(!el||el===document.body)return false;
+  return !!el.matches?.('input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]):not([type=file]), textarea, select, [contenteditable="true"]');
+}
+function commitMergedLocal(payload,message=''){
   payload=applyDeletionTombstones(payload);
   localStorage.setItem(DB_KEY,JSON.stringify(payload));
   window.dispatchEvent(new CustomEvent('audit-bovin-cloud-merged',{detail:{message}}));
 }
+function scheduleDeferredMergeFlush(delay=450){
+  clearTimeout(deferredMergeTimer);
+  deferredMergeTimer=setTimeout(flushDeferredMergedLocal,delay);
+}
+function flushDeferredMergedLocal(){
+  clearTimeout(deferredMergeTimer);deferredMergeTimer=null;
+  if(!deferredMergedPayload)return;
+  if(cloudEditableActive()){scheduleDeferredMergeFlush(500);return;}
+  // La base locale a pu évoluer depuis la réponse Supabase : elle est refusionnée au dernier moment.
+  // Pour une visite datée, la version locale la plus récente gagne donc sur une réponse cloud plus ancienne.
+  const current=localDb();
+  const safe=applyDeletionTombstones(mergeSharedData(deferredMergedPayload,current));
+  const message=deferredMergedMessage;
+  deferredMergedPayload=null;deferredMergedMessage='';
+  commitMergedLocal(safe,message);
+}
+function applyMergedLocal(payload, message=''){
+  payload=applyDeletionTombstones(payload);
+  if(cloudEditableActive()){
+    deferredMergedPayload=deferredMergedPayload?mergeSharedData(deferredMergedPayload,payload):JSON.parse(JSON.stringify(payload));
+    if(message)deferredMergedMessage=message;
+    scheduleDeferredMergeFlush(500);
+    return;
+  }
+  // Même hors saisie, refusionner avec l'état local courant protège les changements arrivés
+  // entre le début de la requête réseau et sa réponse.
+  const safe=applyDeletionTombstones(mergeSharedData(payload,localDb()));
+  commitMergedLocal(safe,message);
+}
+document.addEventListener('focusin',()=>{if(deferredMergeTimer){clearTimeout(deferredMergeTimer);deferredMergeTimer=null;}});
+document.addEventListener('focusout',()=>{if(deferredMergedPayload)scheduleDeferredMergeFlush(500);});
+window.addEventListener('pagehide',()=>{if(deferredMergedPayload&&!cloudEditableActive())flushDeferredMergedLocal();});
 
 function statusLabel() {
   if (!configured()) return 'Cloud à configurer';
@@ -214,7 +258,7 @@ function closePanel(){document.getElementById('cloud-overlay')?.remove();}
 function openCloudPanel(){
   closePanel();const overlay=document.createElement('div');overlay.id='cloud-overlay';overlay.className='cloud-overlay';
   const body=!configured()?setupHtml():!signedIn()?loginHtml():accountHtml();
-  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.21.8 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
+  overlay.innerHTML=`<div class="cloud-panel"><div class="cloud-panel-head"><div><strong>Base commune techniciens</strong><small>v14.6.21.10 sécurisée</small></div><button type="button" data-cloud-close>×</button></div>${body}</div>`;
   document.body.appendChild(overlay);overlay.onclick=e=>{if(e.target===overlay||e.target.closest('[data-cloud-close]'))closePanel();};
   bindPanel(overlay);
 }
