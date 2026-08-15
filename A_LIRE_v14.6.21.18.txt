@@ -1,0 +1,16 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.18
+
+CORRECTIFS
+- Bandeau supérieur réorganisé pour éviter l’écrasement du titre sur tablette.
+- Version affichée simplifiée et mise à jour : v14.6.21.18.
+- Icône Blonde + tablette de notes + GDS 3265 conservée.
+- Service worker réellement passé en v14.6.21.18.
+- Installation PWA fiabilisée : une ressource optionnelle absente ne bloque plus l’installation.
+- Manifest complété avec id/scope pour stabiliser l’installation et les mises à jour.
+
+INSTALLATION
+1. Décompresser le ZIP.
+2. Envoyer tous les fichiers extraits dans GitHub en remplaçant ceux du même nom.
+3. Attendre la mise à jour GitHub Pages.
+4. Fermer complètement l’ancienne application / le navigateur puis rouvrir le site.
+5. Si un ancien raccourci existe, le supprimer avant de refaire « Installer l’application » / « Ajouter à l’écran d’accueil ».

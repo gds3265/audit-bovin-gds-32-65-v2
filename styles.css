@@ -847,3 +847,66 @@ body{min-width:0}
 
 /* v14.6.21.14 — demandes de relecture */
 .peer-review-request{margin-top:16px;border-left:5px solid #b53670}.peer-review-request .grid{align-items:end}.peer-review-link{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:center;margin-top:8px}.peer-review-link input{font-size:.86rem;background:rgba(0,0,0,.025)}.peer-review-link .actions{margin:0;justify-content:flex-end}.peer-request-meta{margin-top:10px}.shared-review-mode .top-nav{display:none!important}.shared-review-mode .app-main{max-width:1500px;margin:0 auto}.shared-review-mode .peer-review-request{display:none}.shared-review-mode .active-visit-banner{position:sticky;top:0;z-index:40}.shared-review-mode .peer-review-title{position:sticky;top:0;z-index:45;background:var(--bg,#fff);padding:8px 0}.shared-review-mode .peer-review-title .muted:after{content:' · Mode relecture partagé';font-weight:700;color:#b53670}@media(max-width:900px){.peer-review-request .grid.cols-3{grid-template-columns:1fr 1fr}.peer-review-link{grid-template-columns:1fr}.peer-review-link .actions{justify-content:flex-start}}@media(max-width:650px){.peer-review-request .grid.cols-3{grid-template-columns:1fr}.peer-review-link .actions .btn{flex:1 1 100%}}
+
+
+/* v14.6.21.18 — bandeau compact et stable sur tablette */
+.app-header{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:nowrap!important;
+  gap:12px!important;
+  padding:9px 12px!important;
+}
+.app-header .brand-wrap{
+  flex:1 1 260px!important;
+  min-width:220px!important;
+  max-width:430px;
+}
+.app-header .brand-wrap>div{min-width:0}
+.app-header h1{margin:0;line-height:1.12;white-space:normal}
+.app-header .brand-icon{flex:0 0 auto}
+.app-header .header-tools{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  min-width:0!important;
+  max-width:70%!important;
+  margin-left:auto!important;
+}
+.app-header .header-tools .version,
+.app-header .header-tools button{
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}
+.app-header .version{font-size:.72rem!important;padding:5px 8px!important}
+.app-header .cloud-status-btn{margin-left:0!important;max-width:190px!important;padding:7px 10px!important}
+@media (min-width:701px) and (max-width:1180px){
+  .app-header .brand-wrap{min-width:210px!important;max-width:330px!important}
+  .app-header .brand-wrap p{display:none!important}
+  .app-header h1{font-size:1.05rem!important}
+  .app-header .brand-icon{width:40px!important;height:40px!important}
+  .app-header .header-tools{max-width:72%!important;gap:6px!important}
+  .app-header .header-tools button{padding:7px 9px!important;font-size:.82rem!important}
+  .app-header .cloud-status-btn{max-width:165px!important}
+}
+@media (max-width:700px){
+  .app-header{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+  .app-header .brand-wrap{min-width:0!important;max-width:none!important;width:100%!important}
+  .app-header .brand-wrap p{display:none!important}
+  .app-header .header-tools{
+    width:100%!important;
+    max-width:100%!important;
+    justify-content:flex-start!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .app-header .cloud-status-btn{width:auto!important;max-width:170px!important}
+}
