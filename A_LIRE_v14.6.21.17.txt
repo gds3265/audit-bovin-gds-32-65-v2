@@ -1,0 +1,11 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.17
+
+CORRECTIF
+- Le bouton « Ouvrir l’analyse détaillée » de l’écran Analyse & interprétation n’ouvre plus l’onglet Tamis.
+- Il ouvre désormais directement Mesures > Raisonnement, qui contient les pistes d’interprétation détaillées par catégorie.
+- Les regroupements d’interprétations et le nouvel ordre du bandeau de la v14.6.21.15 sont conservés.
+
+Installation GitHub : décompresser l’archive puis remplacer les fichiers du dépôt par ceux de cette version.
+
+
+Ajout de la nouvelle icône Blonde avec tablette de notes et mention GDS 3265.
