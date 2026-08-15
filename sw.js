@@ -1,9 +1,9 @@
-const CACHE = 'audit-bovin-v14.6.21.18';
+const CACHE = 'audit-bovin-v14.6.21.19';
 const ASSETS = [
-  './?v=14.6.21.18','./index.html?v=14.6.21.18','./styles.css?v=14.6.21.18','./app.js?v=14.6.21.18','./cloud-sync.js?v=14.6.21.18',
-  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.18',
-  './icon-192.png?v=14.6.21.18','./icon-512.png?v=14.6.21.18','./planches-visuelles.png','./jszip.min.js?v=14.6.21.18',
-  './modele-partenaires-passage-bv.xlsx?v=14.6.21.18','./questionnaire.html?v=14.6.21.18','./questionnaire.js?v=14.6.21.18','./questionnaire.css?v=14.6.21.18',
+  './?v=14.6.21.19','./index.html?v=14.6.21.19','./styles.css?v=14.6.21.19','./app.js?v=14.6.21.19','./cloud-sync.js?v=14.6.21.19',
+  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.19',
+  './icon-192.png?v=14.6.21.19','./icon-512.png?v=14.6.21.19','./planches-visuelles.png','./jszip.min.js?v=14.6.21.19',
+  './modele-partenaires-passage-bv.xlsx?v=14.6.21.19','./questionnaire.html?v=14.6.21.19','./questionnaire.js?v=14.6.21.19','./questionnaire.css?v=14.6.21.19',
   './memo-aplombs.jpeg','./memo-srr.jpeg','./memo-nec.jpeg','./outil-apera-ph5f.pdf','./outil-control-th.pdf','./outil-extech-ph100.pdf','./outil-extech-re300.pdf',
   './outil-freestyle-optium.pdf','./outil-hanna-hi701.pdf','./outil-laquatwin-4m.pdf','./outil-lysun-uree.pdf','./outil-multimetre.pdf',
   './theme-approche-globale.pdf','./theme-eau-abreuvement.pdf','./theme-feces-digestion.pdf','./theme-fourrages-alimentation.pdf','./theme-lait-colostrum-veaux.pdf',
@@ -32,7 +32,7 @@ self.addEventListener('fetch', event => {
       return response;
     }catch(_){
       const hit=await caches.match(req);if(hit)return hit;
-      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.18'))||(await caches.match('./?v=14.6.21.18'));
+      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.19'))||(await caches.match('./?v=14.6.21.19'));
       return Response.error();
     }
   })());
