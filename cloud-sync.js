@@ -7,6 +7,7 @@ let session = loadJson(SESSION_KEY, null);
 let syncTimer = null;
 let pollTimer = null;
 let syncing = false;
+let syncUiSilent = false;
 let lastUploadedAt = '';
 let lastRemoteVersion = 0;
 
@@ -123,7 +124,7 @@ function statusLabel() {
   if (!configured()) return 'Cloud à configurer';
   if (!signedIn()) return 'Connexion technicien';
   if (!navigator.onLine) return 'Hors ligne';
-  if (syncing) return 'Synchronisation…';
+  if (syncing && !syncUiSilent) return 'Synchronisation…';
   return `Synchronisé · ${session.user.email}`;
 }
 
@@ -197,7 +198,7 @@ async function fetchRemoteState(){
 async function uploadState({silent=false}={}){
   if(!signedIn()||!navigator.onLine||syncing)return;
   const db=localDb();if(!db?.updatedAt)return;
-  syncing=true;renderStatus();
+  syncing=true;syncUiSilent=!!silent;renderStatus();
   try{
     const remote=await fetchRemoteState();
     const merged=applyDeletionTombstones(remote?.payload?mergeSharedData(remote.payload,db):db);
@@ -209,7 +210,7 @@ async function uploadState({silent=false}={}){
     await createDailyBackup(merged);
     if(!silent)toast('Toutes les visites sont sauvegardées dans le cloud.');
   }catch(e){console.error(e);if(!silent)toast(`Synchronisation impossible : ${e.message}`);}
-  finally{syncing=false;renderStatus();}
+  finally{syncing=false;syncUiSilent=false;renderStatus();}
 }
 async function createDailyBackup(db){
   const date=new Date().toISOString().slice(0,10);
