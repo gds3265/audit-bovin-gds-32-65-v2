@@ -910,3 +910,6 @@ body{min-width:0}
   }
   .app-header .cloud-status-btn{width:auto!important;max-width:170px!important}
 }
+
+/* v14.6.21.20 — rapports indépendants + anomalies identifiées */
+.report-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}.report-options-card{margin:0}.abnormal-subjects{margin:12px 0;padding:10px 12px;border-left:4px solid #d14d49;background:#fff5f4;border-radius:8px}.abnormal-subjects>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}.abnormal-subjects>div span{color:#6d5555}.legend-square{font-size:1.05rem;line-height:1}@media(max-width:850px){.report-options-grid{grid-template-columns:1fr}}
