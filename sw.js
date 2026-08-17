@@ -1,9 +1,9 @@
-const CACHE = 'audit-bovin-v14.6.21.23';
+const CACHE = 'audit-bovin-pwa-v14.6.21.24';
 const ASSETS = [
-  './?v=14.6.21.23','./index.html?v=14.6.21.23','./styles.css?v=14.6.21.23','./app.js?v=14.6.21.23','./cloud-sync.js?v=14.6.21.23',
-  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.23',
-  './icon-192.png?v=14.6.21.23','./icon-512.png?v=14.6.21.23','./planches-visuelles.png','./jszip.min.js?v=14.6.21.23',
-  './modele-partenaires-passage-bv.xlsx?v=14.6.21.23','./questionnaire.html?v=14.6.21.23','./questionnaire.js?v=14.6.21.23','./questionnaire.css?v=14.6.21.23',
+  './?v=14.6.21.24','./index.html?v=14.6.21.24','./styles.css?v=14.6.21.24','./app.js?v=14.6.21.24','./cloud-sync.js?v=14.6.21.24',
+  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.24',
+  './icon-192.png?v=14.6.21.24','./icon-512.png?v=14.6.21.24','./planches-visuelles.png','./jszip.min.js?v=14.6.21.24',
+  './modele-partenaires-passage-bv.xlsx?v=14.6.21.24','./questionnaire.html?v=14.6.21.24','./questionnaire.js?v=14.6.21.24','./questionnaire.css?v=14.6.21.24',
   './memo-aplombs.jpeg','./memo-srr.jpeg','./memo-nec.jpeg','./outil-apera-ph5f.pdf','./outil-control-th.pdf','./outil-extech-ph100.pdf','./outil-extech-re300.pdf',
   './outil-freestyle-optium.pdf','./outil-hanna-hi701.pdf','./outil-laquatwin-4m.pdf','./outil-lysun-uree.pdf','./outil-multimetre.pdf',
   './theme-approche-globale.pdf','./theme-eau-abreuvement.pdf','./theme-feces-digestion.pdf','./theme-fourrages-alimentation.pdf','./theme-lait-colostrum-veaux.pdf',
@@ -32,7 +32,7 @@ self.addEventListener('fetch', event => {
       return response;
     }catch(_){
       const hit=await caches.match(req);if(hit)return hit;
-      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.23'))||(await caches.match('./?v=14.6.21.23'));
+      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.24'))||(await caches.match('./?v=14.6.21.24'))||(await caches.match('./index.html'));
       return Response.error();
     }
   })());

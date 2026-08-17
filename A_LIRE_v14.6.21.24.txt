@@ -1,0 +1,30 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.24
+
+Correctifs et évolutions :
+- Données technico-économiques : l’ouverture du détail/graphique est conservée pendant les synchronisations cloud.
+- Graphiques des rapports : légendes imprimables avec carrés colorés visibles.
+- Analyse / synthèse / raisonnement : affichage des animaux concernés par les valeurs hors référence.
+- Restitution : options Rapport Technique et Rapport Expert totalement indépendantes.
+- Rapport Technique orienté relevé d’audit : mesures individuelles, observations, questionnaire détaillé et données terrain.
+- Rapport Expert orienté calculs/interprétations : analyses, synthèses et raisonnement.
+- Raisonnement du rapport regroupé lorsqu’une même piste concerne plusieurs catégories bovines.
+- Mesures dans les rapports colorées selon le classement : vert / jaune / rouge.
+- Audit imprimé avec toutes les questions, réponses et commentaires.
+
+
+v14.6.21.24 : présence collaborative sur la visite active, bouton Installer, classement des vaches à surveiller par score et tableau de restitution reproduction compact avec détail du score.
+
+
+v14.6.21.24 : l'indicateur cloud ne clignote plus lors des synchronisations automatiques silencieuses. Ajout d'une légende complète du calcul du score reproduction dans l'application et dans les rapports.
+
+
+CORRECTIF PWA v14.6.21.24
+- Audit Bovin possède désormais un id, un start_url et un scope strictement limités à /audit-bovin-gds-32-65-v2/.
+- Le service worker est enregistré explicitement sur ce périmètre.
+- Les caches des autres applications GDS (notamment DNC) ne sont plus supprimés lors des mises à jour Audit Bovin.
+- Si une ancienne PWA DNC contrôle encore la page Audit Bovin, l'application force une reprise de contrôle par son propre service worker puis recharge une fois.
+
+Après déploiement GitHub : ouvrir Audit Bovin dans Chrome, faire Ctrl+F5 une fois, puis fermer/réouvrir Chrome. L'option Installer Audit Bovin doit ensuite apparaître lorsque Chrome valide l'installation.
+
+
+v14.6.21.24 : correction PWA renforcée. Manifest relatif (id/start_url/scope), reprise du service worker Audit Bovin et nettoyage des anciens service workers étrangers couvrant par erreur ce dossier.

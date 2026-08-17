@@ -1,7 +1,7 @@
 {
-  "name": "Audit Bovin GDS 32-65 v14.6.21.23",
+  "name": "Audit Bovin GDS 32-65",
   "short_name": "Audit Bovin",
-  "start_url": "/audit-bovin-gds-32-65-v2/?source=pwa&v=14.6.21.23",
+  "start_url": "./?source=pwa&v=14.6.21.24",
   "display": "standalone",
   "background_color": "#fff6fa",
   "theme_color": "#b53670",
@@ -32,6 +32,12 @@
       "purpose": "maskable"
     }
   ],
-  "id": "/audit-bovin-gds-32-65-v2/",
-  "scope": "/audit-bovin-gds-32-65-v2/"
+  "id": "./",
+  "scope": "./",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "prefer_related_applications": false
 }
