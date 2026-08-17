@@ -911,5 +911,9 @@ body{min-width:0}
   .app-header .cloud-status-btn{width:auto!important;max-width:170px!important}
 }
 
-/* v14.6.21.20 — rapports indépendants + anomalies identifiées */
+/* v14.6.21.21 — rapports indépendants + anomalies identifiées */
 .report-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}.report-options-card{margin:0}.abnormal-subjects{margin:12px 0;padding:10px 12px;border-left:4px solid #d14d49;background:#fff5f4;border-radius:8px}.abnormal-subjects>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}.abnormal-subjects>div span{color:#6d5555}.legend-square{font-size:1.05rem;line-height:1}@media(max-width:850px){.report-options-grid{grid-template-columns:1fr}}
+
+
+/* v14.6.21.21 — collaboration, installation et tableau reproduction rapport */
+.visit-presence-warning,.visit-presence-ok{display:block;margin-top:5px;font-size:.78rem;font-weight:800}.visit-presence-warning{color:#a3262f}.visit-presence-ok{color:#37724a}.install-app-button{border:1px solid rgba(255,255,255,.6);background:#fff;color:#8e2857;border-radius:999px;padding:7px 11px;font-weight:800;cursor:pointer}.install-app-button[hidden]{display:none!important}.report-repro-problem-table{font-size:.82rem;table-layout:fixed;width:100%}.report-repro-problem-table th,.report-repro-problem-table td{padding:5px 5px;vertical-align:top}.report-repro-problem-table th:nth-child(1){width:13%}.report-repro-problem-table th:nth-child(2){width:7%}.report-repro-problem-table td:nth-last-child(1){font-size:.76rem}.report-note{font-size:.82rem;color:#666}.score-bad{background:#f9d5d2!important;color:#8d1d1d}.score-warn{background:#fff0bd!important;color:#7c5a00}.score-ok{background:#dcefdc!important;color:#245c2b}@media print{.report-repro-problem-table{font-size:7.6pt}.report-repro-problem-table th,.report-repro-problem-table td{padding:3px 4px}.report-repro-problem-table small{font-size:6.8pt}.report-repro-problem-table tr{break-inside:avoid}}
