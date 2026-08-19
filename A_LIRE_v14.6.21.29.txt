@@ -1,0 +1,69 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.29
+
+Correctifs et évolutions :
+- Données technico-économiques : l’ouverture du détail/graphique est conservée pendant les synchronisations cloud.
+- Graphiques des rapports : légendes imprimables avec carrés colorés visibles.
+- Analyse / synthèse / raisonnement : affichage des animaux concernés par les valeurs hors référence.
+- Restitution : options Rapport Technique et Rapport Expert totalement indépendantes.
+- Rapport Technique orienté relevé d’audit : mesures individuelles, observations, questionnaire détaillé et données terrain.
+- Rapport Expert orienté calculs/interprétations : analyses, synthèses et raisonnement.
+- Raisonnement du rapport regroupé lorsqu’une même piste concerne plusieurs catégories bovines.
+- Mesures dans les rapports colorées selon le classement : vert / jaune / rouge.
+- Audit imprimé avec toutes les questions, réponses et commentaires.
+
+
+v14.6.21.29 : présence collaborative sur la visite active, bouton Installer, classement des vaches à surveiller par score et tableau de restitution reproduction compact avec détail du score.
+
+
+v14.6.21.29 : l'indicateur cloud ne clignote plus lors des synchronisations automatiques silencieuses. Ajout d'une légende complète du calcul du score reproduction dans l'application et dans les rapports.
+
+
+CORRECTIF PWA v14.6.21.29
+- Audit Bovin possède désormais un id, un start_url et un scope strictement limités à /audit-bovin-gds-32-65-v2/.
+- Le service worker est enregistré explicitement sur ce périmètre.
+- Les caches des autres applications GDS (notamment DNC) ne sont plus supprimés lors des mises à jour Audit Bovin.
+- Si une ancienne PWA DNC contrôle encore la page Audit Bovin, l'application force une reprise de contrôle par son propre service worker puis recharge une fois.
+
+Après déploiement GitHub : ouvrir Audit Bovin dans Chrome, faire Ctrl+F5 une fois, puis fermer/réouvrir Chrome. L'option Installer Audit Bovin doit ensuite apparaître lorsque Chrome valide l'installation.
+
+
+v14.6.21.29 : correction PWA renforcée. Manifest relatif (id/start_url/scope), reprise du service worker Audit Bovin et nettoyage des anciens service workers étrangers couvrant par erreur ce dossier.
+
+
+PWA v25 : identité, start_url et scope fixés explicitement à /audit-bovin-gds-32-65-v2/. Après une ancienne installation à portée trop large, désinstaller Audit Bovin une fois avant de réinstaller cette version.
+
+
+NOUVEAUTES v14.6.21.29
+- Nouveau module Profil metabolique : oligo-elements, vitamines et macro-mineraux optionnels ; saisie/CSV, bornes laboratoire, synthese des deficits/exces, impacts, controles et corrections possibles.
+- Nouveau module Parasitisme : copro/resultats, contexte, strongles/dictyocaulus/douve/paramphistomes/coccidies/crypto, FECRT, molecules et exemples de produits autorises France a titre indicatif.
+- Les deux modules alimentent le centre d attention, Analyse & interpretation et les rapports Technique/Expert.
+- Les produits et molecules restent des aides au choix : verifier le RCP ANMV a jour et la prescription veterinaire.
+
+
+V14.6.21.29 — SAISIE PAPIER SIMPLIFIEE
+- Profil metabolique : bouton Oligos + vitamines, profil complet + Ca/Mg/P, sujet/lot commun, lignes pre-remplies, bouton Analyser.
+- Parasitisme : presets Copro standard / Veaux / Bilan complet, lot commun, lignes pre-remplies, bouton Analyser.
+- Import CSV conserve dans Options avancees mais n est plus le parcours principal.
+- Possibilite de saisir seulement le statut labo (bas/normal/haut ou positif/negatif) si la feuille ne donne pas de bornes exploitables.
+
+
+NOUVEAUTÉS v14.6.21.29
+- Module Paramètres & seuils centralisé.
+- Référentiels laboratoire modifiables pour oligo/vitamines (matrice, unité, min/max, date).
+- Sélection du labo dans Profil métabolique et reprise automatique des références.
+- Seuils historiques conservés dans chaque analyse.
+- Personnalisation des seuils numériques internes du moteur d'analyse.
+
+
+NOUVEAUTÉS v14.6.21.29 — MINÉRALISATION & VALEURS TYPES
+- Cobalt (Co) et vitamine B12 (cobalamine) sont désormais deux analytes distincts.
+- Bibliothèque modifiable de minéraux / bolus dans Paramètres & seuils.
+- Pour chaque produit : nom, fabricant, type, composition Cu/Zn/Mn/Se/Co/I et durée de libération pour les bolus.
+- Calcul automatique de l'apport journalier du complément à partir de la dose réellement distribuée.
+- Estimation de la couverture des besoins par catégorie à partir de l'ingestion de matière sèche et de repères internes modifiables.
+- Bibliothèque de valeurs types lorsque la ration n'est pas analysée : maïs grain, ensilage maïs, ensilage sorgho, enrubannage prairie/luzerne, foin prairie/luzerne, herbe pâturée, paille, orge, blé, triticale, sorgho grain.
+- Les valeurs types sont modifiables dans Paramètres & seuils et restent explicitement marquées « estimées ».
+- Dans Alimentation, chaque ligne peut être reliée à une valeur type ; l'appli estime alors la MS et certains apports minéraux de la ration.
+- Dans Analyse nutritionnelle, un aliment type peut être chargé en un clic lorsqu'aucune analyse de fourrage n'est disponible.
+- Une analyse réelle reste toujours prioritaire sur une valeur type.
+- Les calculs de couverture restent indicatifs : consommation réelle, biodisponibilité et antagonismes doivent être pris en compte.
