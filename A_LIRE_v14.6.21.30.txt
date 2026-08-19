@@ -1,0 +1,20 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.30
+
+CORRECTIFS / ÉVOLUTIONS
+
+1. ALIMENTS / VALEURS INRAE-CIRAD-AFZ
+- Paramètres & seuils > Valeurs types des aliments : bouton « Ajouter un aliment ».
+- L’aliment personnalisé est ensuite disponible dans les rations.
+- Bouton direct vers les Tables INRAE-CIRAD-AFZ pour rechercher une valeur de référence puis la recopier.
+- Les valeurs ajoutées restent modifiables et sont marquées comme estimations si aucune analyse réelle n’est disponible.
+
+2. COMPLÉMENTATION MINÉRALE / BOLUS
+- Grille de saisie élargie et responsive.
+- Champ Ingestion MS raccourci + aide sous le champ.
+- Dose + unité affichées sans troncature.
+
+3. REPRODUCTION
+- Le détail du score ne s’ouvre plus tout en bas de la page.
+- Il s’ouvre dans une fenêtre stable au centre de l’écran avec bouton Fermer.
+- Cette fenêtre n’est plus détruite par les rafraîchissements/synchronisations silencieuses du module.
+- Même amélioration pour l’historique complet de la vache.

@@ -925,3 +925,13 @@ body{min-width:0}
 
 /* V14.6.21.29 — saisie rapide depuis résultats papier */
 .paper-entry-box{margin-top:14px;padding:14px;border:1px solid #e7c5d4;border-radius:14px;background:#fff8fb}.paper-entry-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.paper-entry-controls{align-items:end}.paper-entry-controls .actions{align-items:end;flex-wrap:wrap}.paper-tip{margin:0 0 10px;padding:9px 11px;border-radius:10px;background:#f5f7f5;color:#4b5a52;font-size:.88rem}.advanced-import{display:inline-block;margin-left:4px}.advanced-import summary{cursor:pointer;color:#68756e;font-size:.88rem}.advanced-import[open]{display:block;width:100%;margin-top:8px;padding:10px;border:1px dashed #d6ddd8;border-radius:10px}@media(max-width:900px){.paper-entry-controls{grid-template-columns:1fr!important}.paper-entry-controls .actions{justify-content:flex-start}}
+
+/* V14.6.21.30 — alimentation personnalisable + détails repro stables */
+.supplement-entry-grid{grid-template-columns:repeat(2,minmax(280px,1fr));gap:14px;align-items:start}
+.supplement-dose-row{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px}
+.supplement-entry-grid input,.supplement-entry-grid select,.supplement-dose-row input,.supplement-dose-row select{width:100%;min-width:0}
+.custom-feed-grid{display:grid;gap:12px;margin:10px 0 18px}.custom-feed-card{overflow:hidden}.custom-feed-card .align-end{align-items:end;justify-content:flex-end}
+.repro-detail-overlay{position:fixed;inset:0;background:rgba(17,24,39,.52);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px}
+.repro-detail-dialog{background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);width:min(980px,96vw);max-height:88vh;overflow:auto;padding:18px}
+.repro-detail-dialog .section-title{position:sticky;top:-18px;background:#fff;z-index:4;padding:8px 0 12px;margin-bottom:8px;border-bottom:1px solid #eee}
+@media(max-width:760px){.supplement-entry-grid{grid-template-columns:1fr}.supplement-dose-row{grid-template-columns:minmax(0,1fr) 96px}.repro-detail-overlay{padding:8px}.repro-detail-dialog{width:100%;max-height:94vh;border-radius:12px;padding:12px}}
