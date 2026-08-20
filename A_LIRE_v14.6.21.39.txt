@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.39
+
+Correctifs principaux :
+- Questions terrain : suppression de content-visibility instable + chargement paresseux des sous-rubriques (les questions ne sont créées qu'à l'ouverture).
+- Pathologies : saisie en nombre de cas/an ; les pourcentages partenaires sont calculés automatiquement avec les dénominateurs disponibles.
+- Préparation / Imports : deux imports clairement séparés : CSV bovins avec mouvements et CSV bilan sanitaire/technico-économique.
+- Visites : bouton Choisir sans saut en haut ; bouton Modifier séparé.
+- Zoom : dézoom autorisé jusqu'à 50 %, zoom jusqu'à 300 %.
+- Présence technicien conservée et visible.

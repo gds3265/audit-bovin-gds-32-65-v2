@@ -959,5 +959,12 @@ body{min-width:0}
 
 .workflow-nav{display:flex;align-items:center;gap:8px}.workflow-tools{display:flex;gap:4px;margin-left:auto}.workflow-tools .compact-tool{min-width:38px!important;padding:7px 8px!important;font-size:18px}.global-search-panel{max-height:70dvh}.global-search-results{max-height:42dvh;overflow:auto}@media(max-width:760px){.workflow-tools{margin-left:0}.workflow-tools .compact-tool{font-size:16px;padding:6px!important}.global-search-panel{max-height:60dvh}.global-search-results{max-height:30dvh}}
 
-/* v14.6.21.38 — performance questions terrain + présence lisible */
+/* v14.6.21.39 — performance questions terrain + présence lisible */
 .visit-presence-ok,.visit-presence-warning{display:inline-block!important;padding:5px 9px!important;border-radius:8px!important;margin-top:6px!important;font-weight:900!important}.visit-presence-ok{background:#e2f7e8!important;color:#164c2b!important;border:1px solid #8bc79b!important}.visit-presence-warning{background:#fff1c7!important;color:#7a4c00!important;border:1px solid #e0bd52!important}.audit-section,.structured-audit,.timeline-grid>*,.audit-progress-card{content-visibility:auto;contain-intrinsic-size:420px}.audit-section{scroll-margin-top:120px}
+
+/* v14.6.21.39 — stabilité Questions terrain, imports préparation, zoom */
+.audit-section,.structured-audit,.timeline-grid>*,.audit-progress-card{content-visibility:visible!important;contain:none!important;contain-intrinsic-size:auto!important}
+.audit-question-list-lazy:empty{display:none}.audit-section[open]>.audit-question-list-lazy{display:grid}
+.calculated-answer{display:flex;flex-direction:column;gap:3px;padding:9px 11px;border:1px solid #b9d9c0;border-radius:10px;background:#f0faf2}.calculated-answer strong{font-size:1.05rem;color:#225f34}.calculated-answer small{color:#667085}
+.import-type-card{border-left:5px solid #b53670}.import-type-card+ .import-type-card{margin-top:12px}
+@media(max-width:760px){.audit-section{scroll-margin-top:86px}.visit-history-table{max-height:none}}
