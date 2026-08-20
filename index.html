@@ -7,21 +7,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Audit Bovin" />
-  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.36" crossorigin="use-credentials" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.36" />
-  <link rel="stylesheet" href="styles.css?v=14.6.21.36" />
+  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.37" crossorigin="use-credentials" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.37" />
+  <link rel="stylesheet" href="styles.css?v=14.6.21.37" />
   <title>Audit Bovin GDS 32-65</title>
 </head>
 <body class="auth-locked">
   <header class="app-header">
     <div class="brand-wrap">
-      <img src="icon-192.png?v=14.6.21.36" class="brand-icon" alt="" />
+      <img src="icon-192.png?v=14.6.21.37" class="brand-icon" alt="" />
       <div>
         <h1>Audit Bovin GDS 32-65</h1>
         <p>Gestion des exploitations, visites, sujets et raisonnement transparent</p>
       </div>
     </div>
-    <div class="header-tools"><span class="version">v14.6.21.36</span></div>
+    <div class="header-tools"><span class="version">v14.6.21.37</span></div>
   </header>
 
   <div class="workflow-nav" aria-label="Phases de visite">
@@ -29,6 +29,7 @@
     <button class="phase-btn" data-phase="terrain">2 · 🐄 Terrain</button>
     <button class="phase-btn" data-phase="report">3 · 📊 Analyse & restitution</button>
     <button class="phase-btn" data-phase="follow">4 · 📈 Suivi & impact</button>
+    <span class="workflow-tools" aria-label="Outils"><button class="nav-btn compact-tool" data-view="planches" title="Bibliothèque" aria-label="Bibliothèque">📚</button><button class="nav-btn compact-tool" data-view="references" title="Paramètres & seuils" aria-label="Paramètres & seuils">⚙️</button><button class="nav-btn compact-tool" data-view="backup" title="Sauvegarde" aria-label="Sauvegarde">💾</button></span>
   </div>
   <nav class="top-nav" aria-label="Navigation principale">
     <button class="nav-btn active" data-phase-item="prepare" data-view="dashboard">🏠 Accueil</button>
@@ -44,7 +45,7 @@
     <button class="nav-btn" data-phase-item="terrain" data-view="feeding">🍽️ Alimentation</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="building">🏠 Bâtiment / eau</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="audit">📋 Questions terrain</button>
-    <button class="nav-btn" data-phase-item="terrain" data-view="journal">📒 Journal / observations</button>
+    <button class="nav-btn" data-phase-item="follow" data-view="journal">📒 Journal / observations</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="photos">📷 Photos</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="checkout">✅ Check-up fin de visite</button>
     <button class="nav-btn" data-phase-item="report" data-view="nutrition">🧪 Analyse nutritionnelle</button>
@@ -59,11 +60,6 @@
     <button class="nav-btn" data-phase-item="follow" data-view="study">📁 Suivi de l’étude</button>
     <button class="nav-btn" data-phase-item="follow" data-view="economy">💶 Marge de progrès</button>
   </nav>
-  <nav class="utility-nav" aria-label="Outils de l’application">
-    <button class="nav-btn utility" data-view="planches">📚 Bibliothèque</button>
-    <button class="nav-btn utility" data-view="references">⚙️ Paramètres & seuils</button>
-    <button class="nav-btn utility" data-view="backup">💾 Sauvegarde</button>
-  </nav>
 
   <main id="app" class="app-main" tabindex="-1"></main>
 
@@ -73,8 +69,8 @@
 
   <input id="json-file-input" type="file" accept="application/json,.json" hidden />
 
-  <script src="jszip.min.js?v=14.6.21.36"></script>
-  <script type="module" src="app.js?v=14.6.21.36"></script>
-  <script src="cloud-sync.js?v=14.6.21.36"></script>
+  <script src="jszip.min.js?v=14.6.21.37"></script>
+  <script type="module" src="app.js?v=14.6.21.37"></script>
+  <script src="cloud-sync.js?v=14.6.21.37"></script>
 </body>
 </html>

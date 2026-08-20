@@ -1,0 +1,7 @@
+Audit Bovin v14.6.21.37
+- Documents imprimables reste dans Préparation
+- Journal / observations déplacé dans Suivi & impact
+- Outils compacts 📚 ⚙️ 💾 dans le bandeau des phases
+- Questionnaire bâtiment : plus de recentrage automatique ni fermeture forcée des autres sous-rubriques
+- Recherche sans raccourcis, index léger et réponse rapide
+- Recopie intelligente de résultats labo : import photo/PDF + OCR natif si disponible, validation obligatoire
