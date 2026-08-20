@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.31
+
+Refonte globale :
+- Ruban organisé en 3 phases : Préparation / Terrain / Analyse & restitution.
+- Profil métabolique : préconfiguration LEAV Vendée et Iodolab ; ajout Vitamine D3 (25-OH-D3) et Magnésium ; seuils modifiables.
+- Parasitisme : saisie souple, ajout pepsinogène sérique et sérologie Fasciola hepatica, laboratoires Public Labos / LPL / Labocéa référencés.
+- Analyse d'eau dédiée : grilles Public Labos et LPL, plusieurs points de prélèvement, lien avec pH/redox/conductivité/nitrates terrain.
+- Eau / abreuvoirs : mémorisation de la position horizontale pendant la saisie.
+- Références internes eau : CLIM'ALIM/ANSES utilisées comme repères internes modifiables, sans écraser les références labo.
