@@ -1,0 +1,8 @@
+Audit Bovin v14.6.21.32
+- correction globale de la mémorisation horizontale (tableaux + sous-menus)
+- check-up de fin de visite
+- suivi de l’étude : intervenants, analyses, réception, factures, coût, justificatifs
+- suivi des modifications mises en place par l’éleveur
+- module Marge de progrès économique avec prix propres à l’élevage
+- calculs théoriques : mortalité veaux/adultes, IVV, âge 1er vêlage, lait, boiteries, mammites, avortements, GMQ, âge de vente/aliment
+- comparaison automatique avec visite précédente quand les données repro sont disponibles

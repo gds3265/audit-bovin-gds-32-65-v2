@@ -1,0 +1,5 @@
+Audit Bovin v14.6.21.33
+
+Ajout : temps passé par chaque intervenant dans Suivi de l’étude.
+Ajout : temps GDS séparé en préparation avant visite, temps sur place, compte rendu/analyse et suivi après visite, avec total automatique.
+Toutes les fonctions de la v14.6.21.32 sont conservées.

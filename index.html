@@ -7,27 +7,28 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Audit Bovin" />
-  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.31" crossorigin="use-credentials" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.31" />
-  <link rel="stylesheet" href="styles.css?v=14.6.21.31" />
+  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.33" crossorigin="use-credentials" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.33" />
+  <link rel="stylesheet" href="styles.css?v=14.6.21.33" />
   <title>Audit Bovin GDS 32-65</title>
 </head>
 <body class="auth-locked">
   <header class="app-header">
     <div class="brand-wrap">
-      <img src="icon-192.png?v=14.6.21.31" class="brand-icon" alt="" />
+      <img src="icon-192.png?v=14.6.21.33" class="brand-icon" alt="" />
       <div>
         <h1>Audit Bovin GDS 32-65</h1>
         <p>Gestion des exploitations, visites, sujets et raisonnement transparent</p>
       </div>
     </div>
-    <div class="header-tools"><span class="version">v14.6.21.31</span></div>
+    <div class="header-tools"><span class="version">v14.6.21.33</span></div>
   </header>
 
   <div class="workflow-nav" aria-label="Phases de visite">
     <button class="phase-btn active" data-phase="prepare">1 · 📋 Préparation</button>
     <button class="phase-btn" data-phase="terrain">2 · 🐄 Terrain</button>
     <button class="phase-btn" data-phase="report">3 · 📊 Analyse & restitution</button>
+    <button class="phase-btn" data-phase="follow">4 · 📈 Suivi & impact</button>
   </div>
   <nav class="top-nav" aria-label="Navigation principale">
     <button class="nav-btn active" data-phase-item="prepare" data-view="dashboard">🏠 Accueil</button>
@@ -44,6 +45,7 @@
     <button class="nav-btn" data-phase-item="terrain" data-view="audit">📋 Questions terrain</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="journal">📒 Journal / observations</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="photos">📷 Photos</button>
+    <button class="nav-btn" data-phase-item="terrain" data-view="checkout">✅ Check-up fin de visite</button>
     <button class="nav-btn" data-phase-item="report" data-view="nutrition">🧪 Analyse nutritionnelle</button>
     <button class="nav-btn" data-phase-item="report" data-view="reproduction">🐄 Reproduction</button>
     <button class="nav-btn" data-phase-item="report" data-view="metabolic">🧬 Profil métabolique</button>
@@ -56,6 +58,8 @@
     <button class="nav-btn" data-phase-item="report" data-view="planches">📚 Bibliothèque</button>
     <button class="nav-btn" data-phase-item="report" data-view="references">⚙️ Paramètres & seuils</button>
     <button class="nav-btn" data-phase-item="report" data-view="backup">💾 Sauvegarde</button>
+    <button class="nav-btn" data-phase-item="follow" data-view="study">📁 Suivi de l’étude</button>
+    <button class="nav-btn" data-phase-item="follow" data-view="economy">💶 Marge de progrès</button>
   </nav>
 
   <main id="app" class="app-main" tabindex="-1"></main>
@@ -66,8 +70,8 @@
 
   <input id="json-file-input" type="file" accept="application/json,.json" hidden />
 
-  <script src="jszip.min.js?v=14.6.21.31"></script>
-  <script type="module" src="app.js?v=14.6.21.31"></script>
-  <script src="cloud-sync.js?v=14.6.21.31"></script>
+  <script src="jszip.min.js?v=14.6.21.33"></script>
+  <script type="module" src="app.js?v=14.6.21.33"></script>
+  <script src="cloud-sync.js?v=14.6.21.33"></script>
 </body>
 </html>
