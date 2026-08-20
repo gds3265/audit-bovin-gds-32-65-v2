@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.34
+
+Évolutions :
+- sous-rubriques Questionnaire bâtiment et Questions terrain : elles ne se referment plus automatiquement ;
+- repères de saisie par couleurs : à demander, à mesurer, à récupérer/compléter après, calculable ;
+- bilan sanitaire partenaire étoffé (mortalité, diarrhées, pneumonies, mammites, boiteries, omphalites, reproduction, traitements) ;
+- données technico-économiques partenaire ajoutées aux questions terrain et au pré/post-questionnaire ;
+- questionnaire post-visite adapté aux éléments manquants et documents ;
+- supports papier pré-visite et terrain ;
+- check-up de fin de visite responsive sur tablette ;
+- export partenaire : l’onglet « Suivi tps et budget » n’est jamais modifié.

@@ -1,0 +1,10 @@
+Audit Bovin GDS 32-65 — v14.6.21.35
+
+- Sous-rubriques : mémorisation de l’état ouvert/fermé.
+- Bibliothèque, Paramètres & seuils et Sauvegarde séparés du workflow de visite.
+- Recherche globale dans l’application.
+- Documents imprimables déplacés en Préparation : modèle vierge, support préparé, reproduction/mortalité/vaches à problèmes, listing des animaux présents.
+- Ouverture des supports dans une fenêtre avec boutons Imprimer et Fermer/retour audit.
+- Fiches terrain : un bovin sorti avant la date de visite ne peut plus être ajouté depuis le registre.
+- Import audit papier : scan/photo conservé avec la visite, tentative OCR natif si disponible, validation requise.
+- Pas de duplication volontaire des questions sanitaires déjà existantes : les données calculables/importées sont réutilisées quand disponibles.

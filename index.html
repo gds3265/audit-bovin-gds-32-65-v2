@@ -7,21 +7,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Audit Bovin" />
-  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.33" crossorigin="use-credentials" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.33" />
-  <link rel="stylesheet" href="styles.css?v=14.6.21.33" />
+  <link rel="manifest" href="./manifest.webmanifest?v=14.6.21.35" crossorigin="use-credentials" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=14.6.21.35" />
+  <link rel="stylesheet" href="styles.css?v=14.6.21.35" />
   <title>Audit Bovin GDS 32-65</title>
 </head>
 <body class="auth-locked">
   <header class="app-header">
     <div class="brand-wrap">
-      <img src="icon-192.png?v=14.6.21.33" class="brand-icon" alt="" />
+      <img src="icon-192.png?v=14.6.21.35" class="brand-icon" alt="" />
       <div>
         <h1>Audit Bovin GDS 32-65</h1>
         <p>Gestion des exploitations, visites, sujets et raisonnement transparent</p>
       </div>
     </div>
-    <div class="header-tools"><span class="version">v14.6.21.33</span></div>
+    <div class="header-tools"><button class="btn secondary global-search-btn" id="global-search-btn">🔎 Rechercher</button><span class="version">v14.6.21.35</span></div>
   </header>
 
   <div class="workflow-nav" aria-label="Phases de visite">
@@ -37,6 +37,7 @@
     <button class="nav-btn" data-phase-item="prepare" data-view="documents">📁 Documents</button>
     <button class="nav-btn" data-phase-item="prepare" data-view="herddata">📊 Imports / technico-éco</button>
     <button class="nav-btn" data-phase-item="prepare" data-view="questionnaires">📨 Pré-questionnaire</button>
+    <button class="nav-btn" data-phase-item="prepare" data-view="prepprint">🖨️ Documents imprimables</button>
     <button class="nav-btn" data-phase-item="prepare" data-view="followup">📈 Historique</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="animals">🐄 Animaux</button>
     <button class="nav-btn" data-phase-item="terrain" data-view="analysis">📏 Mesures</button>
@@ -55,14 +56,18 @@
     <button class="nav-btn" data-phase-item="report" data-view="pilotage">🎯 Plan d’action</button>
     <button class="nav-btn" data-phase-item="report" data-view="reports">📄 Restitution</button>
     <button class="nav-btn" data-phase-item="report" data-view="review">👥 Relecture collègue</button>
-    <button class="nav-btn" data-phase-item="report" data-view="planches">📚 Bibliothèque</button>
-    <button class="nav-btn" data-phase-item="report" data-view="references">⚙️ Paramètres & seuils</button>
-    <button class="nav-btn" data-phase-item="report" data-view="backup">💾 Sauvegarde</button>
     <button class="nav-btn" data-phase-item="follow" data-view="study">📁 Suivi de l’étude</button>
     <button class="nav-btn" data-phase-item="follow" data-view="economy">💶 Marge de progrès</button>
   </nav>
+  <nav class="utility-nav" aria-label="Outils de l’application">
+    <button class="nav-btn utility" data-view="planches">📚 Bibliothèque</button>
+    <button class="nav-btn utility" data-view="references">⚙️ Paramètres & seuils</button>
+    <button class="nav-btn utility" data-view="backup">💾 Sauvegarde</button>
+  </nav>
 
   <main id="app" class="app-main" tabindex="-1"></main>
+
+  <dialog id="global-search-dialog" class="global-search-dialog"><div class="section-title"><div><h3>🔎 Rechercher dans l’application</h3><div class="muted">Tapez un mot : mortalité, minéral, redox, facture, IVV…</div></div><button class="btn small secondary" id="global-search-close">Fermer</button></div><input id="global-search-input" class="global-search-input" placeholder="Rechercher…" autocomplete="off"><div id="global-search-results" class="global-search-results"></div></dialog>
 
   <template id="toast-template">
     <div class="toast" role="status"></div>
@@ -70,8 +75,8 @@
 
   <input id="json-file-input" type="file" accept="application/json,.json" hidden />
 
-  <script src="jszip.min.js?v=14.6.21.33"></script>
-  <script type="module" src="app.js?v=14.6.21.33"></script>
-  <script src="cloud-sync.js?v=14.6.21.33"></script>
+  <script src="jszip.min.js?v=14.6.21.35"></script>
+  <script type="module" src="app.js?v=14.6.21.35"></script>
+  <script src="cloud-sync.js?v=14.6.21.35"></script>
 </body>
 </html>
