@@ -1,0 +1,1 @@
+v14.6.21.38 : documents imprimables uniquement en Préparation, présence technicien renforcée, Questions terrain allégées (moins de rerendus, content-visibility), navigation conservée.
