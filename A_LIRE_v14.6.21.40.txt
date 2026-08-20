@@ -1,0 +1,10 @@
+Audit Bovin GDS 32-65 — v14.6.21.40
+
+Correctif stabilité tablette :
+- Questions terrain : suppression du rechargement automatique de la page lors des fusions cloud.
+- Saisie Questions terrain : sauvegarde temporisée pendant la frappe puis immédiate à la sortie du champ, pour éviter les blocages.
+- Ouverture d’une sous-rubrique : plus de défilement animé forcé.
+- Visites : une synchronisation cloud ne reconstruit plus l’écran et ne ramène plus vers la visite active.
+- Les filtres et la sélection d’une visite conservent la position de lecture de la liste.
+
+La visite active reste seulement mise en évidence ; elle ne doit plus empêcher de consulter les autres visites.
