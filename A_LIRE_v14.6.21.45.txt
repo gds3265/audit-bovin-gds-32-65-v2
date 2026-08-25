@@ -1,0 +1,16 @@
+Audit Bovin GDS 32-65 — v14.6.21.45
+
+CORRECTIF IMPORTS LABO
+
+- Oligo, parasitisme et eau : les valeurs OCR ne sont plus injectées automatiquement.
+- Chaque document affiche maintenant les propositions détectées avec : paramètre, valeur, unité et ligne réellement lue.
+- La valeur et l’unité peuvent être corrigées avant validation.
+- Seules les cases cochées sont intégrées via « Intégrer les valeurs cochées ».
+- Les alias courts comme pH et TH sont recherchés comme mots complets pour limiter les faux positifs.
+- Les valeurs < / > sont conservées.
+- Les années 1900–2100 ne peuvent plus être prises comme résultats.
+- Parasito : lecture qualitative Négatif / Positif / Douteux prise en charge lorsqu’elle est présente.
+- Bouton « Retirer les valeurs importées » pour nettoyer les mauvaises valeurs créées par une version précédente tout en gardant le document.
+
+IMPORTANT
+Un OCR peut toujours mal lire une photo ou un scan. Cette version impose donc une validation humaine avant toute intégration afin de ne plus remplir les tableaux avec des chiffres arbitraires.

@@ -970,3 +970,10 @@ body{min-width:0}
 @media(max-width:760px){.audit-section{scroll-margin-top:86px}.visit-history-table{max-height:none}}
 /* v14.6.21.42 — imports labo multiples */
 .lab-import-list{display:grid;gap:8px;margin-top:10px}.lab-import-item{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--card,#fff)}.lab-import-item>span{flex:1;min-width:180px}.lab-import-item small{display:block;opacity:.7;margin-top:2px}
+
+/* v14.6.21.45 — validation visuelle des imports labo */
+.lab-import-review{margin-top:12px;padding-top:10px;border-top:1px solid var(--border,#ddd)}
+.lab-review-table td:last-child{min-width:280px;white-space:normal;line-height:1.35}
+.lab-review-table input[data-lab-proposal-value]{min-width:90px}
+.lab-review-table input[data-lab-proposal-unit]{min-width:90px}
+@media(max-width:760px){.lab-review-table td:last-child{min-width:220px}.lab-import-item{align-items:flex-start;gap:8px}.lab-import-item .actions{flex-wrap:wrap}}
