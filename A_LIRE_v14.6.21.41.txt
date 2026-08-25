@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.41
+
+Modifications :
+- Conclusion de visite : priorisation intelligente des propositions (gravité, éléments concordants, sources distinctes, analyses, bâtiment, eau, profil métabolique, parasitisme et actions déjà décidées), avec regroupement des doublons.
+- Documents imprimables : modèle vierge et support préparé désormais réellement distincts.
+- Supports papier complets : toutes les questions avec cases à cocher, zones d’écriture, codes courts pour faciliter la relecture/transcription, questionnaire bâtiment, tableau de prélèvements, grille de mesures, alimentation, mortalité, achats et ventes.
+- Support préparé : reprend les informations déjà connues et coche/préremplit lorsque possible.
+- Vaches à problèmes : score reproduction affiché et classement par n° de travail.
+- Animaux présents : classement par n° de travail.
+
+Le scan/photo du support papier reste soumis à validation avant intégration automatique.
