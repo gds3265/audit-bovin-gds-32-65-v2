@@ -1,0 +1,12 @@
+Audit Bovin GDS 32-65 — v14.6.21.44
+
+CORRECTIF IMPORTS LABO
+- PDF contenant du texte : lecture directe du contenu.
+- PDF scanné / photo : OCR automatique si la lecture directe ne suffit pas.
+- Eau / parasitisme / profil métabolique : reconnaissance des paramètres et intégration sans écraser une valeur existante.
+- Bouton « ↻ Relire » pour retraiter les documents déjà importés.
+- Le bandeau du module affiche immédiatement le nombre de documents chargés et le nombre de valeurs réellement intégrées.
+- Message distinct si le texte a été lu mais qu'aucun paramètre connu n'a été retrouvé.
+
+IMPORTANT
+Pour la première utilisation de l'OCR sur une photo ou un PDF scanné, une connexion Internet est nécessaire pour charger le moteur OCR et les données de langue. Les PDF contenant déjà du texte sont lus directement.
