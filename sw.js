@@ -1,4 +1,4 @@
-const CACHE = 'audit-bovin-pwa-v14.6.21.41';
+const CACHE = 'audit-bovin-pwa-v14.6.21.42';
 const ASSETS = [
   './?v=14.6.21.41','./index.html?v=14.6.21.41','./styles.css?v=14.6.21.41','./app.js?v=14.6.21.41','./cloud-sync.js?v=14.6.21.41',
   './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.41',

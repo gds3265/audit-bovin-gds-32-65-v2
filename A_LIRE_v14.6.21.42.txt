@@ -1,0 +1,12 @@
+Audit Bovin GDS 32-65 — v14.6.21.42
+
+Corrections :
+- Âge moyen au premier vêlage calculé depuis le registre et repris dans Questions terrain et PASSAGE.
+- Ajout de Taux de gestation (%) et Veaux sevrés/vache aux questions repro pour couvrir le bilan partenaire.
+- Repères « à demander / document / calculable » corrigés : poids, GMQ, carcasses et fertilisation/amendements sont à demander/confirmer ; les montants comptables peuvent être récupérés sur document.
+- Chargement calculé automatiquement à partir de la SFP et des animaux présents (coefficients UGB par âge ; repli vaches/SFP si nécessaire).
+- Imports labo multiples dans Profil métabolique, Parasitisme et Eau : plusieurs PDF/photos sélectionnables, ajoutables ensuite, conservés dans la visite et réouvrables jusqu’à 4 Mo/fichier.
+- Export PASSAGE Bilan sanitaire étendu : âge troupeau, taux gestation si saisi/importé, IVV, % IVV >410, veaux sevrés/vache, âge 1er vêlage, vêlages difficiles, réformes post-vêlage, taux de vêlage, production, mortalité, pathologies, alimentation et efficience.
+- Export PASSAGE Données technico-économiques : utilise les réponses saisies et les valeurs calculables disponibles.
+- Ajout « diarrhées tous âges » pour distinguer la ligne partenaire des diarrhées néonatales.
+- Aucun remplissage de l’onglet « Suivi tps et budget ».

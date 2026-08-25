@@ -968,3 +968,5 @@ body{min-width:0}
 .calculated-answer{display:flex;flex-direction:column;gap:3px;padding:9px 11px;border:1px solid #b9d9c0;border-radius:10px;background:#f0faf2}.calculated-answer strong{font-size:1.05rem;color:#225f34}.calculated-answer small{color:#667085}
 .import-type-card{border-left:5px solid #b53670}.import-type-card+ .import-type-card{margin-top:12px}
 @media(max-width:760px){.audit-section{scroll-margin-top:86px}.visit-history-table{max-height:none}}
+/* v14.6.21.42 — imports labo multiples */
+.lab-import-list{display:grid;gap:8px;margin-top:10px}.lab-import-item{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--card,#fff)}.lab-import-item>span{flex:1;min-width:180px}.lab-import-item small{display:block;opacity:.7;margin-top:2px}
