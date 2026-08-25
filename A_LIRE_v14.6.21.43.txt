@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.43
+
+Correctifs ciblés :
+- Questions terrain / Audit exploitation : les réponses sont désormais enregistrées immédiatement dans la visite et protégées par un filet local horodaté. Le récapitulatif d’avancement et les compteurs de chapitres se mettent à jour dès la saisie, sans attendre de quitter la page.
+- Les commentaires, cases multiples et synthèses de chapitre utilisent le même mécanisme de sauvegarde renforcé.
+- Imports labo Eau / Parasitisme / Oligo : le bandeau supérieur indique maintenant clairement le nombre de documents chargés et le nombre de valeurs réellement intégrées.
+- Pour les images dont le navigateur sait extraire le texte, les valeurs reconnues sont ajoutées directement dans le tableau du module correspondant, sans écraser une valeur existante.
+- Si un PDF/photo est seulement conservé mais qu'aucune valeur ne peut être lue automatiquement sur l'appareil, l'application ne prétend plus qu'une analyse a été renseignée : elle indique clairement qu'aucune valeur n'a pu être intégrée.
+- Le document source reste rattaché à la visite et peut être rouvert.
