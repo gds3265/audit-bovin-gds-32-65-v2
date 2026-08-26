@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.53
+
+- Préparation de visite : tableau de bord reproduction complet avant les questions éleveur.
+- Tuiles animales cliquables : femelles/mâles par âge, femelles >36 mois sans vêlage, classes IVV, vaches à problème, naissances, mortalité veaux <6 mois.
+- Paternité : absence de suivi non considérée comme anomalie ; détail uniquement des taureaux présents à un moment dans le registre de l'exploitation ; pères IA/non présents seulement comptés ; historique complet par taureau.
+- Historique technico-économique reproduction/mortalité N, N-1, N-2 regroupé dans Préparation.
+- Femelles improductives du CSV : tuile explicative si le fichier ne fournit qu'un total sans identités.
+- Chronologie des performances détaillée en Préparation.
+- Météo-France : clé API testée avec plusieurs modes compatibles (paramètre apikey puis Bearer puis en-tête apikey) ; OAuth2 reste disponible.
