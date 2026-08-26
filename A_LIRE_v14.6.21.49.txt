@@ -1,0 +1,16 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.49
+
+NOUVEAUTÉS REPRO / MÉTÉO
+- Historique Météo-France intégré dans Reproduction > Chronologie des performances.
+- Récupération via l'API officielle DPClim quotidienne : stations par département, commandes par périodes <= 1 an, puis récupération du CSV.
+- Accès possible avec clé API ou token OAuth2 temporaire du portail API Météo-France.
+- Import manuel d'un CSV quotidien Météo-France disponible en secours.
+- Pluviométrie cumulée et température moyenne par trimestre ajoutées à la chronologie.
+- Repérage relatif des trimestres nettement plus secs/humides ou chauds/froids par rapport à l'historique météo chargé.
+- Ces repères sont croisés avec IVV, mortalité, introductions et événements ; ils restent des pistes d'enquête et non une preuve de causalité.
+- La clé/token Météo-France n'est pas enregistrée dans la visite.
+
+NETTOYAGE DU ZIP
+- Suppression de tous les anciens A_LIRE_v14.6.21.xx.txt.
+- Conservation uniquement de A_LIRE_IMPORT_GITHUB.txt et du présent A_LIRE_v14.6.21.49.txt.
+- Les PDF techniques, icônes et modèle Excel utiles à l'application sont conservés.
