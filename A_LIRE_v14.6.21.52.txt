@@ -1,0 +1,15 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.52
+
+Nouveautés reproduction / préparation de visite :
+- Analyse préparatoire reproduction directement dans Préparation > Imports / technico-éco.
+- Comptage à la date de visite : femelles >24 mois, femelles >36 mois, mâles >24 mois, mâles >36 mois.
+- Nombre de naissances sur les 12 derniers mois et taux de paternité renseignée.
+- Répartition des veaux par père quand la paternité est disponible.
+- Pour chaque père : nombre de veaux, nombre de mères distinctes concernées, part des femelles >24 mois, période des naissances et présence connue du mâle.
+- Alertes préparatoires avant l'audit : femelles >36 mois sans vêlage, absence de mâle adulte apparent, paternité incomplète, charge potentielle sur un seul père, périodes chronologiques à investiguer.
+- Le % par père est explicitement présenté comme un indicateur de mères distinctes avec veau attribué, et non comme un comptage certain des saillies.
+- Les mêmes effectifs structurels apparaissent dans le tableau de bord Reproduction.
+- Dans Reproduction, l'analyse des données et la Chronologie des performances sont placées avant l'enquête terrain chaleurs / taureaux, afin de préparer d'abord les questions à poser à l'éleveur.
+- Correctif authentification Météo-France API Key conservé depuis v14.6.21.51.
+
+Installation : remplacer les fichiers de l'application sur GitHub puis forcer l'actualisation de la PWA si nécessaire.
