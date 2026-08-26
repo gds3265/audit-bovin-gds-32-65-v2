@@ -977,3 +977,11 @@ body{min-width:0}
 .lab-review-table input[data-lab-proposal-value]{min-width:90px}
 .lab-review-table input[data-lab-proposal-unit]{min-width:90px}
 @media(max-width:760px){.lab-review-table td:last-child{min-width:220px}.lab-import-item{align-items:flex-start;gap:8px}.lab-import-item .actions{flex-wrap:wrap}}
+
+/* v14.6.21.46 — contrôle visible des imports labo */
+.lab-import-review.needs-review{border:2px solid var(--warning,#d38b00);border-radius:12px;padding:12px;margin-top:14px}
+.lab-import-review.just-imported{outline:3px solid rgba(211,139,0,.22);outline-offset:3px}
+.lab-review-callout{margin:10px 0}
+.lab-ocr-raw{margin-top:12px}
+.lab-ocr-raw summary{cursor:pointer;font-weight:600}
+.lab-ocr-raw pre{max-height:280px;overflow:auto;white-space:pre-wrap;background:var(--surface-soft,#f6f6f6);padding:10px;border-radius:8px;font-size:.78rem}

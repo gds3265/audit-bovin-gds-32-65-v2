@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.46
+
+Correctifs imports labo :
+- Parasitisme et oligo : la zone « valeurs à vérifier » est maintenant mise en évidence et l’écran se replace automatiquement dessus après import / relecture.
+- Ajout d’un volet « Voir le texte réellement lu » pour comparer l’OCR au compte rendu d’origine.
+- Lecture des valeurs rendue plus prudente : les nombres présents dans le nom du paramètre (ex. flore 22 °C / 37 °C), les années/dates et les colonnes de références sont moins susceptibles d’être pris pour le résultat.
+- Les codes métaboliques très ambigus (notamment I/P et Mg utilisé comme unité) sont mieux filtrés.
+- Eau : ajout de paramètres manquants courants (redox, COT, ammonium, fer, manganèse, chlore) et amélioration de la reconnaissance microbiologique.
+- Aucune valeur détectée n’est intégrée automatiquement : validation manuelle obligatoire.
+
+Important : pour un document déjà importé avec la v45, utiliser le bouton « Relire » afin de recalculer les propositions avec le nouveau lecteur.
