@@ -1,0 +1,8 @@
+AUDIT BOVIN v14.6.21.47 — CORRECTIF PERSISTANCE IMPORTS LABO
+
+- Eau / Parasitisme / Oligo : le document est maintenant enregistré dans la visite AVANT le lancement de l’OCR.
+- Le fichier chargé reste donc visible même pendant une lecture longue.
+- Le résultat OCR est raccroché à la visite active par son identifiant, pour éviter la perte liée à une référence de visite devenue obsolète.
+- Une synchronisation cloud ne reconstruit plus ces trois écrans pendant une importation ou une saisie.
+- Après lecture, les propositions restent affichées sous le document pour validation.
+- Le bandeau supérieur affiche le nombre de documents chargés et le nombre de valeurs intégrées.
