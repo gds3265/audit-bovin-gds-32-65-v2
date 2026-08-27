@@ -986,6 +986,6 @@ body{min-width:0}
 .lab-ocr-raw summary{cursor:pointer;font-weight:600}
 .lab-ocr-raw pre{max-height:280px;overflow:auto;white-space:pre-wrap;background:var(--surface-soft,#f6f6f6);padding:10px;border-radius:8px;font-size:.78rem}
 
-/* v14.6.21.49 — enquête reproduction & chronologie */
+/* v14.6.21.54 — enquête reproduction & chronologie */
 .repro-age-filter{margin-top:16px}.repro-age-sliders{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:12px 0}.repro-age-sliders label{display:grid;gap:8px;font-weight:700}.repro-age-sliders input[type=range]{width:100%}.repro-bull-row{display:grid;grid-template-columns:1.3fr .8fr 1.1fr 1fr 1fr auto;gap:8px;align-items:center;margin:8px 0}.repro-bull-row input,.repro-bull-row select{min-width:0}.repro-problem-periods{display:grid;gap:8px;margin-bottom:14px}.repro-problem-periods article small{display:block;margin-top:5px}.repro-period-danger td{background:rgba(180,30,30,.07)}.repro-period-warning td{background:rgba(220,140,20,.08)}.repro-event-editor{margin-top:14px;padding-top:10px;border-top:1px solid var(--border,#ddd)}
 @media(max-width:850px){.repro-age-sliders{grid-template-columns:1fr}.repro-bull-row{grid-template-columns:1fr 1fr}.repro-bull-row button{grid-column:2}.repro-age-filter .actions{gap:6px}}

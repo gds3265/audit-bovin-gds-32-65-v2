@@ -1,0 +1,14 @@
+Audit Bovin GDS 32-65 — v14.6.21.54
+
+Évolution du document imprimable de préparation reproduction/mortalité :
+- structure troupeau : femelles/mâles >24m et >36m, femelles >36m sans vêlage, naissances ;
+- toutes les classes IVV + IVV moyen + âge au premier vêlage ;
+- mortalité veaux <6 mois ;
+- historique technico-économique N/N-1/N-2 reproduction + mortalité ;
+- paternité sur tout l'historique disponible, sans considérer l'absence de suivi comme anomalie ;
+- taureaux ayant réellement figuré dans le registre détaillés ; pères IA/extérieurs seulement comptés ;
+- vaches à problèmes et femelles >36m sans vêlage détaillées ;
+- chronologie complète des performances, périodes à investiguer, introductions, météo et événements ;
+- points à éclaircir pendant l'audit + zone de notes technicien.
+
+Base : v14.6.21.53. Les évolutions précédentes, y compris le correctif Météo-France, sont conservées.
