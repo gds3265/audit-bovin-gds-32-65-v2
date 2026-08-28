@@ -1,0 +1,22 @@
+Audit Bovin GDS 32-65 — v14.6.21.62
+
+CORRECTIONS / AJOUTS
+- Météo : fichiers RR-T-Vent 32/65 placés à la RACINE du dépôt pour éviter les erreurs 404 lors d’un import manuel GitHub.
+- Météo : la période chargée correspond désormais à la période visible/sélectionnée en reproduction, sans forcer l’historique 1950-2024 lorsqu’il n’est pas utile.
+- Météo : compatibilité conservée avec un ancien dossier /meteo si présent.
+- Reproduction : filtre d’âge par défaut >36 mois.
+- Raccourcis : 24-36 mois, >36 mois, 3-5 ans, 5-8 ans, 8 ans et +, toutes >=24 mois.
+- Ajout âge moyen des femelles >=24 mois, âge maximum et répartition par âge exact (camembert). Cliquer sur un âge ouvre la liste des femelles concernées.
+
+IMPORTANT POUR GITHUB
+Les 4 fichiers météo suivants doivent être envoyés à la RACINE, au même niveau que app.js :
+Q_32_previous-1950-2024_RR-T-Vent.csv.gz
+Q_32_latest-2025-2026_RR-T-Vent.csv.gz
+Q_65_previous-1950-2024_RR-T-Vent.csv.gz
+Q_65_latest-2025-2026_RR-T-Vent.csv.gz
+
+MISE A JOUR FUTURE METEO-FRANCE
+Site : https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes/
+Chercher les ressources quotidiennes RR-T-Vent du département 32 ou 65.
+Prendre le fichier previous (historique) et le fichier latest (années récentes).
+L'application permet également de sélectionner les deux .csv.gz manuellement et de les fusionner.

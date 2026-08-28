@@ -1,16 +1,16 @@
-const CACHE = 'audit-bovin-pwa-v14.6.21.61';
+const CACHE = 'audit-bovin-pwa-v14.6.21.62';
 const ASSETS = [
-  './?v=14.6.21.61','./index.html?v=14.6.21.61','./styles.css?v=14.6.21.61','./app.js?v=14.6.21.61','./cloud-sync.js?v=14.6.21.61',
-  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.61',
-  './icon-192.png?v=14.6.21.61','./icon-512.png?v=14.6.21.61','./planches-visuelles.png','./jszip.min.js?v=14.6.21.61',
-  './modele-partenaires-passage-bv.xlsx?v=14.6.21.61','./questionnaire.html?v=14.6.21.61','./questionnaire.js?v=14.6.21.61','./questionnaire.css?v=14.6.21.61',
+  './?v=14.6.21.62','./index.html?v=14.6.21.62','./styles.css?v=14.6.21.62','./app.js?v=14.6.21.62','./cloud-sync.js?v=14.6.21.62',
+  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.62',
+  './icon-192.png?v=14.6.21.62','./icon-512.png?v=14.6.21.62','./planches-visuelles.png','./jszip.min.js?v=14.6.21.62',
+  './modele-partenaires-passage-bv.xlsx?v=14.6.21.62','./questionnaire.html?v=14.6.21.62','./questionnaire.js?v=14.6.21.62','./questionnaire.css?v=14.6.21.62',
   './memo-aplombs.jpeg','./memo-srr.jpeg','./memo-nec.jpeg','./outil-apera-ph5f.pdf','./outil-control-th.pdf','./outil-extech-ph100.pdf','./outil-extech-re300.pdf',
   './outil-freestyle-optium.pdf','./outil-hanna-hi701.pdf','./outil-laquatwin-4m.pdf','./outil-lysun-uree.pdf','./outil-multimetre.pdf',
   './theme-approche-globale.pdf','./theme-eau-abreuvement.pdf','./theme-feces-digestion.pdf','./theme-fourrages-alimentation.pdf','./theme-lait-colostrum-veaux.pdf',
   './theme-litiere-environnement.pdf','./theme-observation-troupeau.pdf','./theme-outils-prelevements.pdf','./theme-plantes-paturage.pdf','./theme-sang.pdf','./theme-sol.pdf',
   './theme-urines.pdf','./theme-hydratation-ruminants.pdf','./reference-climalim-hydratation-2026.pdf',
-  './meteo/Q_32_previous-1950-2024_RR-T-Vent.csv.gz','./meteo/Q_32_latest-2025-2026_RR-T-Vent.csv.gz',
-  './meteo/Q_65_previous-1950-2024_RR-T-Vent.csv.gz','./meteo/Q_65_latest-2025-2026_RR-T-Vent.csv.gz'
+  './Q_32_previous-1950-2024_RR-T-Vent.csv.gz','./Q_32_latest-2025-2026_RR-T-Vent.csv.gz',
+  './Q_65_previous-1950-2024_RR-T-Vent.csv.gz','./Q_65_latest-2025-2026_RR-T-Vent.csv.gz'
 ];
 self.addEventListener('install', event => event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);
@@ -34,7 +34,7 @@ self.addEventListener('fetch', event => {
       return response;
     }catch(_){
       const hit=await caches.match(req);if(hit)return hit;
-      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.61'))||(await caches.match('./?v=14.6.21.61'))||(await caches.match('./index.html'));
+      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.62'))||(await caches.match('./?v=14.6.21.62'))||(await caches.match('./index.html'));
       return Response.error();
     }
   })());
