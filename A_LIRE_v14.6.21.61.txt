@@ -1,0 +1,14 @@
+Audit Bovin GDS 32-65 — v14.6.21.61
+
+Corrections Chronologie des performances :
+- AH/achat ET P/pension sont considérés comme de vraies introductions.
+- Les naissances ne sont jamais comptées comme introductions.
+- Nouvelle détection de fenêtres probables de perturbation de conception : pour chaque IVV long, l'application estime la conception attendue puis la conception réelle et cherche les périodes où plusieurs vaches se décalent simultanément.
+- Croisement de ces fenêtres avec mortalités datées, événements d'avortement/sanitaire saisis, introductions/pensions, alimentation et météo.
+- Les avortements uniquement annuels du fichier technico-économique ne sont pas rattachés artificiellement à un mois faute de date précise.
+- Les fenêtres glissantes de 12 mois restent disponibles comme contrôle de tendance, mais ne constituent plus l'analyse principale.
+
+
+Correctifs v14.6.21.61 : codes introduction HA / A / P, détection prudente de mort-né compatible avec avortement/mise bas prématurée quand <240 j depuis la mise bas précédente, et ajout de la saisie Avortement / mort-né dans la chronologie.
+
+La chronologie croise aussi les mortalités datées de toutes classes d’âge. Les événements compatibles avec un avortement sont seulement signalés comme probables si un mort-né/décès ≤2 jours survient moins de 240 jours après la mise bas précédente de la mère.
