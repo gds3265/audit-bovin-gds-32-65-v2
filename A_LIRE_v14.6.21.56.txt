@@ -1,0 +1,19 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.56
+
+CORRECTIFS PRINCIPAUX
+- ZIP autonome : ajout des fichiers indispensables storage.js, utils.js, analysis-rules.js, knowledge-base.js et jszip.min.js pour éviter une application figée si ces fichiers manquent sur l'hébergement.
+- Météo : les 4 fichiers RR-T-Vent fournis pour les départements 32 et 65 sont inclus dans /meteo.
+- Import météo manuel : sélection multiple de .csv/.csv.gz, fusion automatique ancien historique + fichier récent, suppression des doublons station/date.
+- Notice météo intégrée dans l'application avec le site data.gouv.fr et le type de fichier à reprendre lors d'une future actualisation.
+- Paternité : un père n'est détaillé comme taureau de l'exploitation que s'il était réellement présent autour de la conception estimée. Les autres restent comptés comme IA/extérieurs sans liste détaillée. Le nom du taureau est privilégié lorsqu'il existe.
+- Vaches à problème : détail des pénalités expliquant le score dans la préparation et dans le document imprimable.
+- Chronologie des performances : remplacement de la liste exhaustive de trimestres par une analyse croisée qui regroupe uniquement les dégradations nettes et recherche les introductions, événements et anomalies météo proches. Le détail trimestre par trimestre reste disponible replié à l'écran mais n'est plus imprimé.
+
+METEO — POUR METTRE A JOUR PLUS TARD
+Site officiel : https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes/
+Chercher les fichiers quotidiens RR-T-Vent du département :
+- Q_32_previous-..._RR-T-Vent.csv.gz
+- Q_32_latest-..._RR-T-Vent.csv.gz
+- Q_65_previous-..._RR-T-Vent.csv.gz
+- Q_65_latest-..._RR-T-Vent.csv.gz
+Les 2 fichiers d'un même département peuvent être sélectionnés ensemble dans l'application.

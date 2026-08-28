@@ -1,38 +1,10 @@
-IMPORTANT — mise à jour Audit Bovin v14.6.21.11
+MISE À JOUR GITHUB — Audit Bovin v14.6.21.56
 
-1. DÉCOMPRESSER ce ZIP sur le PC.
-2. Dans GitHub > Add file > Upload files, déposer LES FICHIERS EXTRAITS, pas le ZIP.
-3. Les fichiers portant le même nom doivent remplacer les anciens.
-4. Valider le commit.
+1. Décompresser le ZIP.
+2. Dans GitHub > Add file > Upload files, déposer tout le contenu extrait, y compris le dossier /meteo.
+3. Laisser GitHub remplacer les fichiers portant le même nom.
+4. Ne pas supprimer les autres fichiers déjà présents dans le dépôt.
+5. Valider le commit puis forcer le rafraîchissement de l'application (Ctrl+F5 sur PC ou fermer/réouvrir la PWA).
 
-Correctifs de cette version :
-- Entrée repasse à la case numérique suivante pour les saisies en série ;
-- nouveau bouton flottant « ⌄ Clavier » pour fermer le clavier uniquement quand on le souhaite ;
-- dézoom autorisé jusqu’à 75 % (zoom jusqu’à 200 %) ;
-- fiche animal plus compacte : deux champs par ligne sur tablette dès que la largeur le permet ;
-- Catégorie et Stade physiologique sont désormais côte à côte ;
-- bouton « ↑ Replier et nouveau sujet » en bas d’une fiche animal ;
-- ce bouton replie la fiche, remonte au formulaire d’ajout et prépare la saisie du bovin suivant ;
-- conservation des optimisations portrait/paysage de la v14.6.21.8.
-
-
-CORRECTIF v14.6.21.11 — VALEURS QUI SAUTENT APRÈS ENTRÉE
-- Entrée conserve le fonctionnement pratique : validation puis passage à la case suivante.
-- La valeur qui vient d'être saisie est conservée immédiatement dans le filet local de saisie.
-- Une réponse / fusion Supabase ne peut plus recharger l'écran pendant qu'un champ est actif.
-- Si une synchronisation arrive pendant une série de saisies, elle est mise en attente.
-- La fusion est appliquée seulement après la fin réelle de la saisie et refusionnée avec la base locale la plus récente.
-- Le bouton dédié pour fermer le clavier reste disponible.
-
-TEST CONSEILLÉ
-1. Tester connecté au Wi-Fi/4G (ne pas mettre le mode avion).
-2. Saisir 5 à 10 mesures rapidement avec Entrée pour passer de case en case.
-3. Vérifier que les valeurs déjà saisies restent affichées pendant la saisie et après quelques secondes.
-4. Fermer le clavier puis revenir dans Mesures pour contrôler la persistance.
-
-
-CORRECTIF v14.6.21.11 — EN-TÊTES TOUJOURS VISIBLES
-- La première ligne des matrices reste visible pendant le défilement.
-- Sur tablette, si Android fait défiler la page quand le clavier s’ouvre, une copie synchronisée des en-têtes reste fixée en haut de l’écran.
-- Le défilement horizontal est suivi afin que les titres restent alignés avec les colonnes.
-- La première colonne et la colonne Catégorie restent fixes comme auparavant.
+IMPORTANT POUR LA MÉTÉO
+Le dossier /meteo contient les 4 fichiers RR-T-Vent 32 et 65 fournis le 28/08/2026. Il doit être envoyé avec le reste.
