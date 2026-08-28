@@ -1,0 +1,5 @@
+Audit Bovin GDS 32-65 — v14.6.21.55
+
+Météo-France : suppression de la clé API. Chargement des données climatologiques quotidiennes publiques via data.gouv.fr, par département et période. Choix de la station après lecture des fichiers. Import manuel CSV ou CSV.GZ conservé. Export CSV des données météo chargées ajouté.
+
+Base : v14.6.21.54.
