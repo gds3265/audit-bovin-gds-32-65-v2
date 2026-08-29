@@ -1,0 +1,8 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.71
+
+Corrections :
+- Dans Préparation > Imports / technico-éco, regroupement visible des données Xper / technico-économiques.
+- Affichage ensemble des graphiques Évolution IVV, Répartition des mortalités par classe d'âge et Introductions / mouvements du troupeau.
+- Conservation des indicateurs technico-économiques et annuels dans la même partie.
+- Le document imprimable global de préparation de visite n'est pas renommé.
+- Le support spécifique repro + mortalité reste présenté sous « Données techniques éleveur ».
