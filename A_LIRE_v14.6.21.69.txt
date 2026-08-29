@@ -1,0 +1,9 @@
+AUDIT BOVIN v14.6.21.69
+
+Ajout : Gestion économique dans Préparation > Données technico-économiques.
+Le calcul pré-visite chiffre uniquement les pertes directement estimables : mortalité veaux au-dessus d’un repère paramétrable, mortalité adulte et équivalent de veaux non produits lié aux IVV au-delà de la cible.
+Race dominante détectée depuis le registre, prix/poids modifiables. Références de marché préremplies datées pour Charolaise, Limousine et Blonde d’Aquitaine.
+Les coûts alimentaires, frais vétérinaires, traitements, main-d’œuvre et autres frais indirects ne sont volontairement pas inclus dans ce premier chiffrage.
+
+
+Correctifs v68 : bilan repro imprimable réparé ; estimation économique pré-visite intégrée ; bouton Fermer / retour ajouté à tous les supports papier.
