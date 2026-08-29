@@ -1,9 +1,9 @@
-const CACHE = 'audit-bovin-pwa-v14.6.21.63';
+const CACHE = 'audit-bovin-pwa-v14.6.21.64';
 const ASSETS = [
-  './?v=14.6.21.63','./index.html?v=14.6.21.63','./styles.css?v=14.6.21.63','./app.js?v=14.6.21.63','./cloud-sync.js?v=14.6.21.63',
-  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.63',
-  './icon-192.png?v=14.6.21.63','./icon-512.png?v=14.6.21.63','./planches-visuelles.png','./jszip.min.js?v=14.6.21.63',
-  './modele-partenaires-passage-bv.xlsx?v=14.6.21.63','./questionnaire.html?v=14.6.21.63','./questionnaire.js?v=14.6.21.63','./questionnaire.css?v=14.6.21.63',
+  './?v=14.6.21.64','./index.html?v=14.6.21.64','./styles.css?v=14.6.21.64','./app.js?v=14.6.21.64','./cloud-sync.js?v=14.6.21.64',
+  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.64',
+  './icon-192.png?v=14.6.21.64','./icon-512.png?v=14.6.21.64','./planches-visuelles.png','./jszip.min.js?v=14.6.21.64',
+  './modele-partenaires-passage-bv.xlsx?v=14.6.21.64','./questionnaire.html?v=14.6.21.64','./questionnaire.js?v=14.6.21.64','./questionnaire.css?v=14.6.21.64',
   './memo-aplombs.jpeg','./memo-srr.jpeg','./memo-nec.jpeg','./outil-apera-ph5f.pdf','./outil-control-th.pdf','./outil-extech-ph100.pdf','./outil-extech-re300.pdf',
   './outil-freestyle-optium.pdf','./outil-hanna-hi701.pdf','./outil-laquatwin-4m.pdf','./outil-lysun-uree.pdf','./outil-multimetre.pdf',
   './theme-approche-globale.pdf','./theme-eau-abreuvement.pdf','./theme-feces-digestion.pdf','./theme-fourrages-alimentation.pdf','./theme-lait-colostrum-veaux.pdf',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', event => {
       return response;
     }catch(_){
       const hit=await caches.match(req);if(hit)return hit;
-      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.63'))||(await caches.match('./?v=14.6.21.63'))||(await caches.match('./index.html'));
+      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.64'))||(await caches.match('./?v=14.6.21.64'))||(await caches.match('./index.html'));
       return Response.error();
     }
   })());

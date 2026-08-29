@@ -1,0 +1,6 @@
+Audit Bovin GDS 32-65 — v14.6.21.64
+
+Correctif tuiles reproduction cliquables.
+- Les tuiles du tableau de bord reproduction en Préparation / Données technico-économiques utilisent maintenant un gestionnaire de clic direct sur chaque bouton.
+- Activation clavier Entrée/Espace également prise en charge.
+- Le correctif météo de la v63 est conservé.
