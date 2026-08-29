@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.63
+
+Correctifs :
+- Météo-France : ajout du parseur CSV manquant (erreur « parseCsvRobust is not defined »).
+- Les stations des fichiers RR-T-Vent inclus peuvent maintenant être lues et proposées.
+- Tuiles reproduction de Préparation : clic fiabilisé par délégation d’événement, compatible avec les rerendus.
+- Les introductions restent limitées aux causes exactes ACHAT et PENSION.
+
+Météo : pour les futures mises à jour, récupérer sur data.gouv.fr les fichiers Q_XX_previous-…_RR-T-Vent.csv.gz et Q_XX_latest-…_RR-T-Vent.csv.gz pour XX=32 ou 65.
