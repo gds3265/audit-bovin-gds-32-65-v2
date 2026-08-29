@@ -993,7 +993,7 @@ body{min-width:0}
 /* v14.6.21.62 — répartition âge reproduction */
 .repro-age-overview{display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:22px;align-items:center;margin:14px 0}.repro-age-donut{width:210px;aspect-ratio:1;border-radius:50%;position:relative;display:grid;place-items:center;margin:auto}.repro-age-donut:after{content:"";position:absolute;inset:24%;border-radius:50%;background:var(--card,#fff)}.repro-age-donut>span{position:relative;z-index:1;text-align:center;font-size:1.55rem;font-weight:800}.repro-age-donut small{display:block;font-size:.72rem;font-weight:500;color:#68736d}.repro-age-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px}.repro-age-legend-item{border:1px solid #e3d8dd;background:#fff;border-radius:9px;padding:8px 10px;display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer}.repro-age-legend-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}.repro-age-legend-item i{width:13px;height:13px;border-radius:50%;flex:0 0 auto}@media(max-width:650px){.repro-age-overview{grid-template-columns:1fr}.repro-age-donut{width:180px}}
 
-/* v14.6.21.65 — tuiles repro natives, sans dépendance JavaScript au clic */
+/* v14.6.21.66 — tuiles repro natives, sans dépendance JavaScript au clic */
 .repro-kpi-grid.compact details.prep-repro-native{padding:0;overflow:visible;}
 .repro-kpi-grid.compact details.prep-repro-native>summary{list-style:none;display:grid;align-content:start;gap:8px;padding:14px 13px;min-height:132px;cursor:pointer;user-select:none;}
 .repro-kpi-grid.compact details.prep-repro-native>summary::-webkit-details-marker{display:none;}
@@ -1003,3 +1003,22 @@ body{min-width:0}
 .prep-native-detail h4{margin:0 0 10px;}
 .prep-native-detail-table{max-height:55vh;overflow:auto;}
 .prep-open-hint{font-weight:700;color:var(--green)!important;}
+
+/* v14.6.21.66 — détail des tuiles repro plus compact et lisible */
+.repro-kpi-grid.compact .prep-native-detail{font-size:.82rem;line-height:1.28;padding:10px 12px;}
+.repro-kpi-grid.compact .prep-native-detail h4{font-size:1.05rem;line-height:1.2;margin:0 0 8px;}
+.repro-kpi-grid.compact .prep-native-detail table{font-size:.82rem;line-height:1.25;}
+.repro-kpi-grid.compact .prep-native-detail th,
+.repro-kpi-grid.compact .prep-native-detail td{padding:6px 8px;vertical-align:top;}
+.repro-kpi-grid.compact .prep-native-detail strong{font-size:.92rem;line-height:1.2;letter-spacing:0;color:inherit;}
+.repro-kpi-grid.compact .prep-native-detail small{font-size:.70rem;line-height:1.2;}
+@media(max-width:700px){
+  .repro-kpi-grid.compact .prep-native-detail,
+  .repro-kpi-grid.compact .prep-native-detail table{font-size:.78rem;}
+  .repro-kpi-grid.compact .prep-native-detail th,
+  .repro-kpi-grid.compact .prep-native-detail td{padding:5px 6px;}
+  .repro-kpi-grid.compact .prep-native-detail strong{font-size:.86rem;}
+}
+
+/* v14.6.21.67 — estimation économique pré-visite */
+.prep-economy-card .metric strong{font-size:1.55rem}.prep-economy-card .compact-table td,.prep-economy-card .compact-table th{font-size:.92rem}.prep-econ-settings small,.prep-econ-adjust small{display:block;color:var(--muted);margin-top:4px}.prep-economy-card tfoot th{font-size:1.05rem}.prep-economy-card .notice{margin-top:10px}
