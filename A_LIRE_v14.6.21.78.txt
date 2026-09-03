@@ -1,0 +1,15 @@
+AUDIT BOVIN v14.6.21.78
+
+Ajout dans Alimentation / Ration type :
+- cadre « Aliments / concentrés » ;
+- nom, fabricant, catégorie et quantité distribuée par animal/jour ;
+- composition / ingrédients ;
+- composition analytique (MS, MAT, MG, cellulose, cendres, amidon, sucres, UFL, PDI) ;
+- macro-minéraux Ca, P, Na, Mg ;
+- oligo-éléments Cu, Zn, Mn, I, Co, Se ;
+- vitamines A, D3, E, B1 ;
+- calcul automatique des apports journaliers ;
+- intégration automatique des aliments/concentrés au tableau global de couverture avec fourrages + minéral/bolus ;
+- repères macro-minéraux modifiables dans Paramètres & seuils.
+
+Les champs UFL/PDI restent facultatifs lorsque l'étiquette ne les indique pas.
