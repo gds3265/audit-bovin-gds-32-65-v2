@@ -1,0 +1,4 @@
+Audit Bovin v14.6.21.81
+- Tableau historique 10 ans : vert si amélioration vs année précédente, rouge si dégradation.
+- Indicateurs de volume (vaches ayant vêlé, IVV calculables, veaux nés/suivis) laissés neutres.
+- Même code couleur à l'écran et sur les PDF.
