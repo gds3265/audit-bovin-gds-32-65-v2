@@ -1,4 +1,4 @@
-Audit Bovin GDS 32-65 — v14.6.21.72
+Audit Bovin GDS 32-65 — v14.6.21.73
 
 Correctif final documentation / préparation :
 - Dans Préparation > Documents imprimables, le support spécifique est renommé « Bilan technique préparatoire ».
