@@ -1,0 +1,5 @@
+AUDIT BOVIN v14.6.21.77
+
+Correctif PDF : dans les tableaux « Vaches à problèmes / à surveiller », les critères qui pénalisent réellement le score et les valeurs mises en évidence apparaissent désormais en gras.
+
+Base : v14.6.21.76. Aucun autre fonctionnement modifié.

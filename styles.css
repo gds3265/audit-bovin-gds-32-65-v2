@@ -1023,7 +1023,7 @@ body{min-width:0}
 /* v14.6.21.67 — estimation économique pré-visite */
 .prep-economy-card .metric strong{font-size:1.55rem}.prep-economy-card .compact-table td,.prep-economy-card .compact-table th{font-size:.92rem}.prep-econ-settings small,.prep-econ-adjust small{display:block;color:var(--muted);margin-top:4px}.prep-economy-card tfoot th{font-size:1.05rem}.prep-economy-card .notice{margin-top:10px}
 
-/* v14.6.21.76 — répartition femelles par tranches d'âge + mise en évidence des pénalités reproduction */
+/* v14.6.21.77 — répartition femelles par tranches d'âge + mise en évidence des pénalités reproduction */
 .repro-age-distribution-card{overflow:visible}
 .repro-age-standalone{padding:0}
 .repro-age-overview.grouped{grid-template-columns:minmax(250px,340px) 1fr;align-items:start}
@@ -1046,7 +1046,7 @@ body{min-width:0}
 .prep-age-distribution-wrap{margin:10px 0 16px}
 .repro-penalty-chip{display:inline-block;padding:4px 7px;border-radius:8px;background:#fff0c9;border:1px solid #efd38a;color:#6f5200;font-weight:700}
 .repro-penalty-chip.severe{background:#ffd9d6;border-color:#f0a29c;color:#8e2121}
-.report-penalty-hit{background:#fff1c7!important;border-radius:6px}
+.report-penalty-hit{background:#fff1c7!important;border-radius:6px;font-weight:800}
 .report-penalty-hit.severe{background:#ffd8d5!important}
 .repro-score-hit-row td{background:#fff4d5}
 .repro-score-hit-row td:last-child{font-weight:800}
