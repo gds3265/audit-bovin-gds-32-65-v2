@@ -1,0 +1,7 @@
+Audit Bovin v14.6.21.89
+
+Corrections :
+- corrige l'erreur JavaScript « splitUsefulLines is not defined » sur l'écran Visites ;
+- ajoute « Pourquoi cette priorité ? » sous chaque priorité de l'audit ciblé ;
+- le même motif explicatif est repris dans le PDF de préparation ;
+- conserve les audits ciblés et le moteur âge/syndrome veaux de la v14.6.21.88.
