@@ -1055,7 +1055,7 @@ body{min-width:0}
   .repro-age-donut-svg{width:min(300px,100%)}
 }
 
-/* v14.6.21.82 — historique reproduction / mortalité sur 10 ans */
+/* v14.6.21.83 — historique reproduction / mortalité sur 10 ans */
 .annual-history-block{margin-top:18px}
 .annual-history-block h4{margin-bottom:4px}
 .annual-history-block h5{margin:14px 0 6px}
@@ -1064,7 +1064,7 @@ body{min-width:0}
 .annual-history-table th:first-child{width:190px;text-align:left;white-space:normal;position:sticky;left:0;background:var(--card,#fff);z-index:1}
 @media(max-width:900px){.annual-history-table{min-width:840px;font-size:.72rem}.annual-history-table th:first-child{width:170px}}
 
-/* v14.6.21.82 — évolution annuelle : amélioration/dégradation */
+/* v14.6.21.83 — évolution annuelle : amélioration/dégradation */
 .annual-history-table td.annual-trend-good{color:#15803d;font-weight:800;background:rgba(34,197,94,.08)}
 .annual-history-table td.annual-trend-bad{color:#b91c1c;font-weight:800;background:rgba(239,68,68,.08)}
 @media print{.annual-history-table td.annual-trend-good{color:#15803d!important;background:#eefbf2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.annual-history-table td.annual-trend-bad{color:#b91c1c!important;background:#fff0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}

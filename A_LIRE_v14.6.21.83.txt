@@ -1,0 +1,2 @@
+Audit Bovin v14.6.21.83
+Correction PDF vaches à problème : styles appliqués directement aux cellules (gras + couleur) et score vert/orange/rouge, y compris lorsque le moteur PDF ignore certains styles CSS.
