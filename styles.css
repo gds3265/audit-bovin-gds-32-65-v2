@@ -1023,7 +1023,7 @@ body{min-width:0}
 /* v14.6.21.67 — estimation économique pré-visite */
 .prep-economy-card .metric strong{font-size:1.55rem}.prep-economy-card .compact-table td,.prep-economy-card .compact-table th{font-size:.92rem}.prep-econ-settings small,.prep-econ-adjust small{display:block;color:var(--muted);margin-top:4px}.prep-economy-card tfoot th{font-size:1.05rem}.prep-economy-card .notice{margin-top:10px}
 
-/* v14.6.21.75 — répartition femelles par tranches d'âge + mise en évidence des pénalités reproduction */
+/* v14.6.21.76 — répartition femelles par tranches d'âge + mise en évidence des pénalités reproduction */
 .repro-age-distribution-card{overflow:visible}
 .repro-age-standalone{padding:0}
 .repro-age-overview.grouped{grid-template-columns:minmax(250px,340px) 1fr;align-items:start}

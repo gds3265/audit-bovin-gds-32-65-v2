@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 — v14.6.21.76
+
+Correctif de stabilité après v73/v74.
+- correction des déclarations de fonctions fusionnées ayant bloqué les clics
+- conservation des ajouts : répartition femelles par tranches d’âge, mâles détaillés, critères pénalisants mis en évidence
+
+Décompresser l’ensemble du ZIP avant import sur GitHub.
