@@ -1094,3 +1094,15 @@ body{min-width:0}
 .renewal-factory{margin-top:14px;border-top:1px solid #ead9e1;padding-top:10px}.renewal-funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 12px}.renewal-funnel article{border:1px solid #e5d3dc;border-radius:10px;padding:9px;background:#fff9fc}.renewal-funnel strong,.renewal-funnel span,.renewal-funnel small{display:block}.renewal-funnel strong{font-size:1.2rem;color:#b53670}.renewal-funnel small{color:#6d7280;margin-top:3px}@media(max-width:850px){.renewal-funnel{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{.renewal-funnel{grid-template-columns:repeat(4,1fr);gap:4px}.renewal-funnel article{padding:5px}.renewal-factory table th,.renewal-factory table td{font-size:7.2pt;padding:3px}}
 .decision-theme.pending{border-left-color:#8a94a3;background:#f5f7f9;color:#3e4854}
 .decision-theme.pending span{font-weight:800;color:#596574}
+
+/* v14.6.21.88 — audit ciblé */
+.targeted-audit-card{border:2px solid #ead5df;background:linear-gradient(180deg,#fff,#fff9fc);margin:14px 0}
+.targeted-audit-card .target-tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.target-priorities{display:grid;gap:8px;margin-top:10px}
+.target-priorities>article{display:grid;grid-template-columns:34px 1fr;gap:10px;border:1px solid #e1d7dc;border-radius:10px;padding:9px;background:#fff}
+.target-priorities>article>span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#b53670;color:#fff;font-weight:800}
+.target-priorities strong,.target-priorities small{display:block}.target-priorities small{color:#68716d;margin:2px 0 5px}.target-priorities ul{margin:5px 0 8px;padding-left:18px}
+.targeted-syndrome-editor{margin:10px 0;border:1px solid #ddd;border-radius:9px;padding:8px 10px;background:#fafafa}
+.syndrome-guidance{margin-top:12px;border-left:5px solid #d59620;background:#fff9e9;padding:10px;border-radius:8px}.syndrome-guidance h4{margin-top:0}.syndrome-guidance article{background:#fff;border:1px solid #eadfbf;border-radius:8px;padding:8px}.syndrome-guidance ul{padding-left:18px;margin:6px 0}
+.targeted-audit-print{border:2px solid #ead5df;border-radius:8px;padding:9px;margin:10px 0;break-inside:avoid}.targeted-audit-print h2{margin-top:0}.targeted-audit-print li{margin-bottom:5px}
+@media(max-width:760px){.target-priorities>article{grid-template-columns:28px 1fr}.syndrome-guidance .grid{grid-template-columns:1fr!important}}

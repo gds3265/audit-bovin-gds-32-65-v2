@@ -1,0 +1,12 @@
+Audit Bovin v14.6.21.88 — Audits ciblés et orientation syndromique veaux
+
+Ajouts :
+- 4 modes d’audit : complet, mortalité jeunes, reproduction, ciblé automatique.
+- Champ libre « Motif / problèmes rencontrés » à la création/modification d’une visite et dans l’audit.
+- Priorisation automatique des rubriques et questions à partir du motif + alertes de pré-visite calculables.
+- Réorganisation des rubriques de l’audit selon les priorités détectées, sans masquer le reste.
+- Pour diarrhée ou troubles respiratoires des veaux : prise en compte de l’âge de début des signes.
+- Causes pathologiques compatibles proposées comme hypothèses à explorer, facteurs de risque à vérifier et prélèvements/questions à discuter avec le vétérinaire.
+- Bloc d’audit adapté repris dans le support préparé et dans le bilan technique pré-visite.
+
+Important : les hypothèses pathologiques ne constituent pas un diagnostic. L’âge et les signes orientent seulement les vérifications terrain et les examens à discuter avec le vétérinaire.
