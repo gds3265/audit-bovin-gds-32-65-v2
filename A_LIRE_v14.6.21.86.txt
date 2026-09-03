@@ -1,0 +1,12 @@
+Audit Bovin v14.6.21.86
+
+Base : v14.6.21.85.
+Ajout : analyse « Fabrique du troupeau » dans l’application et le PDF de préparation :
+- femelles nées par cohorte ;
+- cohorte ayant atteint l’âge repère de mise à la reproduction ;
+- femelles conservées jusque-là et pertes/sorties avant reproduction ;
+- femelles avec recul suffisant et ayant atteint le premier vêlage ;
+- taux de conversion vers le premier vêlage et âge moyen ;
+- réformes/sorties après premier vêlage et âge moyen à la réforme/sortie.
+
+L’âge repère de mise à la reproduction est modifiable dans Audit > Structure du troupeau et renouvellement (24 mois par défaut). Les cohortes trop récentes ne sont pas artificiellement pénalisées : les taux non évaluables restent à « — ».

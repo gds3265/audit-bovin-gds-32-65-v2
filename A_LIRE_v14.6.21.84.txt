@@ -1,4 +1,4 @@
-Audit Bovin v14.6.21.84
+Audit Bovin v14.6.21.86
 
 Nouveautés d'aide à l'analyse :
 - Synthèse prioritaire avant visite (écran + PDF de préparation)

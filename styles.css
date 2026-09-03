@@ -1069,7 +1069,7 @@ body{min-width:0}
 .annual-history-table td.annual-trend-bad{color:#b91c1c;font-weight:800;background:rgba(239,68,68,.08)}
 @media print{.annual-history-table td.annual-trend-good{color:#15803d!important;background:#eefbf2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.annual-history-table td.annual-trend-bad{color:#b91c1c!important;background:#fff0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 
-/* v14.6.21.84 — synthèse décisionnelle transversale */
+/* v14.6.21.85 — synthèse décisionnelle transversale */
 .decision-support{margin:18px 0;padding:16px;border:1px solid #ead5df;border-radius:14px;background:#fff}
 .decision-support>h2{margin-top:0}.decision-theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0 16px}
 .decision-theme{border:1px solid #d9dde2;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px;background:#fff}
@@ -1079,3 +1079,16 @@ body{min-width:0}
 .decision-alert>div{display:flex;flex-direction:column;gap:3px}.decision-alert small{color:#616975}.decision-alert.sev-3{border-left:5px solid #c44848;background:#fff2f2}.decision-alert.sev-2{border-left:5px solid #d59620;background:#fff9e9}.decision-alert.sev-1{border-left:5px solid #4c8cbf;background:#f2f8fd}
 .decision-comparison table td,.decision-comparison table th{white-space:nowrap}.decision-comparison table th:first-child{white-space:normal;text-align:left}.decision-trend-good{color:#176238;background:#e5f5ea;font-weight:800}.decision-trend-bad{color:#a01818;background:#fde4e1;font-weight:800}.decision-trend-neutral{color:#5d6570}
 @media(max-width:700px){.decision-theme-grid{grid-template-columns:1fr 1fr}.decision-alert{align-items:flex-start;flex-direction:column}.decision-comparison{overflow-x:auto}}
+
+/* v14.6.21.85 — aide à l'analyse transversale */
+.decision-onepage{border:2px solid #ead5df;border-radius:14px;padding:14px;margin:14px 0;background:#fffafd}
+.decision-onepage h3{margin-top:0}.decision-onepage ul,.decision-onepage ol{margin:6px 0;padding-left:20px}
+.decision-topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:12px 0}
+.decision-topic-grid article{border:1px solid #dde2e6;border-radius:10px;padding:10px;background:#fff}
+.decision-hypotheses{margin:14px 0}.decision-hypotheses article{margin:8px 0}
+.decision-movement-history{margin:16px 0}.decision-followup{margin:16px 0}.decision-followup select{min-width:150px}
+.decision-trend-good small,.decision-trend-bad small,.decision-trend-neutral small{font-weight:400;color:inherit;white-space:normal;display:block;max-width:300px}
+@media(max-width:700px){.decision-onepage .grid.cols-2,.decision-topic-grid{grid-template-columns:1fr}.decision-followup table{font-size:12px}}
+
+/* v14.6.21.86 — fabrique du troupeau */
+.renewal-factory{margin-top:14px;border-top:1px solid #ead9e1;padding-top:10px}.renewal-funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 12px}.renewal-funnel article{border:1px solid #e5d3dc;border-radius:10px;padding:9px;background:#fff9fc}.renewal-funnel strong,.renewal-funnel span,.renewal-funnel small{display:block}.renewal-funnel strong{font-size:1.2rem;color:#b53670}.renewal-funnel small{color:#6d7280;margin-top:3px}@media(max-width:850px){.renewal-funnel{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{.renewal-funnel{grid-template-columns:repeat(4,1fr);gap:4px}.renewal-funnel article{padding:5px}.renewal-factory table th,.renewal-factory table td{font-size:7.2pt;padding:3px}}

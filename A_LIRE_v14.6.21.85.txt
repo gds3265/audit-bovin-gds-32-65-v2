@@ -1,0 +1,12 @@
+Audit Bovin v14.6.21.85
+
+Évolutions principales :
+- tendance N/N-1 corrigée : un recul ponctuel n'est plus qualifié de dégradation si N et N-1 restent meilleurs que la moyenne des 5 années précédentes ;
+- tableau de bord transversal enrichi : reproduction, mortalité/veaux, renouvellement, veaux/colostrum, mouvements/introductions, sanitaire, biosécurité, alimentation, eau, logement/litière ;
+- alertes calculées à partir des données déjà saisies, sans doublonner les questionnaires eau/bâtiment/veaux ;
+- hypothèses à vérifier par croisement des thèmes (non diagnostiques) ;
+- historique 10 ans des mouvements/introductions, sorties, mortalité adulte et indicateurs de renouvellement issus du registre ;
+- synthèse alimentation/ration à risque à partir des couvertures calculables ;
+- suivi des recommandations de la visite précédente (fait / partiellement fait / non fait / à vérifier) ;
+- lecture synthétique « 30 secondes » dans le logiciel et dans le PDF de préparation ;
+- synthèse sanitaire comparée à la visite précédente quand elle existe.
