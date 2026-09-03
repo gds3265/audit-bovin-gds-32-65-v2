@@ -1054,3 +1054,12 @@ body{min-width:0}
   .repro-age-overview.grouped{grid-template-columns:1fr}
   .repro-age-donut-svg{width:min(300px,100%)}
 }
+
+/* v14.6.21.80 — historique reproduction / mortalité sur 10 ans */
+.annual-history-block{margin-top:18px}
+.annual-history-block h4{margin-bottom:4px}
+.annual-history-block h5{margin:14px 0 6px}
+.annual-history-table{table-layout:fixed;min-width:900px;font-size:.78rem}
+.annual-history-table th,.annual-history-table td{padding:6px 5px;text-align:center;white-space:nowrap}
+.annual-history-table th:first-child{width:190px;text-align:left;white-space:normal;position:sticky;left:0;background:var(--card,#fff);z-index:1}
+@media(max-width:900px){.annual-history-table{min-width:840px;font-size:.72rem}.annual-history-table th:first-child{width:170px}}
