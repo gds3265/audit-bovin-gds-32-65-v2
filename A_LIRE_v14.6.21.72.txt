@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 — v14.6.21.72
+
+Correctif final documentation / préparation :
+- Dans Préparation > Documents imprimables, le support spécifique est renommé « Bilan technique préparatoire ».
+- Le bilan intègre les graphiques Xper : évolution IVV, histogramme des mortalités par classe d’âge, introductions / mouvements du troupeau.
+- Le regroupement Imports / technico-éco de la v14.6.21.71 est conservé.
+- Aucun autre fonctionnement métier n’est modifié.
