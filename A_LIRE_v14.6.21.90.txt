@@ -1,0 +1,7 @@
+Audit Bovin v14.6.21.90
+
+- Création de visite simplifiée : exploitation, date, technicien, type, objectif et statut.
+- Le mode d’audit et le motif/problèmes ne sont plus demandés avant les imports.
+- L’orientation de l’audit est déplacée dans Préparation / Imports, après les données préparatoires.
+- Le mode ciblé automatique peut donc réellement s’appuyer sur la pré-visite puis être affiné par le motif signalé.
+- Le bouton/volet « Pourquoi cette priorité ? » est conservé.
