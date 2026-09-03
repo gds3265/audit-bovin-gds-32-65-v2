@@ -1,0 +1,7 @@
+Audit Bovin v14.6.21.82
+
+Corrections :
+- PDF : couleurs d'évolution annuelle réellement intégrées au document imprimé/PDF (vert amélioration, rouge dégradation).
+- PDF : camembert des âges réduit.
+- PDF : graphiques IVV, mortalité et mouvements réduits pour gagner de la place.
+- Toutes les fonctions de la v14.6.21.81 sont conservées.
