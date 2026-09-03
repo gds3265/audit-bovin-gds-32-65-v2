@@ -1068,3 +1068,14 @@ body{min-width:0}
 .annual-history-table td.annual-trend-good{color:#15803d;font-weight:800;background:rgba(34,197,94,.08)}
 .annual-history-table td.annual-trend-bad{color:#b91c1c;font-weight:800;background:rgba(239,68,68,.08)}
 @media print{.annual-history-table td.annual-trend-good{color:#15803d!important;background:#eefbf2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.annual-history-table td.annual-trend-bad{color:#b91c1c!important;background:#fff0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* v14.6.21.84 — synthèse décisionnelle transversale */
+.decision-support{margin:18px 0;padding:16px;border:1px solid #ead5df;border-radius:14px;background:#fff}
+.decision-support>h2{margin-top:0}.decision-theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0 16px}
+.decision-theme{border:1px solid #d9dde2;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px;background:#fff}
+.decision-theme.good{border-left:5px solid #38945b;background:#f2fbf5}.decision-theme.warn{border-left:5px solid #d59620;background:#fff9e9}.decision-theme.bad{border-left:5px solid #c44848;background:#fff1f1}
+.decision-theme span{font-weight:800}.decision-theme small{color:#606773}.decision-alert-list{display:grid;gap:8px;margin:8px 0 16px}
+.decision-alert{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e0dfe2;border-radius:10px;padding:9px 11px;background:#fff}
+.decision-alert>div{display:flex;flex-direction:column;gap:3px}.decision-alert small{color:#616975}.decision-alert.sev-3{border-left:5px solid #c44848;background:#fff2f2}.decision-alert.sev-2{border-left:5px solid #d59620;background:#fff9e9}.decision-alert.sev-1{border-left:5px solid #4c8cbf;background:#f2f8fd}
+.decision-comparison table td,.decision-comparison table th{white-space:nowrap}.decision-comparison table th:first-child{white-space:normal;text-align:left}.decision-trend-good{color:#176238;background:#e5f5ea;font-weight:800}.decision-trend-bad{color:#a01818;background:#fde4e1;font-weight:800}.decision-trend-neutral{color:#5d6570}
+@media(max-width:700px){.decision-theme-grid{grid-template-columns:1fr 1fr}.decision-alert{align-items:flex-start;flex-direction:column}.decision-comparison{overflow-x:auto}}

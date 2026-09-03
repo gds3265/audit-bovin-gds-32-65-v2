@@ -1,0 +1,9 @@
+Audit Bovin v14.6.21.84
+
+Nouveautés d'aide à l'analyse :
+- Synthèse prioritaire avant visite (écran + PDF de préparation)
+- Tableau de bord par thèmes : reproduction, mortalité/veaux, renouvellement, mouvements/biosécurité, alimentation, eau, bâtiment
+- Alertes prioritaires classées et accès aux animaux concernés quand disponible
+- Comparaison N / N-1 / moyenne 5 ans / meilleur résultat 10 ans
+- Indication de prudence selon la taille des effectifs pour mortalité/reproduction
+- Lecture non diagnostique : les alertes servent à prioriser les vérifications terrain
