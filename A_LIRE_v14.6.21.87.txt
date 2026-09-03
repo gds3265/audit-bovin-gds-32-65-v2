@@ -1,0 +1,10 @@
+Audit Bovin v14.6.21.87
+
+Base : v14.6.21.86.
+
+Corrections :
+- Pré-visite : les thèmes nécessitant des données terrain (veaux/colostrum, alimentation, eau, logement/litière, biosécurité, sanitaire si non renseigné) n'ont plus de score artificiel ; ils affichent « À évaluer pendant la visite ».
+- Les alertes/hypothèses eau/bâtiment/sanitaire ne sont déclenchées que si des données actuelles existent.
+- Fusion des deux tableaux « Mouvements et renouvellement » et « Fabrique du troupeau » en un tableau historique global sur 10 ans.
+- Les tuiles de la fabrique du troupeau et le tableau global utilisent les mêmes cohortes et les mêmes calculs.
+- Âge moyen à la réforme affiché en années + mois (ex. 8 ans 4 mois) au lieu d'un total en mois.

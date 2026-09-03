@@ -1092,3 +1092,5 @@ body{min-width:0}
 
 /* v14.6.21.86 — fabrique du troupeau */
 .renewal-factory{margin-top:14px;border-top:1px solid #ead9e1;padding-top:10px}.renewal-funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 12px}.renewal-funnel article{border:1px solid #e5d3dc;border-radius:10px;padding:9px;background:#fff9fc}.renewal-funnel strong,.renewal-funnel span,.renewal-funnel small{display:block}.renewal-funnel strong{font-size:1.2rem;color:#b53670}.renewal-funnel small{color:#6d7280;margin-top:3px}@media(max-width:850px){.renewal-funnel{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{.renewal-funnel{grid-template-columns:repeat(4,1fr);gap:4px}.renewal-funnel article{padding:5px}.renewal-factory table th,.renewal-factory table td{font-size:7.2pt;padding:3px}}
+.decision-theme.pending{border-left-color:#8a94a3;background:#f5f7f9;color:#3e4854}
+.decision-theme.pending span{font-weight:800;color:#596574}
