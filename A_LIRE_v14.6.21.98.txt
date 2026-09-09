@@ -1,0 +1,4 @@
+Audit Bovin GDS 32-65 v14.6.21.98
+- Ajout graphique des sorties vendues sur 10 ans : <8 m, 8-16 m, 16-36 m, >36 m, ventilé F/M et causes E+H vs B, mortalité M exclue.
+- Graphique mouvements : ajout courbe femelles >36 mois présentes par année.
+- Répartition des femelles par âge : détail annuel à côté du graphique et graphique agrandi.
