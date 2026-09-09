@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.95
+
+Modifications principales :
+- Bilan technique préparatoire + Rapport Expert alignés sur les mêmes synthèses registre bovins.
+- PDF/impression : pagination améliorée (titres gardés avec leur contenu, paragraphes et lignes de tableau non coupés autant que possible, répétition des en-têtes de tableau), police légèrement agrandie.
+- Synthèse prioritaire : suppression des notes /100 et des libellés « satisfaisant / à surveiller » ; maintien du code couleur. Suppression des tuiles Sanitaire, Biosécurité, Alimentation, Eau et Logement.
+- Repères complémentaires : suppression des cadres Alimentation et Sanitaire.
+- Mortalité par classe d'âge sur 10 ans : hauteur des bâtons = nombre de morts ; pourcentage de chaque classe affiché dans le segment, arrondi proprement à 1 décimale. Classes d'âge rendues mutuellement exclusives.
+- Vaches à problèmes : libellé exact « Rang de vêlage » ; jours depuis vêlage orange >400 j, rouge >450 j ; ajout mère et père ; parent récurrent mis en gras avec nombre d'occurrences, notamment pour repérer les lignées paternelles.
+- Rapport Expert : ajout de la synthèse prioritaire et des graphiques 10 ans issus du registre complet, avec année civile et année en cours signalée comme tronquée.
+- Répartition des femelles par âge dans le Rapport Expert : graphique + détail par année, sans répétition des grandes catégories sous le graphique.

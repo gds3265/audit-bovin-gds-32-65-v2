@@ -1,4 +1,4 @@
-Audit Bovin GDS 32-65 — v14.6.21.94
+Audit Bovin GDS 32-65 — v14.6.21.95
 
 Modifications du bilan technique préparatoire :
 - source technique principale : registre bovins complet (fichier contenant tous les animaux et mouvements), sans dépendre du bilan sanitaire Xper pour les synthèses du document ;

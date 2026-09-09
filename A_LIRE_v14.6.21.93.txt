@@ -1,4 +1,4 @@
-Audit Bovin v14.6.21.94
+Audit Bovin v14.6.21.95
 
 Bilan technique préparatoire :
 - §2 Répartition des femelles par âge : suppression sous le graphique de la répétition chiffrée des classes d’âge ; le détail année par année et le graphique étiqueté sont conservés.
