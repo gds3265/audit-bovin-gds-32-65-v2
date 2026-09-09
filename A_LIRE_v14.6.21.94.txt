@@ -1,0 +1,15 @@
+Audit Bovin GDS 32-65 — v14.6.21.94
+
+Modifications du bilan technique préparatoire :
+- source technique principale : registre bovins complet (fichier contenant tous les animaux et mouvements), sans dépendre du bilan sanitaire Xper pour les synthèses du document ;
+- historiques et ratios hors rubrique Reproduction récente calculés par années civiles ;
+- année de visite conservée du 01/01 à la date de visite et signalée explicitement comme tronquée/provisoire ;
+- rubrique 3 Reproduction conservée sur les 12 derniers mois avec dates affichées ;
+- graphique IVV remplacé par un historique 10 ans issu du registre ;
+- graphique mortalité sur 10 ans en pourcentage des décès annuels par classe d’âge ;
+- graphique introductions / mouvements sur 10 ans ;
+- couleurs de légende identiques aux couleurs des séries du graphique ;
+- Vaches à problèmes : jours depuis vêlage orange >400 j, rouge >450 j ; ajout du rang de vêlage / nombre de veaux ;
+- Femelles >36 mois sans vêlage : ajout de la taille de cohorte de naissance, de la mère et du père lorsqu’ils sont renseignés.
+
+La v14.6.21.93 n'a pas besoin d'être installée avant cette version.

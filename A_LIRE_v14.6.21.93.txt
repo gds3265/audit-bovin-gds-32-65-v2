@@ -1,0 +1,5 @@
+Audit Bovin v14.6.21.94
+
+Bilan technique préparatoire :
+- §2 Répartition des femelles par âge : suppression sous le graphique de la répétition chiffrée des classes d’âge ; le détail année par année et le graphique étiqueté sont conservés.
+- §3 Reproduction — 12 derniers mois : suppression de la tuile séparée « IVV calculables ». La tuile devient « IVV moyen sur X femelle(s) » avec X = nombre de femelles distinctes ayant un IVV calculable sur la période.
