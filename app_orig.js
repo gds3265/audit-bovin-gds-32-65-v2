@@ -921,7 +921,7 @@ function renderFarms() {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form));
     if (!data.name.trim()) return;
-    db.farms.push({ id: uid('farm'), ...data, buildings:[], documents:[], journal:[], vigilances:[], registryLinked: !!registryAnimal, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+    db.farms.push({ id: uid('farm'), ...data, buildings:[], documents:[], journal:[], vigilances:[], registryLinked: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
     saveDatabase(db); clearDraft(); showToast('Exploitation ajoutée.'); renderFarms();
   });
   app.querySelectorAll('[data-open-farm-journal]').forEach(button=>button.onclick=()=>{localStorage.setItem('audit-bovin-journal-farm',button.dataset.openFarmJournal);setView('journal');});

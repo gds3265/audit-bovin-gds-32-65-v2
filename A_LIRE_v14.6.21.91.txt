@@ -1,0 +1,8 @@
+Audit Bovin v14.6.21.91
+
+Correction urgente — création d'une exploitation
+- Corrige l'erreur JavaScript « registryAnimal is not defined » lors de l'ajout d'une exploitation.
+- Une nouvelle exploitation est désormais créée avec registryLinked=false ; le rattachement au registre animal reste géré ensuite par les imports / données de reproduction.
+- Version incrémentée pour forcer le rafraîchissement du cache PWA/service worker.
+
+Base : v14.6.21.90
