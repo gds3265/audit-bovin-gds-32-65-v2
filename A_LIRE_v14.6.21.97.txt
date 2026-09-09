@@ -1,0 +1,10 @@
+Audit Bovin GDS 32-65 — v14.6.21.97
+
+Optimisation des graphiques dans les PDF :
+- graphiques 10 ans élargis à toute la largeur utile de la page ;
+- suppression de la limite de largeur à 650 px ;
+- hauteur des graphiques augmentée ;
+- libellés, axes, valeurs et pourcentages agrandis ;
+- légendes agrandies et mieux réparties ;
+- marges internes des cartes graphiques réduites pour exploiter davantage la page ;
+- mêmes règles appliquées au bilan technique préparatoire et au rapport Expert.
