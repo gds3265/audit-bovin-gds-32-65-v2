@@ -1,0 +1,10 @@
+Audit Bovin GDS 32-65 — v14.6.21.96
+
+Corrections PDF :
+- police nettement agrandie dans le bilan technique préparatoire et le rapport expert ;
+- marges A4 explicites ;
+- pagination intelligente avant impression : un titre est repoussé à la page suivante lorsqu’il resterait sans contenu utile dessous ;
+- cartes, graphiques, lignes de tableaux et blocs courts gardés ensemble autant que possible ;
+- en-têtes de tableaux répétés sur les pages suivantes ;
+- paragraphes protégés par règles veuves/orphelines ;
+- tableaux denses agrandis sans compromettre excessivement la largeur.
