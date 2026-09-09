@@ -1,0 +1,11 @@
+Audit Bovin v14.6.21.92
+
+Corrections / améliorations :
+- Fabrique du troupeau : chaque tuile précise la cohorte réellement prise en compte.
+- Les indicateurs 1er vêlage et réforme utilisent la dernière cohorte disposant d’un recul suffisant ; plus de faux 0 liés à une cohorte trop jeune.
+- Ajout du nombre et du pourcentage de femelles ayant un 1er vêlage après 36 mois sur les 12 derniers mois.
+- Alerte « 1er vêlage tardif » enrichie avec le nombre de femelles concernées.
+- Synthèse avant visite allégée : une seule liste « À creuser en priorité » ; suppression des répétitions entre alertes, points à risque et 3 priorités.
+- Conservation des repères complémentaires, points forts et hypothèses de travail sans répéter les alertes.
+
+Base : v14.6.21.91
