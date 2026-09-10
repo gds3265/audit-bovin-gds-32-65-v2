@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 v14.6.21.99
+
+- Répartition des femelles par âge : camembert nettement agrandi, détail annuel conservé à droite, dans le bilan pré-visite et le rapport expert.
+- Rapport Expert / Données technico-économiques : suppression des anciens graphiques IVV, mortalité et mouvements N/N-1/N-2 (les historiques 10 ans sont conservés dans Reproduction).
+- Graphique mouvements 10 ans : valeurs numériques ajoutées sur les bâtons.
+- Sorties vendues 10 ans : deux graphiques séparés, E/H d'un côté et B de l'autre, avec ventilation Femelles/Mâles et classes d'âge.
+- Sorties M toujours exclues de ce graphique.

@@ -1112,3 +1112,26 @@ body{min-width:0}
 .sale-exit-panels{display:grid;grid-template-columns:1fr;gap:14px}.sale-exit-panel h5{margin:6px 0 4px;font-size:1rem}.sale-exit-panel .herd-chart-legend{gap:7px}.sale-exit-panel .herd-chart-legend span{font-size:.76rem}.repro-age-overview.grouped{grid-template-columns:minmax(390px,1.25fr) minmax(250px,.75fr);gap:18px;align-items:center}.repro-age-donut-svg{width:min(430px,100%);max-width:430px}.repro-age-overview.grouped .repro-age-legend{grid-template-columns:repeat(2,minmax(115px,1fr));gap:5px}.repro-age-overview.grouped .repro-age-legend-item{padding:6px 8px;font-size:.88rem}
 @media(max-width:760px){.repro-age-overview.grouped{grid-template-columns:1fr}.repro-age-donut-svg{width:min(340px,100%)}}
 @media print{.repro-age-overview.grouped{grid-template-columns:58% 42%!important;gap:10px!important;align-items:center!important}.repro-age-donut-svg{width:100%!important;max-width:none!important}.repro-age-overview.grouped .repro-age-legend{grid-template-columns:repeat(2,1fr)!important;gap:3px!important}.repro-age-overview.grouped .repro-age-legend-item{padding:4px 5px!important;font-size:8.8pt!important}.sale-exit-panel{break-inside:avoid;page-break-inside:avoid}.sale-exit-card{break-inside:auto!important;page-break-inside:auto!important}}
+
+
+/* v14.6.21.99 — lisibilité PDF : camembert âge agrandi, sorties séparées E/H et B */
+.repro-age-overview.grouped{grid-template-columns:minmax(470px,1.45fr) minmax(250px,.55fr);gap:22px;align-items:center}
+.repro-age-donut-svg{width:min(560px,100%);max-width:560px}
+.repro-age-donut-label text{font-size:14px}
+.repro-age-donut-total{font-size:2rem}
+.repro-age-donut-sub{font-size:.9rem}
+.sale-exit-panels.separated-causes{display:grid;grid-template-columns:1fr;gap:18px}
+.sale-exit-panel.cause-panel{border-top:1px solid #eadde3;padding-top:8px}
+.sale-sex-hint{display:flex;gap:14px;margin:4px 0 6px;font-size:.78rem;color:#56635c}.sale-sex-hint span{display:inline-flex;align-items:center;gap:4px}
+@media(max-width:760px){.repro-age-overview.grouped{grid-template-columns:1fr}.repro-age-donut-svg{width:min(430px,100%)}}
+@media print{
+  .repro-age-overview.grouped{grid-template-columns:64% 36%!important;gap:8mm!important;align-items:center!important}
+  .repro-age-chart-panel{width:100%!important}
+  .repro-age-donut-svg{width:100%!important;max-width:none!important;min-height:105mm!important}
+  .repro-age-donut-label text{font-size:15px!important}
+  .repro-age-donut-total{font-size:2.15rem!important}
+  .repro-age-donut-sub{font-size:.95rem!important}
+  .repro-age-overview.grouped .repro-age-legend{grid-template-columns:1fr!important;gap:3px!important}
+  .repro-age-overview.grouped .repro-age-legend-item{padding:4px 6px!important;font-size:9.5pt!important}
+  .sale-exit-panel.cause-panel{break-inside:avoid!important;page-break-inside:avoid!important}
+}
