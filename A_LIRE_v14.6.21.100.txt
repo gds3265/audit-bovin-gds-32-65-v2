@@ -1,0 +1,6 @@
+Audit Bovin GDS 32-65 v14.6.21.100
+
+- Correction des options de rapports : les cases cochées/décochées sont désormais mémorisées par visite et par type de rapport.
+- Ajout d’un export Excel depuis l’onglet Mesures.
+- Le classeur Excel contient : Mesures individuelles, Observations, Tamis à bouses, Silos/ensilages, Sol, Plantes/herbe.
+- L’export reprend l’exploitation et la date de visite dans le nom du fichier.
