@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 v14.6.21.101
+
+Correction Documents de l’exploitation :
+- la synchronisation cloud ne rerend plus l’écran Documents pendant une saisie ;
+- le fichier choisi ne disparaît plus à cause d’un rafraîchissement automatique du DOM ;
+- le titre/commentaire restent saisis jusqu’à l’enregistrement ;
+- la synchronisation reprend normalement dès qu’on quitte l’écran Documents.
