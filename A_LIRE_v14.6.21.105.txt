@@ -1,0 +1,10 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.105
+
+Notes terrain :
+- dictée vocale directe quand le navigateur prend en charge SpeechRecognition ;
+- export des notes en .txt pour transmission/retraitement externe ;
+- classement par grands thèmes ;
+- validation manuelle avant intégration ;
+- intégration des thèmes dans les synthèses correspondantes de l'audit, sans effacer les notes brutes.
+
+La dictée dépend des capacités du navigateur/appareil et peut nécessiter une connexion réseau selon le moteur vocal utilisé.

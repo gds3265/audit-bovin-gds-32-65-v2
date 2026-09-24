@@ -1,0 +1,9 @@
+Audit Bovin GDS 32-65 — v14.6.21.104
+
+Corrections Notes terrain :
+- l’écran Notes terrain n’est plus rechargé automatiquement lors des fusions cloud ;
+- position de lecture, curseur et défilement du bloc-notes sont mémorisés ;
+- zone de notes agrandie ;
+- le retraitement regroupe désormais les informations par grands thèmes au lieu de créer une proposition pour chaque phrase ;
+- les titres de sections d’un compte rendu (alimentation, abreuvement, reproduction, sanitaire, etc.) sont reconnus et leurs paragraphes regroupés ;
+- les éléments non reconnus sont réunis dans un seul bloc « À classer ».
