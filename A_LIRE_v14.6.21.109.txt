@@ -1,0 +1,11 @@
+Audit Bovin GDS 32-65 — v14.6.21.109
+
+Corrections principales :
+- Base de travail déplacée vers IndexedDB pour éviter le quota localStorage en exploitation.
+- Migration automatique de l’ancienne base locale vers IndexedDB.
+- File d’écritures locales sérialisée : une saisie récente ne peut pas être écrasée par une sauvegarde plus ancienne.
+- La synchronisation cloud continue à partir de la base en mémoire et les fusions sont persistées dans IndexedDB.
+- Dictée : affichage du texte en direct dans la zone de notes.
+- Dictée : déduplication par index de résultat + fusion entre redémarrages Android.
+- Dictée : récupération du dernier segment intermédiaire lors d’une coupure moteur pour limiter les mots perdus.
+- Chaque segment final est sauvegardé immédiatement.

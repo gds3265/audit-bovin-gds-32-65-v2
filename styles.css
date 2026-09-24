@@ -1141,3 +1141,11 @@ body{min-width:0}
 .quick-note-item:last-child{border-bottom:0}
 .quick-note-item textarea{min-height:70px}
 @media(max-width:800px){.quick-note-item{grid-template-columns:1fr}.quick-field-notes textarea{min-height:42vh}}
+
+/* v14.6.21.109 — dictée stabilisée et analyses complémentaires */
+.quick-field-notes #quick-note-live-preview{border-left:4px solid var(--primary,#b72f6d);font-size:1.02rem;line-height:1.45}
+.supplemental-blood-card details{margin-top:8px}
+.supplemental-blood-choices{margin-top:10px}
+.supplemental-blood-table input{min-width:92px}
+.glucose-converter{margin-top:16px;padding-top:14px;border-top:1px solid #ead8e1}
+.glucose-converter .notice{margin-top:8px;font-size:1.05rem}
