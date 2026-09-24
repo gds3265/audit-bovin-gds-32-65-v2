@@ -1,0 +1,6 @@
+Audit Bovin GDS 32-65 — v14.6.21.102
+
+- Documents : l’écran Documents est désormais protégé des rerendus cloud pendant la saisie.
+- Pièces jointes : stockage des fichiers en IndexedDB pour éviter la limite de localStorage ; métadonnées synchronisées.
+- IVV : les tuiles cliquables affichent désormais les animaux réellement concernés, avec dates des deux vêlages et IVV.
+- La tuile IVV moyen indique le nombre de femelles concernées.

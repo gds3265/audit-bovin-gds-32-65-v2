@@ -16,7 +16,20 @@ function loadJson(key, fallback) {
   catch { return fallback; }
 }
 function saveJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-function localDb() { return loadJson(DB_KEY, { farms: [], visits: [], updatedAt: '' }); }
+function localDb() {
+  if(window.__auditBovinMemoryDb) return window.__auditBovinMemoryDb;
+  const value=loadJson(DB_KEY, { farms: [], visits: [], updatedAt: '' });
+  window.__auditBovinMemoryDb=value;
+  return value;
+}
+function persistMergedDb(payload){
+  window.__auditBovinMemoryDb=payload;
+  try{localStorage.setItem(DB_KEY,JSON.stringify(payload));return true;}
+  catch(e){
+    try{localStorage.removeItem('audit-bovin-v10-backup-before-10-7');localStorage.removeItem('audit-bovin-open-details-v35');localStorage.setItem(DB_KEY,JSON.stringify(payload));return true;}
+    catch(e2){console.warn('Base fusionnée gardée en mémoire : stockage local saturé.',e2);return false;}
+  }
+}
 function normalizeUrl(url='') { return url.trim().replace(/\/+$/, ''); }
 function configured() { return !!(config?.url && config?.key); }
 function signedIn() { return !!(session?.access_token && session?.user?.email); }
@@ -84,7 +97,7 @@ function cloudEditableActive(){
 }
 function commitMergedLocal(payload,message=''){
   payload=applyDeletionTombstones(payload);
-  localStorage.setItem(DB_KEY,JSON.stringify(payload));
+  persistMergedDb(payload);
   window.dispatchEvent(new CustomEvent('audit-bovin-cloud-merged',{detail:{message}}));
 }
 function scheduleDeferredMergeFlush(delay=450){

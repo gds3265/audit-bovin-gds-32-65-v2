@@ -1,0 +1,5 @@
+Audit Bovin GDS 32-65 — v14.6.21.103
+- Correction saturation localStorage en terrain : suppression de l’ancienne copie de sécurité complète qui doublait la base.
+- Si le quota reste saturé, la saisie ne doit plus être bloquée : maintien en mémoire + synchronisation cloud possible.
+- Ajout Terrain > Notes terrain : bloc-notes autosauvegardé, horodatage rapide, classement assisté par thèmes et intégration validée dans les commentaires de l’audit.
+- Les notes brutes restent conservées pour ne rien perdre.

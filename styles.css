@@ -1135,3 +1135,9 @@ body{min-width:0}
   .repro-age-overview.grouped .repro-age-legend-item{padding:4px 6px!important;font-size:9.5pt!important}
   .sale-exit-panel.cause-panel{break-inside:avoid!important;page-break-inside:avoid!important}
 }
+
+.quick-field-notes textarea{min-height:320px;font-size:1.05rem;line-height:1.45}
+.quick-note-item{display:grid;grid-template-columns:minmax(180px,240px) 1fr auto;gap:12px;align-items:end;padding:12px 0;border-bottom:1px solid var(--border,#ead5df)}
+.quick-note-item:last-child{border-bottom:0}
+.quick-note-item textarea{min-height:70px}
+@media(max-width:800px){.quick-note-item{grid-template-columns:1fr}.quick-field-notes textarea{min-height:42vh}}
