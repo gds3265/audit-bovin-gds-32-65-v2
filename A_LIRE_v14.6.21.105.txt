@@ -1,4 +1,4 @@
-AUDIT BOVIN GDS 32-65 — v14.6.21.105
+AUDIT BOVIN GDS 32-65 — v14.6.21.106
 
 Notes terrain :
 - dictée vocale directe quand le navigateur prend en charge SpeechRecognition ;

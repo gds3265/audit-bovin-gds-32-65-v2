@@ -1,0 +1,7 @@
+AUDIT BOVIN GDS 32-65 — v14.6.21.106
+
+Correction dictée Notes terrain :
+- suppression des répétitions de phrases sur Chrome/Android ;
+- les résultats finaux sont remplacés à leur index au lieu d’être ajoutés à chaque événement vocal ;
+- le texte provisoire est affiché dans le statut mais n’est plus injecté dans les notes ;
+- le texte validé reste sauvegardé normalement.
