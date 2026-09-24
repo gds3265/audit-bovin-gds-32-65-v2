@@ -24,11 +24,13 @@ function localDb() {
 }
 function persistMergedDb(payload){
   window.__auditBovinMemoryDb=payload;
-  try{localStorage.setItem(DB_KEY,JSON.stringify(payload));return true;}
-  catch(e){
-    try{localStorage.removeItem('audit-bovin-v10-backup-before-10-7');localStorage.removeItem('audit-bovin-open-details-v35');localStorage.setItem(DB_KEY,JSON.stringify(payload));return true;}
-    catch(e2){console.warn('Base fusionnée gardée en mémoire : stockage local saturé.',e2);return false;}
+  if(typeof window.__auditBovinPersistDb==='function'){
+    window.__auditBovinPersistDb(payload).catch(e=>console.warn('Sauvegarde IndexedDB de la fusion cloud',e));
+    return true;
   }
+  // Secours uniquement pour très vieux navigateurs : la base principale doit normalement être dans IndexedDB.
+  try{localStorage.setItem(DB_KEY,JSON.stringify(payload));return true;}
+  catch(e){console.warn('Base fusionnée gardée en mémoire : persistance locale indisponible.',e);return false;}
 }
 function normalizeUrl(url='') { return url.trim().replace(/\/+$/, ''); }
 function configured() { return !!(config?.url && config?.key); }
@@ -286,7 +288,7 @@ function bindPanel(root){
   root.querySelector('#cloud-login')?.addEventListener('click',async()=>{const email=root.querySelector('#cloud-email').value.trim(),password=root.querySelector('#cloud-password').value;try{root.querySelector('#cloud-login').disabled=true;await signIn(email,password);closePanel();}catch(e){toast(`Connexion refusée : ${e.message}`);root.querySelector('#cloud-login').disabled=false;}});
   root.querySelector('#cloud-sync-now')?.addEventListener('click',async()=>{await initialSync();closePanel();});
   root.querySelector('#cloud-upload')?.addEventListener('click',async()=>{if(confirm('Envoyer la base de cet appareil et remplacer la base commune actuelle ?')){await uploadState();closePanel();}});
-  root.querySelector('#cloud-download')?.addEventListener('click',async()=>{if(!confirm('Télécharger la base commune et remplacer la base locale de cet appareil ?'))return;try{const remote=await fetchRemoteState();if(!remote)throw new Error('Aucune base commune');localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));location.reload();}catch(e){toast(e.message);}});
+  root.querySelector('#cloud-download')?.addEventListener('click',async()=>{if(!confirm('Télécharger la base commune et remplacer la base locale de cet appareil ?'))return;try{const remote=await fetchRemoteState();if(!remote)throw new Error('Aucune base commune');window.__auditBovinMemoryDb=remote.payload;if(typeof window.__auditBovinPersistDb==='function')await window.__auditBovinPersistDb(remote.payload);else localStorage.setItem(DB_KEY,JSON.stringify(remote.payload));location.reload();}catch(e){toast(e.message);}});
   root.querySelector('#cloud-logout')?.addEventListener('click',()=>{signOut();closePanel();});
 }
 window.addEventListener('audit-bovin-db-saved',scheduleUpload);
