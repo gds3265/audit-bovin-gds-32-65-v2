@@ -1144,3 +1144,8 @@ body{min-width:0}
 
 /* v14.6.21.110 — analyses sanguines complémentaires et dictée stabilisée */
 #quick-note-live-preview{border-left:4px solid var(--primary,#b72f6d);font-size:1.02rem;line-height:1.45}.supplemental-blood-card details{margin-top:8px}.supplemental-blood-choices{margin-top:10px}.supplemental-blood-table input{min-width:92px}.glucose-converter{margin-top:16px;padding-top:14px;border-top:1px solid #ead8e1}.glucose-converter .notice{margin-top:8px;font-size:1.05rem}.custom-blood-params{margin-top:10px}
+/* v14.6.21.116 — saisie détaillée analyses de fourrage */
+.forage-lab-details{margin:14px 0;padding:12px 14px;border:1px solid #ead4df;border-radius:12px;background:#fffafd}
+.forage-lab-details>summary{cursor:pointer;font-size:1rem}
+.forage-lab-group{margin-top:14px;padding-top:10px;border-top:1px dashed #ead4df}
+.forage-lab-group h4{margin:0 0 8px}
