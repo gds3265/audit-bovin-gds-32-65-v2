@@ -83,6 +83,9 @@ function applyDeletionTombstones(payload){
   const deleted=[...new Set(Array.isArray(payload.deletedVisitIds)?payload.deletedVisitIds.map(String):[])];
   payload.deletedVisitIds=deleted;
   if(Array.isArray(payload.visits)&&deleted.length){const gone=new Set(deleted);payload.visits=payload.visits.filter(v=>!gone.has(String(v?.id)));}
+  const deletedFeeds=[...new Set(Array.isArray(payload.deletedCustomFeedReferenceIds)?payload.deletedCustomFeedReferenceIds.map(String):[])];
+  payload.deletedCustomFeedReferenceIds=deletedFeeds;
+  if(deletedFeeds.length&&payload.settings&&Array.isArray(payload.settings.customFeedReferences)){const goneFeeds=new Set(deletedFeeds);payload.settings.customFeedReferences=payload.settings.customFeedReferences.filter(r=>!goneFeeds.has(String(r?.id)));}
   return payload;
 }
 // v14.6.21.11 — protection de la saisie terrain.

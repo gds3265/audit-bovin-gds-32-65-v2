@@ -1,0 +1,7 @@
+Audit Bovin GDS 32-65 — v14.6.21.115
+
+- Notes terrain simplifiées : zone de texte libre + export TXT uniquement.
+- Suppression de la dictée vocale et du classement automatique des notes.
+- Conservation de l'auto-enregistrement et de la position de lecture dans les notes.
+- Messages d'erreur globaux dédupliqués pour éviter l'empilement de bandeaux identiques.
+- Nouveau cache PWA v14.6.21.115 pour forcer le renouvellement des fichiers après mise à jour.
