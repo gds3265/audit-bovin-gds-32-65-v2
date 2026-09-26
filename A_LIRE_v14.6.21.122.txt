@@ -1,0 +1,12 @@
+Audit Bovin GDS 32-65 — v14.6.21.122
+
+Ajouts principaux :
+- lecture fonctionnelle des oligo-éléments par problématique (reproduction, immunité, croissance, peau/onglons, anémie, stress oxydatif) ;
+- mise en évidence des antagonismes possibles à partir des analyses disponibles ;
+- lecture transversale sol → végétaux/fourrages → eau → ration → animal ;
+- condensé automatique de ce cycle dans le Rapport Expert.
+
+Important : les alertes d'antagonisme sont des aides au raisonnement. Une teneur mesurée dans une matrice ne prouve pas à elle seule une carence fonctionnelle ni un défaut d'assimilation.
+
+
+v14.6.21.122 : export/import complet par éleveur. Le ZIP dossier contient le JSON de l’exploitation, toutes ses visites, imports troupeau associés et les pièces jointes locales disponibles. Reprend aussi les corrections de la v121 sur la déduplication du condensé Sol → fourrage → eau → ration → animal.
