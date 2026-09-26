@@ -1,0 +1,26 @@
+Audit Bovin GDS 32-65 — v14.6.21.123
+
+Ajouts principaux :
+- lecture fonctionnelle des oligo-éléments par problématique (reproduction, immunité, croissance, peau/onglons, anémie, stress oxydatif) ;
+- mise en évidence des antagonismes possibles à partir des analyses disponibles ;
+- lecture transversale sol → végétaux/fourrages → eau → ration → animal ;
+- condensé automatique de ce cycle dans le Rapport Expert.
+
+Important : les alertes d'antagonisme sont des aides au raisonnement. Une teneur mesurée dans une matrice ne prouve pas à elle seule une carence fonctionnelle ni un défaut d'assimilation.
+
+
+v14.6.21.123 : export/import complet par éleveur. Le ZIP dossier contient le JSON de l’exploitation, toutes ses visites, imports troupeau associés et les pièces jointes locales disponibles. Reprend aussi les corrections de la v121 sur la déduplication du condensé Sol → fourrage → eau → ration → animal.
+
+
+NOUVEAU v14.6.21.123
+- Export dossier éleveur : ajoute automatiquement pour chaque visite le bilan technique préparatoire en PDF + Word.
+- Ajoute automatiquement un rapport complet (toutes rubriques disponibles) en PDF + Word.
+- Les fichiers sont classés dans rapports/<date-visite>-<id>/.
+- Le PDF automatique est une copie d’archive textuelle complète ; le Word conserve la mise en forme riche, tableaux, graphiques et photos intégrées.
+
+
+NOUVEAU v14.6.21.123
+- Export dossier éleveur : ajoute automatiquement pour chaque visite le bilan technique préparatoire en PDF + Word.
+- Ajoute automatiquement un rapport complet (toutes rubriques disponibles) en PDF + Word.
+- Les fichiers sont classés dans rapports/<date-visite>-<id>/.
+- Le PDF automatique est une copie d’archive textuelle complète ; le Word conserve la mise en forme riche, tableaux, graphiques et photos intégrées.
