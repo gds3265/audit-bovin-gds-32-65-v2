@@ -1,1 +1,4 @@
 ﻿TYPE;ELEMENT;PARAMETRE;VALEUR;UNITE;DATE;SOURCE;COMMENTAIRE
+SOL;Parcelle exemple;pH eau;6.8;;2026-09-01;Laboratoire;Exemple
+VEGETAL;Prairie exemple;Phosphore;3.2;g/kg MS;2026-09-01;Laboratoire;Exemple
+POILS;Vaches allaitantes;Calcium;880;;2026-09-01;Zone Verte;Exemple
