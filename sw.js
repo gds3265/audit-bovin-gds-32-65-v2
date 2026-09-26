@@ -1,9 +1,9 @@
-const CACHE = 'audit-bovin-pwa-v14.6.21.117';
+const CACHE = 'audit-bovin-pwa-v14.6.21.118';
 const ASSETS = [
-  './?v=14.6.21.117','./index.html?v=14.6.21.117','./styles.css?v=14.6.21.117','./app.js?v=14.6.21.117','./cloud-sync.js?v=14.6.21.117',
-  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.117',
-  './icon-192.png?v=14.6.21.117','./icon-512.png?v=14.6.21.117','./planches-visuelles.png','./jszip.min.js?v=14.6.21.117',
-  './modele-partenaires-passage-bv.xlsx?v=14.6.21.117','./MODELE_IMPORT_CHATGPT.csv?v=14.6.21.117','./questionnaire.html?v=14.6.21.117','./questionnaire.js?v=14.6.21.117','./questionnaire.css?v=14.6.21.117',
+  './?v=14.6.21.118','./index.html?v=14.6.21.118','./styles.css?v=14.6.21.118','./app.js?v=14.6.21.118','./cloud-sync.js?v=14.6.21.118',
+  './analysis-rules.js','./knowledge-base.js','./storage.js','./utils.js','./manifest.webmanifest?v=14.6.21.118',
+  './icon-192.png?v=14.6.21.118','./icon-512.png?v=14.6.21.118','./planches-visuelles.png','./jszip.min.js?v=14.6.21.118',
+  './modele-partenaires-passage-bv.xlsx?v=14.6.21.118','./MODELE_IMPORT_CHATGPT.csv?v=14.6.21.118','./questionnaire.html?v=14.6.21.118','./questionnaire.js?v=14.6.21.118','./questionnaire.css?v=14.6.21.118',
   './memo-aplombs.jpeg','./memo-srr.jpeg','./memo-nec.jpeg','./outil-apera-ph5f.pdf','./outil-control-th.pdf','./outil-extech-ph100.pdf','./outil-extech-re300.pdf',
   './outil-freestyle-optium.pdf','./outil-hanna-hi701.pdf','./outil-laquatwin-4m.pdf','./outil-lysun-uree.pdf','./outil-multimetre.pdf',
   './theme-approche-globale.pdf','./theme-eau-abreuvement.pdf','./theme-feces-digestion.pdf','./theme-fourrages-alimentation.pdf','./theme-lait-colostrum-veaux.pdf',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', event => {
       return response;
     }catch(_){
       const hit=await caches.match(req);if(hit)return hit;
-      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.117'))||(await caches.match('./?v=14.6.21.117'))||(await caches.match('./index.html'));
+      if(req.mode==='navigate')return (await caches.match('./index.html?v=14.6.21.118'))||(await caches.match('./?v=14.6.21.118'))||(await caches.match('./index.html'));
       return Response.error();
     }
   })());
